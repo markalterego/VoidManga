@@ -10,8 +10,7 @@ const ids = ['b0b721ff-c388-4486-aa0f-c2b0bb321512',
 async function getLatestChapter() {
 
     console.clear(); // same as cls
-    console.log('\n|| Fetching newest chapters by given ids...\n'); // empty line
-
+    console.log('\n|| Newest Chapters:\n'); // empty line
 
     for (const id of ids) {
         try {
