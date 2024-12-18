@@ -23,13 +23,14 @@ async function getLatestChapter() {
                 }
             });
             
-            const mangaTitle = mangaResponse.data.data.attributes.title.en; // saving name of the manga
+            const mangaTitle = mangaResponse.data.data; // saving name of the manga
             const latestChapter = chapterResponse.data.data[0]?.attributes; // saving info about latest chapter if available
             const formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date 
 
-            console.log(`|| ${mangaTitle}:`);
+            // condition ? valueIfTrue : valueIfFalse ---> returns title - altTitle if altTitle exists
+            console.log(`||\n|| ${mangaTitle.attributes.title.en}${mangaTitle.attributes.altTitles[0]?.en ? ' - ' + mangaTitle.attributes.altTitles[0].en : ''}\n||`);            
             console.log(`|| Chapter: ${latestChapter.chapter} - \"${latestChapter.title}\"`);
-            console.log(`|| ${formattedDate}\n`);
+            console.log(`|| Published: ${formattedDate}\n||\n`);
         } catch (error) {
             if (error.response) {
                 console.error(`|| ${id}: Error ${error.response.status}: ${error.response.statusText}\n`);
