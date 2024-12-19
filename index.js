@@ -19,7 +19,7 @@ async function getLatestChapter() {
                 params: {
                     manga: id,
                     translatedLanguage: ['en'],
-                    'order[publishAt]': 'desc'
+                    'order[publishAt]': 'desc',
                 }
             });
             
@@ -30,7 +30,8 @@ async function getLatestChapter() {
             // condition ? valueIfTrue : valueIfFalse ---> returns title - altTitle if altTitle exists
             console.log(`||\n|| ${mangaTitle.attributes.title.en}${mangaTitle.attributes.altTitles[0]?.en ? ' - ' + mangaTitle.attributes.altTitles[0].en : ''}\n||`);            
             console.log(`|| Chapter: ${latestChapter.chapter} - \"${latestChapter.title}\"`);
-            console.log(`|| Published: ${formattedDate}\n||\n`);
+            console.log(`|| Published: ${formattedDate}`);
+            console.log(`||\n|| Link: ${'https://mangadex.org/chapter/' + chapterResponse.data.data[0]?.id}\n||\n`);
         } catch (error) {
             if (error.response) {
                 console.error(`|| ${id}: Error ${error.response.status}: ${error.response.statusText}\n`);
