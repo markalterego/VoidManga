@@ -55,7 +55,9 @@ async function pollMAL() {
         const mangalist = [malResponseMangaReading.data.data, malResponseMangaCompleted.data.data]; // [reading, completed]
         
         await fetchSeriesLength(animelist,mangalist); // polling different endpoint for series length
-        logMAL(animelist,mangalist); // logging to console
+
+        const animemangalist = [animelist, mangalist];
+        return animemangalist;
         
     } catch (error) {
         if (error.response) {
@@ -66,7 +68,7 @@ async function pollMAL() {
     }
 }
 
-async function fetchSeriesLength(animelist, mangalist) {
+async function fetchSeriesLength (animelist, mangalist) {
     try {
         for (let i = 0; i < animelist[0].length; i++) // appends number of episodes to watching anime
         {
@@ -99,40 +101,6 @@ async function fetchSeriesLength(animelist, mangalist) {
             
             if (((i+1)%2) === 0) await setTimeout(2000); // avoiding rate limit
         } 
-    } catch (error) {
-        if (error.response) {
-            console.error(`|| Error: ${error.response.status}: ${error.response.statusText}\n`);
-        } else {
-            console.error('|| Error:', error.message, '\n');
-        }
-    }
-}
-
-function logMAL(animelist, mangalist) {
-    try {
-        console.log('\n||\n|| = Animelist =\n||'); // logging MAL personal anime titles
-        console.log('|| (Watching)\n||'); // logging titles marked as 'watching'
-        for (let i = 0; i < animelist[0].length; i++) { 
-            console.log(`|| - ${animelist[0][i].node.title} ( ${animelist[0][i].list_status.num_episodes_watched} / ${animelist[0][i].node.num_episodes ? animelist[0][i].node.num_episodes : 'unknown'} )`);
-            if (i===(animelist[0].length-1)) console.log('||');
-        }
-        console.log('|| (Completed)\n||'); // logging titles marked as 'completed'
-        for (let i = 0; i < animelist[1].length; i++) { 
-            console.log(`|| - ${animelist[1][i].node.title}`);
-            if (i===(animelist[1].length-1)) console.log('||');
-        }
-
-        console.log('\n||\n|| = Mangalist =\n||'); // logging MAL personal manga titles
-        console.log('|| (Reading)\n||'); // logging titles marked as 'reading'
-        for (let i = 0; i < mangalist[0].length; i++) { 
-            console.log(`|| - ${mangalist[0][i].node.title} ( ${mangalist[0][i].list_status.num_chapters_read} / ${mangalist[0][i].node.num_chapters ? mangalist[0][i].node.num_chapters : 'unknown'} )`);
-            if (i===(mangalist[0].length-1)) console.log('||');
-        }
-        console.log('|| (Completed)\n||'); // logging titles marked as 'completed'
-        for (let i = 0; i < mangalist[1].length; i++) { 
-            console.log(`|| - ${mangalist[1][i].node.title}`);
-            if (i===(mangalist[1].length-1)) console.log('||');
-        }
     } catch (error) {
         if (error.response) {
             console.error(`|| Error: ${error.response.status}: ${error.response.statusText}\n`);
