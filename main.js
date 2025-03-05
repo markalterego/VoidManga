@@ -4,16 +4,22 @@ import { filehandle } from "./filehandling/filehandle.js";
 import { log } from "./output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
+import { existsSync } from 'fs';
+
+let lists; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 
 async function main() 
 {
     console.clear(); // same as cls    
-    await pollMangadex(); // searches for newest chapters
-    //const lists = await pollMAL(); // searches and returns MAL lists
+    
+    if (!existsSync('mal.file')) {
+        lists = await pollMAL(); // searches and returns MAL lists
+        await filehandle(lists);
+    } else { 
+        lists = await filehandle();
+    }
 
-    //await menu(lists);
-
-    //filehandle(lists);
+    await menu(lists);
 }
 
 async function menu(lists) {
@@ -23,7 +29,7 @@ async function menu(lists) {
 
     console.clear();
     
-    while (m !== 6) 
+    while (m !== 7) 
     {
         console.log('\n||\n|| What would you like to do?\n||');
         console.log('|| 0 -> Watching anime');
@@ -31,8 +37,9 @@ async function menu(lists) {
         console.log('|| 2 -> Reading manga');
         console.log('|| 3 -> Completed manga');
         console.log('|| 4 -> All of the above');
-        console.log('|| 5 -> Clear screen');
-        console.log('|| 6 -> Exit\n||');
+        console.log('|| 5 -> Poll mangadex');
+        console.log('|| 6 -> Clear screen');
+        console.log('|| 7 -> Exit\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
         m = parseInt(userInput, 10); // convert userinput to int
@@ -57,9 +64,12 @@ async function menu(lists) {
                 await log('all', lists);
                 break;
             case 5:
-                console.clear();
+                await pollMangadex(); // searches for newest chapters   
                 break;
             case 6:
+                console.clear();
+                break;
+            case 7:
                 break;
             default:
                 console.log('\n|| Please input a valid option');
@@ -72,11 +82,11 @@ async function menu(lists) {
 main();
 
 /*
+TODO (or not to do...)
 
-    - pollMangadex should poll into a const, the same as pollMAL
-    
-    - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
+- pollMangadex should poll into a const, the same as pollMAL
 
+- filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
 
 */
 
@@ -93,5 +103,31 @@ then input new keyword to the output
 ||
 || Link: https://mangadex.org/chapter/d08901e2-9d12-4d0f-9b97-4820ed94da9f
 ||
+
+*/
+
+/*
+
+Understanding the layout of lists:
+
+json[0]... = animelist 
+    ...[0] = watching 
+        ...[0 - ?] = specific series 
+            .node/.list_status = info about series at given index
+    ...[1] = completed
+        ---||---
+        
+json[1]... = mangalist
+    ...[0] = reading
+        ---||---
+    ...[1] = completed
+        ---||---
+
+e.g. 
+json[0][0][0].node.title
+json[0][0][0].list_status.num_episodes_watched
+
+console.log('json[0][0][0].node.title:', json[0][0][0].node.title);
+console.log('json[0][0][0].list_status.num_episodes_watched:', json[0][0][0].list_status.num_episodes_watched);
 
 */
