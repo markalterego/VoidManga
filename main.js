@@ -6,7 +6,7 @@ import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { existsSync } from 'fs';
 
-let lists; // holds animelist and mangalist, refer to bottom of file for more info on syntax
+let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 
 async function main() 
 {
@@ -43,7 +43,7 @@ async function menu(lists) {
 
         const userInput = await rl.question('\n|| Input: '); // get user input
         m = parseInt(userInput, 10); // convert userinput to int
-        
+
         console.clear();
 
         switch (m) 
@@ -110,24 +110,24 @@ then input new keyword to the output
 
 Understanding the layout of lists:
 
-json[0]... = animelist 
+lists[0]... = animelist 
     ...[0] = watching 
         ...[0 - ?] = specific series 
             .node/.list_status = info about series at given index
     ...[1] = completed
         ---||---
         
-json[1]... = mangalist
+lists[1]... = mangalist
     ...[0] = reading
         ---||---
     ...[1] = completed
         ---||---
 
 e.g. 
-json[0][0][0].node.title
-json[0][0][0].list_status.num_episodes_watched
+lists[0][0][0].node.title
+lists[0][0][0].list_status.num_episodes_watched
 
-console.log('json[0][0][0].node.title:', json[0][0][0].node.title);
-console.log('json[0][0][0].list_status.num_episodes_watched:', json[0][0][0].list_status.num_episodes_watched);
+console.log('lists[0][0][0].node.title:', lists[0][0][0].node.title);
+console.log('lists[0][0][0].list_status.num_episodes_watched:', lists[0][0][0].list_status.num_episodes_watched);
 
 */
