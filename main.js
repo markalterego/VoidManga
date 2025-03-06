@@ -26,8 +26,6 @@ async function menu(lists) {
 
     const rl = readline.createInterface({ input, output });
     let m = 0;
-
-    //console.clear();
     
     while (m !== 7) 
     {
