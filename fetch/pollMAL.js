@@ -61,9 +61,9 @@ async function pollMAL() {
         
     } catch (error) {
         if (error.response) {
-            console.error(`|| Error: ${error.response.status}: ${error.response.statusText}\n`);
+            console.error(`\n|| Error: ${error.response.status}: ${error.response.statusText}`);
         } else {
-            console.error('|| Error:', error.message, '\n');
+            console.error('\n|| Error:', error.message);
         }
     }
 }
@@ -103,9 +103,9 @@ async function fetchSeriesLength (animelist, mangalist) {
         } 
     } catch (error) {
         if (error.response) {
-            console.error(`|| Error: ${error.response.status}: ${error.response.statusText}\n`);
+            console.error(`\n|| Error: ${error.response.status}: ${error.response.statusText}`);
         } else {
-            console.error('|| Error:', error.message, '\n');
+            console.error('\n|| Error:', error.message);
         }
     }
 }
