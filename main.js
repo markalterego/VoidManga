@@ -22,12 +22,12 @@ async function main()
     await menu(lists);
 }
 
-async function menu(lists) {
+async function menu (lists) {
 
     const rl = readline.createInterface({ input, output });
     let m = 0;
     
-    while (m !== 7) 
+    while (m !== 8) 
     {
         console.log('\n||\n|| What would you like to do?\n||');
         console.log('|| 0 -> Watching anime');
@@ -36,8 +36,9 @@ async function menu(lists) {
         console.log('|| 3 -> Completed manga');
         console.log('|| 4 -> All of the above');
         console.log('|| 5 -> Poll mangadex');
-        console.log('|| 6 -> Clear screen');
-        console.log('|| 7 -> Exit\n||');
+        console.log('|| 6 -> Poll mal');
+        console.log('|| 7 -> Clear screen');
+        console.log('|| 8 -> Exit\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
         m = parseInt(userInput, 10); // convert userinput to int
@@ -62,12 +63,16 @@ async function menu(lists) {
                 await log('all', lists);
                 break;
             case 5:
-                await pollMangadex(); // searches for newest chapters   
+                await pollMangadex(lists); // searches for newest chapters   
                 break;
             case 6:
-                console.clear();
+                lists = await pollMAL(); // searches and returns MAL lists
+                await filehandle(lists);
                 break;
             case 7:
+                console.clear();
+                break;
+            case 8:
                 break;
             default:
                 console.log('\n|| Please input a valid option');
@@ -85,22 +90,6 @@ TODO (or not to do...)
 - pollMangadex should poll into a const, the same as pollMAL
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
-
-*/
-
-/*
-
-if read chapters is lower than newest chapter, 
-then input new keyword to the output 
-
-||
-|| Sousou no Frieren - Frieren: Beyond Journey's End {( New! )}
-||
-|| Chapter: 140 - "The Ball"
-|| Published: 25.12.2024 01:16 EET
-||
-|| Link: https://mangadex.org/chapter/d08901e2-9d12-4d0f-9b97-4820ed94da9f
-||
 
 */
 
