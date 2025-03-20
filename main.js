@@ -87,6 +87,8 @@ main();
 /*
 TODO (or not to do...)
 
+- figure out why some anime completed entries don't exist when polled
+
 - pollMangadex should poll into a const, the same as pollMAL
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively

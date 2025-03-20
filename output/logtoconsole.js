@@ -29,7 +29,7 @@ function logMAL (options, lists) {
             case 'anime_completed':
                 console.log('\n||\n|| (Completed)\n||'); // logging titles marked as 'completed'
                 for (let i = 0; i < animelist[1].length; i++) { 
-                    console.log(`|| - ${animelist[1][i].node.title}`);
+                    console.log(`|| - ${i+1} -${animelist[1][i].node.title}`);
                     if (i===(animelist[1].length-1)) if (animelist[1].length < 5) console.log('||'); else console.log(`||\n|| You have watched ${i+1} different anime\n||`);
                 }
                 break;
