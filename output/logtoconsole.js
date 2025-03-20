@@ -69,7 +69,7 @@ function logMAL (options, lists) {
                 console.log('|| (Completed)\n||'); // logging titles marked as 'completed'
                 for (let i = 0; i < mangalist[1].length; i++) { 
                     console.log(`|| - ${mangalist[1][i].node.title}`);
-                    if (i===(mangalist[1].length-1)) { totalEntries+=i+1; console.log(`||\n|| In total your list consists of ${totalEntries} entries\n||`) };
+                    if (i===(mangalist[1].length-1)) { totalEntries+=i+1; console.log(`\n||\n|| In total your list consists of ${totalEntries} entries\n||`) };
                 }
                 break;
             default:
