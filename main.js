@@ -87,7 +87,7 @@ main();
 /*
 TODO (or not to do...)
 
-- figure out why some anime completed entries don't exist when polled
+- refine polling, e.g. only one poll for the anime and one for manga
 
 - pollMangadex should poll into a const, the same as pollMAL
 

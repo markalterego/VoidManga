@@ -23,28 +23,28 @@ function logMAL (options, lists) {
                 console.log('\n||\n|| (Watching)\n||'); // logging titles marked as 'watching'
                 for (let i = 0; i < animelist[0].length; i++) { 
                     console.log(`|| - ${animelist[0][i].node.title} ( ${animelist[0][i].list_status.num_episodes_watched} / ${animelist[0][i].node.num_episodes ? animelist[0][i].node.num_episodes : 'unknown'} )`);
-                    if (i===(animelist[0].length-1)) if (animelist[0].length < 5) console.log('||'); else console.log(`||\n|| Currently watching ${i+1} different anime\n||`);
+                    if (i===(animelist[0].length-1)) if (animelist[0].length < 10) console.log('||'); else console.log(`||\n|| Currently watching ${i+1} different anime\n||`);
                 }
                 break;
             case 'anime_completed':
                 console.log('\n||\n|| (Completed)\n||'); // logging titles marked as 'completed'
                 for (let i = 0; i < animelist[1].length; i++) { 
-                    console.log(`|| - ${i+1} -${animelist[1][i].node.title}`);
-                    if (i===(animelist[1].length-1)) if (animelist[1].length < 5) console.log('||'); else console.log(`||\n|| You have watched ${i+1} different anime\n||`);
+                    console.log(`|| - ${animelist[1][i].node.title}`);
+                    if (i===(animelist[1].length-1)) if (animelist[1].length < 10) console.log('||'); else console.log(`||\n|| You have watched ${i+1} different anime\n||`);
                 }
                 break;
             case 'manga_reading':
                 console.log('\n||\n|| (Reading)\n||'); // logging titles marked as 'reading'
                 for (let i = 0; i < mangalist[0].length; i++) { 
                     console.log(`|| - ${mangalist[0][i].node.title} ( ${mangalist[0][i].list_status.num_chapters_read} / ${mangalist[0][i].node.num_chapters ? mangalist[0][i].node.num_chapters : 'unknown'} )`);
-                    if (i===(mangalist[0].length-1)) if (mangalist[0].length < 5) console.log('||'); else console.log(`||\n|| You are reading ${i+1} different manga\n||`);
+                    if (i===(mangalist[0].length-1)) if (mangalist[0].length < 10) console.log('||'); else console.log(`||\n|| You are reading ${i+1} different manga\n||`);
                 }
                 break;
             case 'manga_completed':
                 console.log('\n||\n|| (Completed)\n||'); // logging titles marked as 'completed'
                 for (let i = 0; i < mangalist[1].length; i++) { 
                     console.log(`|| - ${mangalist[1][i].node.title}`);
-                    if (i===(mangalist[1].length-1)) if (mangalist[1].length < 5) console.log('||'); else console.log(`||\n|| You have read ${i+1} mangas\n||`);
+                    if (i===(mangalist[1].length-1)) if (mangalist[1].length < 10) console.log('||'); else console.log(`||\n|| You have read ${i+1} mangas\n||`);
                 }
                 break;
             case 'all':

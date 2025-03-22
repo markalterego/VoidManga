@@ -6,11 +6,14 @@ dotenv.config();
 
 async function pollMAL() {
     try {
+        const startTime = performance.now();
+
         const malResponseAnimeWatching = await axios.get(`https://api.myanimelist.net/v2/users/${process.env.MAL_USERNAME}/animelist`, {
             params: {
                 fields: 'list_status',
                 limit: 1000, // max value
-                status: 'watching'
+                status: 'watching',
+                nsfw: true // allows a more accurate response
             },
             headers: {
                 'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
@@ -21,7 +24,8 @@ async function pollMAL() {
             params: {
                 fields: 'list_status',
                 limit: 1000, // max value
-                status: 'completed'
+                status: 'completed',
+                nsfw: true // allows a more accurate response
             },
             headers: {
                 'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
@@ -32,7 +36,8 @@ async function pollMAL() {
             params: {
                 fields: 'list_status',
                 limit: 1000, // max value
-                status: 'reading'
+                status: 'reading',
+                nsfw: true // allows a more accurate response
             },
             headers: {
                 'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
@@ -43,22 +48,28 @@ async function pollMAL() {
             params: {
                 fields: 'list_status',
                 limit: 1000, // max value
-                status: 'completed'
+                status: 'completed',
+                nsfw: true // allows a more accurate response
             },
             headers: {
                 'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
             }
         });
 
+        await setTimeout(80) // waiting 20ms per poll
+        const pollMALTimeTaken = Math.round(performance.now()-startTime); // how long did fetching the first four endpoints take
+
         // malResponseAnime.data.data  <---- points to response data array
         const animelist = [malResponseAnimeWatching.data.data, malResponseAnimeCompleted.data.data]; // [watching, completed]
         const mangalist = [malResponseMangaReading.data.data, malResponseMangaCompleted.data.data]; // [reading, completed]
-        
+
         await fetchSeriesLength(animelist,mangalist); // polling different endpoint for series length
+        const fetchSeriesTimeTaken = Math.round(performance.now()-startTime-pollMALTimeTaken); // how long did fetching manga and anime watching take
+
+        console.log(`\n||\n|| Fetching user's MAL lists took ${pollMALTimeTaken/1000}s\n|| Fetching the length of currently watching/reading series took ${fetchSeriesTimeTaken/1000}s\n||\n|| The total time taken was ${(pollMALTimeTaken+fetchSeriesTimeTaken)/1000}s\n||`);
 
         const animemangalist = [animelist, mangalist];
         return animemangalist;
-        
     } catch (error) {
         if (error.response) {
             console.error(`\n|| Error: ${error.response.status}: ${error.response.statusText}`);
@@ -82,8 +93,7 @@ async function fetchSeriesLength (animelist, mangalist) {
                 }
             });
             animelist[0][i].node.num_episodes = response.data.num_episodes; 
-
-            if (((i+1)%2) === 0) await setTimeout(2000); // avoiding rate limit
+            await setTimeout(20); // avoiding rate limit
         }   
 
         for (let i = 0; i < mangalist[0].length; i++) // appends number of chapters to reading manga
@@ -98,8 +108,7 @@ async function fetchSeriesLength (animelist, mangalist) {
                 }
             });
             mangalist[0][i].node.num_chapters = response.data.num_chapters;
-            
-            if (((i+1)%2) === 0) await setTimeout(2000); // avoiding rate limit
+            await setTimeout(20); // avoiding rate limit
         } 
     } catch (error) {
         if (error.response) {
