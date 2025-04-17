@@ -93,6 +93,8 @@ TODO (or not to do...)
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
 
+- row 34 from pollMangadex needs to update to find the correct alttitle
+
 */
 
 /*
