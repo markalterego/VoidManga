@@ -92,9 +92,6 @@ TODO (or not to do...)
 - pollMangadex should poll into a const, the same as pollMAL
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
-
-- row 34 from pollMangadex needs to update to find the correct alttitle
-
 */
 
 /*
