@@ -10,20 +10,30 @@ const ids = ['b0b721ff-c388-4486-aa0f-c2b0bb321512',
 async function pollMangadex (lists) {
     const mangas = lists[1][0]; // points to mangas tagged as reading
     console.log('\n|| Newest Chapters:\n'); // empty line
-    try {
-        for (const id of ids) {
+    for (const id of ids) {
+        try {
             const mangaResponse = await axios.get(`https://api.mangadex.org/manga/${id}`); 
             const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching english chapters of manga
                 params: {
                     manga: id,
-                    translatedLanguage: ['en'],
-                    'order[publishAt]': 'desc',
+                    // translatedLanguage: ['en'], <-- mangadex isoi juttui tapahtuu probably broke this line idk
+                    'order[chapter]': 'desc',
                 }
             });
 
             const mangaTitle = mangaResponse.data.data; // saving name of the manga
-            const latestChapter = chapterResponse.data.data[0]?.attributes; // saving info about latest chapter if available
-            const formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date 
+            const chapterResponseEn = chapterResponse.data.data.filter((chapter) => { // filtering all english translations from chapterResponse
+                chapter.attributes.translatedLanguage === 'en'
+            }); 
+            let latestChapter = null;
+            let formattedDate = null;
+            if (chapterResponseEn.length===0) { // No english translations were found
+                latestChapter = chapterResponse.data.data[0]?.attributes; // saving info about latest chapter if available
+                formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date
+            } else {
+                latestChapter = chapterResponseEn[0]?.attributes; // saving info about latest chapter if available
+                formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date
+            }
             let newChapterFlag = false; // tells if the chapter is not yet read
 
             for (const manga of mangas) { // checks whether to set the newChapterFlag
@@ -47,12 +57,12 @@ async function pollMangadex (lists) {
             console.log(`|| Published: ${formattedDate}`);
             console.log(`||\n|| Link: ${'https://mangadex.org/chapter/' + chapterResponse.data.data[0]?.id}\n||`);
             if (id !== ids[ids.length-1]) console.log(); 
-        }
-    } catch (error) {
-        if (error.response) {
-            console.error(`|| ${id}: Error ${error.response.status}: ${error.response.statusText}\n`);
-        } else {
-            console.error('|| Error:', error.message, '\n');
+        } catch (error) {
+            if (error.response) {
+                console.error(`|| ${id}: Error ${error.response.status}: ${error.response.statusText}`);
+            } else {
+                console.error('|| Error:', error.message);
+            }
         }
     }
 }
