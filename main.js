@@ -10,7 +10,7 @@ let lists = null; // holds animelist and mangalist, refer to bottom of file for 
 
 async function main() 
 {
-    console.clear(); // same as cls    
+    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
     
     if (!existsSync('mal.file')) {
         lists = await pollMAL(); // searches and returns MAL lists
@@ -43,7 +43,7 @@ async function menu (lists) {
         const userInput = await rl.question('\n|| Input: '); // get user input
         m = parseInt(userInput, 10); // convert userinput to int
 
-        console.clear();
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
         switch (m) 
         {
@@ -70,7 +70,7 @@ async function menu (lists) {
                 await filehandle(lists);
                 break;
             case 7:
-                console.clear();
+                process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
             case 8:
                 break;
@@ -92,6 +92,8 @@ TODO (or not to do...)
 - pollMangadex should poll into a const, the same as pollMAL
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
+
+- refine MAL polling so that on-hold/dropped/plan-to-watch are also included
 */
 
 /*
