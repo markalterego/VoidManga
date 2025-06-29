@@ -1,6 +1,6 @@
 /node_modules
-.env
-.bat
+*.env
+*.bat
 
 mal.file
 mangadex.file
