@@ -32,7 +32,7 @@ async function pollMangadex (lists) {
                 }); 
                 let latestChapter = null;
                 let formattedDate = null;
-                
+
                 if (chapterResponseEn.length===0) { // No english translations were found
                     latestChapter = chapterResponse.data.data[0]?.attributes; // saving info about latest chapter if available
                     formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date
@@ -61,7 +61,7 @@ async function pollMangadex (lists) {
                 }
                 console.log(`|| Chapter: ${latestChapter.chapter} - \"${latestChapter.title}\"`);      
                 console.log(`|| Published: ${formattedDate}`);
-                console.log(`||\n|| Link: ${'https://mangadex.org/chapter/' + chapterResponse.data.data[0]?.id}\n||`);
+                console.log(`||\n|| Link: ${chapterResponseEn.length ? 'https://mangadex.org/chapter/' + chapterResponseEn[0]?.id : 'https://mangadex.org/chapter/' + chapterResponse.data.data[0]?.id}\n||`);
             }
         } catch (error) {
             if (error.response) {
