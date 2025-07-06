@@ -33,6 +33,12 @@ function logMAL (options, lists) {
                     if (i===(animelist[1].length-1)) if (animelist[1].length < 10) console.log('||'); else console.log(`||\n|| You have watched ${i+1} different anime\n||`);
                 }
                 break;
+            case 'anime_on_hold':
+                break;
+            case 'anime_dropped':
+                break;
+            case 'anime_plan_to_watch':
+                break;
             case 'manga_reading':
                 console.log('\n||\n|| (Reading)\n||'); // logging titles marked as 'reading'
                 for (let i = 0; i < mangalist[0].length; i++) { 
@@ -46,6 +52,12 @@ function logMAL (options, lists) {
                     console.log(`|| - ${mangalist[1][i].node.title}`);
                     if (i===(mangalist[1].length-1)) if (mangalist[1].length < 10) console.log('||'); else console.log(`||\n|| You have read ${i+1} mangas\n||`);
                 }
+                break;
+            case 'manga_on_hold':
+                break;
+            case 'manga_dropped':
+                break;
+            case 'manga_plan_to_read':
                 break;
             case 'all':
                 let totalEntries = 0;
