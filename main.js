@@ -7,6 +7,7 @@ import { stdin as input, stdout as output } from 'process';
 import { existsSync } from 'fs';
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
+let config = null; // holds user specific options
 
 async function main() 
 {
@@ -19,11 +20,90 @@ async function main()
         lists = await filehandle();
     }
 
-    await menu(lists);
+    if (!existsSync('config.file')) {
+        await filehandle('configWrite', {"menuOption": "short"}); // saving config details
+        config = await filehandle('configRead'); // getting saved config details
+    } else {    
+        config = await filehandle('configRead'); // getting saved config details
+    }
+
+    await menu();
 }
 
-async function menu (lists) {
+async function menu() {
+    switch (config.menuOption) 
+    {
+        case 'short':
+            await shortMenu(); // displays the short version of the menu
+            break;
+        case 'long':
+            await longMenu(); // displays the long version of the menu
+            break;
+        default:
+            console.log('\n|| Given menuOption doesn\'t exist');
+    }
+}
 
+async function shortMenu() {
+    const rl = readline.createInterface({ input, output });
+    let m = 0;
+    
+    while (m !== 8) 
+    {
+        console.log('\n||\n|| What would you like to do?\n||');
+        console.log('|| 0 -> Watching anime');
+        console.log('|| 1 -> Completed anime');
+        console.log('|| 2 -> Reading manga');
+        console.log('|| 3 -> Completed manga');
+        console.log('|| 4 -> Full list');
+        console.log('|| 5 -> Poll mangadex');
+        console.log('|| 6 -> Poll mal');
+        console.log('|| 7 -> Clear screen');
+        console.log('|| 8 -> Exit\n||');
+
+        const userInput = await rl.question('\n|| Input: '); // get user input
+        m = parseInt(userInput, 10); // convert userinput to int
+
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+        switch (m) 
+        {
+            case 0:
+                await log('anime_watching', lists);
+                break;
+            case 1:
+                await log('anime_completed', lists);
+                break;
+            case 2:
+                await log('manga_reading', lists);
+                break;
+            case 3:
+                await log('manga_completed', lists);
+                break;
+            case 4:
+                await log('all', lists);
+                break;
+            case 5:
+                await pollMangadex(lists); // searches for newest chapters   
+                break;
+            case 6:
+                lists = await pollMAL(); // searches and returns MAL lists
+                await filehandle(lists);
+                break;
+            case 7:
+                process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                break;
+            case 8:
+                break;
+            default:
+                console.log('\n|| Please input a valid option');
+        }
+    }
+
+    rl.close();
+}
+
+async function longMenu() {
     const rl = readline.createInterface({ input, output });
     let m = 0;
     
@@ -116,10 +196,13 @@ TODO (or not to do...)
 - pollMangadex should poll into a const, the same as pollMAL
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
+
+- make different menu layout options (menu with less options/menu with more options)
+
+- make it possible to list a series in a category (e.g. watching) and then by inputting the number of the series print out all dates at which the series was updated, essentially see how you progressed along the series
 */
 
 /*
-
 Understanding the layout of lists:
 
 lists[0]... = animelist 
@@ -153,5 +236,4 @@ lists[0][0][0].list_status.num_episodes_watched
 
 console.log('lists[0][0][0].node.title:', lists[0][0][0].node.title);
 console.log('lists[0][0][0].list_status.num_episodes_watched:', lists[0][0][0].list_status.num_episodes_watched);
-
 */
