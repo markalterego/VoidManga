@@ -6,9 +6,9 @@ async function log (options, lists) {
         logMAL(options, lists);
     } catch (error) {
         if (error.response) {
-            console.error(`\n|| Error: ${error.response.status}: ${error.response.statusText}`);
+            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
         } else {
-            console.error('\n|| Error:', error.message);
+            console.error(`\n||\n|| Error: ${error.message}`);
         }
     }
 }
@@ -141,7 +141,7 @@ function logMAL (options, lists) {
                 console.log('|| (Plan To Read)\n||'); // logging titles marked as 'plan to read'
                 for (let i = 0; i < mangalist[4].length; i++) { 
                     console.log(`|| - ${mangalist[4][i].node.title}`);
-                    if (i===(mangalist[4].length-1)) { totalEntries+=i+1; console.log(`\n||\n|| In total your list consists of ${totalEntries} entries\n||`) };
+                    if (i===(mangalist[4].length-1)) { console.log('||'); totalEntries+=i+1; console.log(`\n||\n|| In total your list consists of ${totalEntries} entries\n||`) };
                 }
                 break;
             default:
@@ -149,9 +149,9 @@ function logMAL (options, lists) {
         }
     } catch (error) {
         if (error.response) {
-            console.error(`\n|| Error: ${error.response.status}: ${error.response.statusText}`);
+            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
         } else {
-            console.error('\n|| Error:', error.message);
+            console.error(`\n||\n|| Error: ${error.message}`);
         }
     }
 }

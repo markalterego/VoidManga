@@ -7,6 +7,8 @@ dotenv.config();
 async function pollMAL() {
     try {
         const startTime = performance.now();
+
+        console.log(`\n||\n|| Now polling MAL lists for \'${process.env.MAL_USERNAME}\'\n||`);
         
         const animemangalist = await fetchSeries(); // fetching user's MAL lists
         const pollMALTimeTaken = Math.round(performance.now()-startTime); // how long did fetching the first four endpoints take
@@ -14,7 +16,7 @@ async function pollMAL() {
         await fetchSeriesLength(animemangalist); // polling different endpoint for series length
         const fetchSeriesTimeTaken = Math.round(performance.now()-startTime-pollMALTimeTaken); // how long did fetching manga and anime watching take
 
-        console.log(`\n||\n|| Fetching user's MAL lists took ${pollMALTimeTaken/1000}s\n|| Fetching the length of currently watching/reading series took ${fetchSeriesTimeTaken/1000}s\n||\n|| The total time taken was ${(pollMALTimeTaken+fetchSeriesTimeTaken)/1000}s\n||`);
+        console.log(`\n||\n|| Fetching user's MAL lists took ${Number(pollMALTimeTaken/1000).toFixed(3)}s\n|| Fetching the length of currently watching/reading series took ${Number(fetchSeriesTimeTaken/1000).toFixed(3)}s\n||\n|| The total time taken was ${Number((pollMALTimeTaken+fetchSeriesTimeTaken)/1000).toFixed(3)}s\n||`);
 
         return animemangalist;
     } catch (error) {

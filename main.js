@@ -15,16 +15,16 @@ async function main()
     
     if (!existsSync('mal.file')) {
         lists = await pollMAL(); // searches and returns MAL lists
-        await filehandle(lists);
+        await filehandle('mal', lists); // writes mal.file
     } else { 
-        lists = await filehandle();
+        lists = await filehandle('mal'); // reads mal.file
     }
 
     if (!existsSync('config.file')) {
-        await filehandle('configWrite', {"menuOption": "short"}); // saving config details
-        config = await filehandle('configRead'); // getting saved config details
+        await filehandle('config', {"menuOption": "short"}); // writes config.file
+        config = await filehandle('config'); // reads config.file
     } else {    
-        config = await filehandle('configRead'); // getting saved config details
+        config = await filehandle('config'); // reads config.file
     }
 
     await menu();
@@ -88,7 +88,7 @@ async function shortMenu() {
                 break;
             case 6:
                 lists = await pollMAL(); // searches and returns MAL lists
-                await filehandle(lists);
+                await filehandle('mal', lists);
                 break;
             case 7:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
@@ -197,9 +197,9 @@ TODO (or not to do...)
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively
 
-- make different menu layout options (menu with less options/menu with more options)
-
 - make it possible to list a series in a category (e.g. watching) and then by inputting the number of the series print out all dates at which the series was updated, essentially see how you progressed along the series
+
+- add an option to menu's to change from shortMenu to longMenu and vice versa, and make it so that the highest function 'menu' loops again unless short-/longMenu returns true/false
 */
 
 /*
