@@ -8,6 +8,7 @@ import { existsSync } from 'fs';
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
+const rl = readline.createInterface({ input, output }); // enabling input/output
 
 async function main() 
 {
@@ -21,32 +22,31 @@ async function main()
     }
 
     if (!existsSync('config.file')) {
-        await filehandle('config', {"menuOption": "short"}); // writes config.file
-        config = await filehandle('config'); // reads config.file
+        config = { ...config, menuOption: 'short' }; // setting initial menu preference
+        await filehandle('config', config); // writes config.file
     } else {    
         config = await filehandle('config'); // reads config.file
     }
 
     await menu();
+    rl.close();
 }
 
 async function menu() {
-    switch (config.menuOption) 
-    {
-        case 'short':
-            await shortMenu(); // displays the short version of the menu
-            break;
-        case 'long':
-            await longMenu(); // displays the long version of the menu
-            break;
-        default:
+    let refresh = true;
+    while (refresh) {
+        if (config.menuOption==='short') {
+            refresh = await shortMenu(); // displays the short version of the menu
+        } else if (config.menuOption==='long') {
+            refresh = await longMenu(); // displays the long version of the menu
+        } else {
             console.log('\n|| Given menuOption doesn\'t exist');
+        }
     }
 }
 
 async function shortMenu() {
-    const rl = readline.createInterface({ input, output });
-    let m = 0;
+    let m = 0; let r = false; // m = menu, r = refresh
     
     while (m !== 8) 
     {
@@ -95,17 +95,20 @@ async function shortMenu() {
                 break;
             case 8:
                 break;
+            case 888:
+                await settingsMenu(); 
+                r = true; m = 8; // goes out of loop and refreshes menu
+                break;
             default:
                 console.log('\n|| Please input a valid option');
         }
     }
 
-    rl.close();
+    return r;
 }
 
 async function longMenu() {
-    const rl = readline.createInterface({ input, output });
-    let m = 0;
+    let m = 0; let r = false; // m = menu, r = refresh
     
     while (m !== 14) 
     {
@@ -178,12 +181,44 @@ async function longMenu() {
                 break;
             case 14:
                 break;
+            case 888:
+                await settingsMenu(); 
+                r = true; m = 14; // goes out of loop and refreshes menu
+                break;
             default:
                 console.log('\n|| Please input a valid option');
         }
     }
 
-    rl.close();
+    return r;
+}
+
+async function settingsMenu() {
+    let m = 0;
+    
+    while (m !== 1) 
+    {
+        console.log('\n||\n|| Settings\n||');
+        console.log(`|| 0 -> Toggle ${config.menuOption === 'short' ? 'long' : 'short'}Menu`);
+        console.log('|| 1 -> Return to main menu\n||');
+
+        const userInput = await rl.question('\n|| Input: '); // get user input
+        m = parseInt(userInput, 10); // convert userinput to int
+
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+        switch (m) 
+        {
+            case 0: 
+                if (config.menuOption === 'short') config = { ...config, menuOption: 'long' }; else config = { ...config, menuOption: 'short' }; // changing menuOption
+                m = 1; await filehandle('config', config); // writes config.file
+                break;
+            case 1:
+                break;
+            default:
+                console.log('\n|| Please input a valid option');
+        }
+    }
 }
 
 main();
@@ -199,7 +234,7 @@ TODO (or not to do...)
 
 - make it possible to list a series in a category (e.g. watching) and then by inputting the number of the series print out all dates at which the series was updated, essentially see how you progressed along the series
 
-- add an option to menu's to change from shortMenu to longMenu and vice versa, and make it so that the highest function 'menu' loops again unless short-/longMenu returns true/false
+- an option to print out the complete history of every update to MAL (ascending/descending by date)
 */
 
 /*
