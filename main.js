@@ -29,7 +29,7 @@ async function main()
     }
 
     await menu();
-    rl.close();
+    rl.close(); 
 }
 
 async function menu() {
@@ -174,7 +174,7 @@ async function longMenu() {
                 break;
             case 12:
                 lists = await pollMAL(); // searches and returns MAL lists
-                await filehandle(lists);
+                await filehandle('mal', lists);
                 break;
             case 13:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
@@ -226,7 +226,7 @@ main();
 /*
 TODO (or not to do...)
 
-- refine polling, e.g. only one poll for the anime and one for manga
+- refine MAL polling, specifically fetchSeriesLength() polls
 
 - pollMangadex should poll into a const, the same as pollMAL
 
