@@ -59,7 +59,7 @@ async function fetchSeries() {
         });
         await setTimeout(20); // avoiding rate limit
 
-        sortSeriesByStatus(malResponseAnime.data.data, malResponseManga.data.data);
+        await sortSeriesByStatus(malResponseAnime.data.data, malResponseManga.data.data);
     } catch (error) {
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
