@@ -226,8 +226,6 @@ main();
 /*
 TODO (or not to do...)
 
-- refine MAL polling, specifically fetchSeriesLength() polls
-
 - pollMangadex should poll into a const, the same as pollMAL
 
 - filehandle should get both polling results as input and save that info into 'mal.file' and e.g. 'mangadex.file' respectively

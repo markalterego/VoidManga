@@ -21,10 +21,7 @@ async function pollMAL() {
         await fetchSeries(); // fetching user's MAL lists
         const pollMALTimeTaken = Math.round(performance.now()-startTime); // how long did fetching the anime-/mangalist take
 
-        await fetchSeriesLength(); // polling different endpoint for series length
-        const fetchSeriesTimeTaken = Math.round(performance.now()-startTime-pollMALTimeTaken); // how long did fetching manga and anime watching take
-
-        console.log(`\n||\n|| Fetching user's MAL lists took ${Number(pollMALTimeTaken/1000).toFixed(3)}s\n|| Fetching the length of currently watching/reading series took ${Number(fetchSeriesTimeTaken/1000).toFixed(3)}s\n||\n|| The total time taken was ${Number((pollMALTimeTaken+fetchSeriesTimeTaken)/1000).toFixed(3)}s\n||`);
+        console.log(`\n||\n|| Fetching user's MAL lists took ${Number(pollMALTimeTaken/1000).toFixed(3)}s\n||`);
 
         return animemangalist;
     } catch (error) {
@@ -40,7 +37,7 @@ async function fetchSeries() {
     try {
         const malResponseAnime = await axios.get(`https://api.myanimelist.net/v2/users/${process.env.MAL_USERNAME}/animelist`, {
             params: {
-                fields: 'list_status',
+                fields: 'list_status,num_episodes',
                 limit: 1000, // max value
                 nsfw: true // allows a more accurate response
             },
@@ -52,7 +49,7 @@ async function fetchSeries() {
 
         const malResponseManga = await axios.get(`https://api.myanimelist.net/v2/users/${process.env.MAL_USERNAME}/mangalist`, {
             params: {
-                fields: 'list_status',
+                fields: 'list_status,num_chapters',
                 limit: 1000, // max value
                 nsfw: true // allows a more accurate response
             },
@@ -84,47 +81,10 @@ async function sortSeriesByStatus (animelist, mangalist) {
         for (let i = 0; i < mangaStatus.length; i++) { // sort mangalist by status
             for (let ii = 0, iii = 0; ii < mangalist.length; ii++) { // sort by all series corresponding to mangaStatus[i]
                 if (mangalist[ii].list_status.status === mangaStatus[i]) { // if status of manga at point ii same as mangastatus
-                   animemangalist[1][i][iii] = mangalist[ii]; iii++; 
+                    animemangalist[1][i][iii] = mangalist[ii]; iii++; 
                 }
             }
         }
-    } catch (error) {
-        if (error.response) {
-            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
-        }
-    }
-}
-
-async function fetchSeriesLength() {
-    try {
-        for (let i = 0; i < animemangalist[0][0].length; i++) { // appends number of episodes to watching anime
-            const id = animemangalist[0][0][i].node.id; 
-            const response = await axios.get(`https://api.myanimelist.net/v2/anime/${id}`, { // getting info from anime endpoint
-                params: {
-                    fields: 'num_episodes'
-                },
-                headers: {
-                    'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
-                }
-            });
-            animemangalist[0][0][i].node.num_episodes = response.data.num_episodes; 
-            await setTimeout(20); // avoiding rate limit
-        }   
-        for (let i = 0; i < animemangalist[1][0].length; i++) { // appends number of chapters to reading manga
-            const id = animemangalist[1][0][i].node.id; 
-            const response = await axios.get(`https://api.myanimelist.net/v2/manga/${id}`, { // getting info from manga endpoint
-                params: {
-                    fields: 'num_chapters'
-                },
-                headers: {
-                    'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
-                }
-            });
-            animemangalist[1][0][i].node.num_chapters = response.data.num_chapters;
-            await setTimeout(20); // avoiding rate limit
-        } 
     } catch (error) {
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
