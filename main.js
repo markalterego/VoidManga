@@ -233,6 +233,12 @@ TODO (or not to do...)
 - make it possible to list a series in a category (e.g. watching) and then by inputting the number of the series print out all dates at which the series was updated, essentially see how you progressed along the series
 
 - an option to print out the complete history of every update to MAL (ascending/descending by date)
+
+- make it possible to do custom polling through ui in pollMangadex.js
+
+- make it possible to exclude specific titles when polling
+
+- add an option to settings for enable/disable auto search (poll instantly when using pollMangadex.js [no additional menu at pollMangadex.js]) for mangadex polls
 */
 
 /*

@@ -1,76 +1,52 @@
 import axios from 'axios';
-import { toZonedTime, format } from 'date-fns-tz';
-
-// Sousou No Frieren: b0b721ff-c388-4486-aa0f-c2b0bb321512
-// Berserk: 801513ba-a712-498c-8f57-cae55b38cc92
-// That's My Atypical Girl: 8ae4d0f6-152a-4956-8664-4405758d26ae <- an example series with no chapters
-
-const ids = ['b0b721ff-c388-4486-aa0f-c2b0bb321512',
-             '801513ba-a712-498c-8f57-cae55b38cc92'];
+// import { toZonedTime, format } from 'date-fns-tz';
 
 async function pollMangadex (lists) {
-    const mangas = lists[1][0]; // points to mangas tagged as reading
-    console.log('\n|| Newest Chapters:\n'); // empty line
-    for (const id of ids) {
-        try {
-            const mangaResponse = await axios.get(`https://api.mangadex.org/manga/${id}`); 
-            const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching english chapters of manga
+    try {
+        let countFoundManga = 0, countMissingManga = 0, countFoundChapter = 0, countMissingChapter = 0;
+        const mangas = lists[1][0]; // points to mangas tagged as reading
+        console.log('\n>> Now searching for manga >>\n'); 
+        for (const manga of mangas) { // going through mangas
+            const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching mangas tagged as reading
                 params: {
-                    manga: id,
-                    // translatedLanguage: ['en'], // <-- currently not needed because filtered later, kept here for emergencies
-                    'order[chapter]': 'desc'
+                    title: manga.node.title, // MAL mangas tagged as reading
+                    contentRating: ['safe','suggestive','erotica','pornographic'], // includes all contentRatings
+                    'order[relevance]': 'desc' // order by most relevant to least relevant
                 }
-            });
-
-            if (chapterResponse.data.data.length === 0) {
-                console.log(`||\n|| The series was found but it had no chapters\n||`);
-                console.log(`|| Title: "${mangaResponse.data.data.attributes.title.en}"\n|| Id: '${id}'\n||`)
-            } else {
-                const mangaTitle = mangaResponse.data.data; // saving name of the manga
-                const chapterResponseEn = chapterResponse.data.data.filter((chapter) => { // filtering all english translations from chapterResponse
-                    if (chapter.attributes.translatedLanguage === 'en') return true;
-                }); 
-                let latestChapter = null;
-                let formattedDate = null;
-
-                if (chapterResponseEn.length===0) { // No english translations were found
-                    latestChapter = chapterResponse.data.data[0]?.attributes; // saving info about latest chapter if available
-                    formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date
+            }); 
+            console.log(`-> ${manga.node.title}\n`); // logging MAL manga title
+            if (!mangaResponse.data.data.length) { // if manga wasn't found
+                console.log('> Manga was not found');
+                countMissingManga++;
+            } else { 
+                const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching english chapters of manga
+                    params: {
+                        manga: mangaResponse.data.data[0].id, // id taken from prior manga endpoint fetch
+                        translatedLanguage: ['en'], // filter english translations
+                        'order[chapter]': 'desc' // order by newest chapter
+                    }
+                });
+                if (!chapterResponse.data.data.length) { // if manga had no english chapters
+                    console.log('> No english chapters found');
+                    countMissingChapter++;
                 } else {
-                    latestChapter = chapterResponseEn[0]?.attributes; // saving info about latest chapter if available
-                    formattedDate = format(toZonedTime(latestChapter.publishAt, 'Europe/Helsinki'), 'dd.MM.yyyy HH:mm z'); // formatting the publish date
-                }
-
-                let newChapterFlag = false; // tells if the chapter is not yet read
-
-                for (const manga of mangas) { // checks whether to set the newChapterFlag
-                    const manga_mal_id = manga.node.id;
-                    const manga_mdx_id = parseInt(mangaTitle.attributes.links?.mal);
-                    if (manga_mal_id===manga_mdx_id) { // mal id is found in the response of mangadex
-                        if ((manga.list_status.num_chapters_read) < (parseInt(latestChapter.chapter))) {
-                            newChapterFlag = true;
-                        }
-                        break; // break to avoid unnecessary looping
+                    for (let i = 0; i < chapterResponse.data.data.length; i++) { // logging all found chapters
+                        console.log(`> ${chapterResponse.data.data[i].attributes.title ? chapterResponse.data.data[i].attributes.title : 'No title'} - ${chapterResponse.data.data[i].attributes.chapter} - https://mangadex.org/chapter/${chapterResponse.data.data[i].id}`);
+                        countFoundChapter++;
                     }
                 }
-                // condition ? valueIfTrue : valueIfFalse ---> returns title - altTitle if altTitle exists
-                if (!newChapterFlag) {
-                    console.log(`||\n|| ${mangaTitle.attributes.title.en}${mangaTitle.attributes.altTitles[0]?.en ? ' - ' + mangaTitle.attributes.altTitles[0].en : ''}\n||`);
-                } else {
-                    console.log(`||\n|| ${mangaTitle.attributes.title.en}${mangaTitle.attributes.altTitles[0]?.en ? ' - ' + mangaTitle.attributes.altTitles[0].en : ''} {( New! )}\n||`);
-                }
-                console.log(`|| Chapter: ${latestChapter.chapter} - \"${latestChapter.title}\"`);      
-                console.log(`|| Published: ${formattedDate}`);
-                console.log(`||\n|| Link: ${chapterResponseEn.length ? 'https://mangadex.org/chapter/' + chapterResponseEn[0]?.id : 'https://mangadex.org/chapter/' + chapterResponse.data.data[0]?.id}\n||`);
+                countFoundManga++;
             }
-        } catch (error) {
-            if (error.response) {
-                console.error(`||\n|| ${id}: Error ${error.response.status}: ${error.response.statusText}\n||`);
-            } else {
-                console.error(`||\n|| Error: ${error.message}\n||`);
-            }
+            console.log(); // empty line
         }
-        if (id !== ids[ids.length-1]) console.log(); 
+        // log statistics of all polls
+        console.log(`>> Search result >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
+    } catch (error) {
+        if (error.response) {
+            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
+        } else {
+            console.error(`||\n|| Error: ${error.message}\n||`);
+        }
     }
 }
 
