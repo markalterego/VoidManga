@@ -27,23 +27,23 @@ import axios from 'axios';
 
 const options = {
     MAL_list: 1, // 0 or 1
-    MAL_status: 1, // 0 - 4 
+    MAL_status: 0, // 0 - 4 
     limit_manga: undefined, // default: 10, min: 0, max is 100
     limit_chapter: undefined, // default: 10, min: 0, max is 100 
     mangaOrderType: 'relevance', // 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
     chapterOrderType: 'chapter', // 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
     mangaOrderDirection: 'desc', // 'asc', 'desc'
-    chapterOrderDirection: 'asc', // 'asc', 'desc'
+    chapterOrderDirection: 'desc', // 'asc', 'desc'
     contentRating: ['safe','suggestive','erotica','pornographic'], // ['safe','etc...'], undefined for default behavior
     chapterTranslatedLanguage: ['en'], // ['en','es','etc...'], undefined for all languages
-}   
+}
 
 async function pollMangadex (lists) {
     try {
         await fetchChapters(lists, options);
     } catch (error) {
         if (error.response) {
-            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
+            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data}\n||`);
         } else {
             console.error(`||\n|| Error: ${error.message}\n||`);
         }
@@ -94,7 +94,11 @@ async function fetchChapters (lists, options) {
         console.log(`>> Search result >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
     } catch (error) {
         if (error.response) {
-            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data}\n||`);
+            // console.error(error);
+            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
+            if ((typeof error.response.data)!=='string') error.response.data.errors.forEach(err => { console.error(`|| ${err.detail}`); });
+            else console.error(`|| ${error.response.data}`);
+            console.log('||'); // hifistely
         } else {
             console.error(`||\n|| Error: ${error.message}\n||`);
         }

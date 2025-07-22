@@ -62,7 +62,7 @@ async function fetchSeries() {
         await sortSeriesByStatus(malResponseAnime.data.data, malResponseManga.data.data);
     } catch (error) {
         if (error.response) {
-            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
+            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
         } else {
             console.error(`\n||\n|| Error: ${error.message}\n||`);
         }
