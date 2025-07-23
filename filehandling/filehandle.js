@@ -22,11 +22,7 @@ async function filehandle (fileIdentifier, input) {
             console.log(`\n||\n|| The given fileIdentifier \'${fileIdentifier}\' doesn\'t exist\n||`);
         }
     } catch (error) {
-        if (error.response) {
-            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}\n||`);
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
-        }
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
 }
 

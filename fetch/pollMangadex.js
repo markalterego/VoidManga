@@ -39,14 +39,10 @@ const options = {
 }
 
 async function pollMangadex (lists) {
-    try {
+    try { // <-- consider removing this try catch
         await fetchChapters(lists, options);
     } catch (error) {
-        if (error.response) {
-            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data}\n||`);
-        } else {
-            console.error(`||\n|| Error: ${error.message}\n||`);
-        }
+        console.error(`||\n|| Error: ${error.message}\n||`); 
     }
 }
 
@@ -94,7 +90,6 @@ async function fetchChapters (lists, options) {
         console.log(`>> Search result >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
     } catch (error) {
         if (error.response) {
-            // console.error(error);
             console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
             if ((typeof error.response.data)!=='string') error.response.data.errors.forEach(err => { console.error(`|| ${err.detail}`); });
             else console.error(`|| ${error.response.data}`);

@@ -22,14 +22,20 @@ async function main()
     }
 
     if (!existsSync('config.file')) {
-        config = { ...config, menuOption: 'short' }; // setting initial menu preference
+        config = { ...config, menuOption: 'short', autoFetchMangadex: false }; // setting initial menu preference
         await filehandle('config', config); // writes config.file
     } else {    
         config = await filehandle('config'); // reads config.file
     }
 
-    await menu();
-    rl.close(); 
+    try {
+        await menu();
+    } catch (error) {
+        if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
+        console.error(`\n||\n|| Error: ${error.message}\n||`); // handles e.g. CTRL + C
+    } finally {
+        rl.close(); 
+    }
 }
 
 async function menu() {
@@ -46,7 +52,7 @@ async function menu() {
 }
 
 async function shortMenu() {
-    let m = 0; let r = false; // m = menu, r = refresh
+    let m = 0, r = false; // m = menu, r = refresh
     
     while (m !== 8) 
     {
@@ -108,7 +114,7 @@ async function shortMenu() {
 }
 
 async function longMenu() {
-    let m = 0; let r = false; // m = menu, r = refresh
+    let m = 0, r = false; // m = menu, r = refresh
     
     while (m !== 14) 
     {
@@ -196,11 +202,12 @@ async function longMenu() {
 async function settingsMenu() {
     let m = 0;
     
-    while (m !== 1) 
+    while (m !== 2) 
     {
         console.log('\n||\n|| Settings\n||');
         console.log(`|| 0 -> Toggle ${config.menuOption === 'short' ? 'long' : 'short'}Menu`);
-        console.log('|| 1 -> Return to main menu\n||');
+        console.log(`|| 1 -> Automatically fetch Mangadex when polling (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
+        console.log('|| 2 -> Return to main menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
         m = parseInt(userInput, 10); // convert userinput to int
@@ -211,9 +218,13 @@ async function settingsMenu() {
         {
             case 0: 
                 if (config.menuOption === 'short') config = { ...config, menuOption: 'long' }; else config = { ...config, menuOption: 'short' }; // changing menuOption
-                m = 1; await filehandle('config', config); // writes config.file
+                m = 2; await filehandle('config', config); // writes config.file
                 break;
             case 1:
+                if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
+                m = 2; await filehandle('config', config); // writes config.file
+                break;
+            case 2:
                 break;
             default:
                 console.log('\n|| Please input a valid option');
