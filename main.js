@@ -14,14 +14,14 @@ async function main()
 {
     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
     
-    if (!existsSync('mal.file')) {
+    if (!existsSync('./regular/mal.file')) {
         lists = await pollMAL(); // searches and returns MAL lists
         await filehandle('mal', lists); // writes mal.file
     } else { 
         lists = await filehandle('mal'); // reads mal.file
     }
 
-    if (!existsSync('config.file')) {
+    if (!existsSync('./regular/config.file')) {
         config = { ...config, menuOption: 'short', autoFetchMangadex: false }; // setting initial menu preference
         await filehandle('config', config); // writes config.file
     } else {    
@@ -75,16 +75,16 @@ async function shortMenu() {
         switch (m) 
         {
             case 0:
-                await log('anime_watching', lists);
+                await log('00', lists);
                 break;
             case 1:
-                await log('anime_completed', lists);
+                await log('01', lists);
                 break;
             case 2:
-                await log('manga_reading', lists);
+                await log('10', lists);
                 break;
             case 3:
-                await log('manga_completed', lists);
+                await log('11', lists);
                 break;
             case 4:
                 await log('all', lists);
@@ -143,34 +143,34 @@ async function longMenu() {
         switch (m) 
         {
             case 0:
-                await log('anime_watching', lists);
+                await log('00', lists);
                 break;
             case 1:
-                await log('anime_completed', lists);
+                await log('01', lists);
                 break;
             case 2:
-                await log('anime_on_hold', lists);
+                await log('02', lists);
                 break;
             case 3:
-                await log('anime_dropped', lists);
+                await log('03', lists);
                 break;
             case 4:
-                await log('anime_plan_to_watch', lists);
+                await log('04', lists);
                 break;
             case 5:
-                await log('manga_reading', lists);
+                await log('10', lists);
                 break;
             case 6:
-                await log('manga_completed', lists);
+                await log('11', lists);
                 break;
             case 7:
-                await log('manga_on_hold', lists);
+                await log('12', lists);
                 break;
             case 8:
-                await log('manga_dropped', lists);
+                await log('13', lists);
                 break;
             case 9:
-                await log('manga_plan_to_read', lists);
+                await log('14', lists);
                 break;
             case 10:
                 await log('all', lists);

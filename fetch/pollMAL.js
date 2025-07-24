@@ -1,11 +1,9 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { setTimeout } from "timers/promises";
+import { animeStatus, mangaStatus } from "../regular/export.js";
 
 dotenv.config();
-
-const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
-const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 
 let animemangalist = [
     Array(animeStatus.length).fill(null).map(() => []), // animelist
