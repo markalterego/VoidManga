@@ -69,7 +69,7 @@ async function validateParameters (options, lists) {
 
     if (lists) listsFlag = true; // flag is set if lists is defined
 
-    if (!option1CompletedFlag && !option2CompletedFlag) { 
+    if (!option1CompletedFlag && !option2CompletedFlag) { // logging errors by relevance
         console.log(`\n||\n|| Neither parameter was found\n||`)
     } else if (!option1CompletedFlag) {
         console.log(`\n||\n|| The first parameter was not found\n||`)
@@ -88,7 +88,13 @@ async function validateParameters (options, lists) {
 }
 
 async function parseOptionsFromString() {
+    // This function's purpose is to convert options into truthful statements
+    // that are then inputted into optionsArray and can be then processed 
+    // effortlessly by logMAL after conversion is completed.
 
+    // I should also consider informing the user inside the function if 
+    // the options given reap no results e.g. user hasn't set anything 
+    // in their list as dropped.
 }
 
 async function logMAL (optionsArray, lists) {    
