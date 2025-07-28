@@ -41,11 +41,9 @@ async function validateParameters (options, lists) {
     let result = false; // defines whether validation was a success or a failure
     let i = 0, char = options.charAt(i);
 
-    // 0 <-- length 1
-    // 0-1 <-- length 3
-    // 0,1 <-- length maximum 3
-    // number has to be followed by special character -> ',' or '-' or '/' or '|'
-    // but also special character has to be followed by a number
+    // number has to always be followed by a special character -> ',' or '-' or '/' or '|'
+    // but also special character has to always be followed by a number e.g. '0|0'
+    // the given options has to always start with a number and end on a number
 
     while (char !== '|' && i < 20) { // first option (anime/manga)
         char = options.charAt(i);
@@ -67,6 +65,7 @@ async function validateParameters (options, lists) {
         i++; option2CompletedFlag = true;
     }
 
+    if (options.length % 2 !== 1) option2Flag = false; // check for tracing special characters e.g. options = '0|0,'
     if (lists) listsFlag = true; // flag is set if lists is defined
 
     if (!option1CompletedFlag && !option2CompletedFlag) { // logging errors by relevance

@@ -55,7 +55,7 @@ async function shortMenu() {
         switch (m) 
         {
             case 0:
-                await log('0|1', lists);
+                await log('0|0', lists);
                 break;
             case 1:
                 await log('0|1', lists);
