@@ -55,19 +55,19 @@ async function shortMenu() {
         switch (m) 
         {
             case 0:
-                await log('0|0', lists);
+                await log({anime: [0]}, lists);
                 break;
             case 1:
-                await log('0|1', lists);
+                await log({anime: [1]}, lists);
                 break;
             case 2:
-                await log('1|0', lists);
+                await log({manga: [0]}, lists);
                 break;
             case 3:
-                await log('1|1', lists);
+                await log({manga: [1]}, lists);
                 break;
             case 4:
-                await log('0,1|0-4', lists);
+                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
                 break;
             case 5:
                 await pollMangadex(lists); // searches for newest chapters   
@@ -123,37 +123,37 @@ async function longMenu() {
         switch (m) 
         {
             case 0:
-                await log('0|0', lists);
+                await log({anime: [0]}, lists);
                 break;
             case 1:
-                await log('0|1', lists);
+                await log({anime: [1]}, lists);
                 break;
             case 2:
-                await log('0|2', lists);
+                await log({anime: [2]}, lists);
                 break;
             case 3:
-                await log('0|3', lists);
+                await log({anime: [3]}, lists);
                 break;
             case 4:
-                await log('0|4', lists);
+                await log({anime: [4]}, lists);
                 break;
             case 5:
-                await log('1|0', lists);
+                await log({manga: [0]}, lists);
                 break;
             case 6:
-                await log('1|1', lists);
+                await log({manga: [1]}, lists);
                 break;
             case 7:
-                await log('1|2', lists);
+                await log({manga: [2]}, lists);
                 break;
             case 8:
-                await log('1|3', lists);
+                await log({manga: [3]}, lists);
                 break;
             case 9:
-                await log('1|4', lists);
+                await log({manga: [4]}, lists);
                 break;
             case 10:
-                await log('0,1|0-4', lists);
+                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
                 break;
             case 11:
                 await pollMangadex(lists); // searches for newest chapters   
