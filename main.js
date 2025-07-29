@@ -39,9 +39,11 @@ TODO (or not to do...)
 
 - make it possible to do custom polling through ui in pollMangadex.js
 
-- make it possible to exclude specific titles when polling
+- make it possible to exclude specific titles when polling Mangadex
 
 - add an option to settings for enable/disable auto search (poll instantly when using pollMangadex.js [no additional menu at pollMangadex.js]) for mangadex polls
 
 - make it possible to do custom log MAL stuff in logtoconsole.js
+
+- consider improving logic and shortening custom search menu in menu.js (additional function etc.)
 */

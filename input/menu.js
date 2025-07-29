@@ -182,12 +182,13 @@ async function longMenu() {
 async function settingsMenu() {
     let m = 0;
     
-    while (m !== 2) 
+    while (m !== 3) 
     {
-        console.log('\n||\n|| Settings\n||');
+        console.log('\n||\n|| Settings (+experimental)\n||');
         console.log(`|| 0 -> Toggle ${config.menuOption === 'short' ? 'long' : 'short'}Menu`);
         console.log(`|| 1 -> Automatically fetch Mangadex when polling (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
-        console.log('|| 2 -> Return to main menu\n||');
+        console.log('|| 2 -> Custom log MAL');
+        console.log('|| 3 -> Return to main menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
         m = parseInt(userInput, 10); // convert userinput to int
@@ -205,6 +206,131 @@ async function settingsMenu() {
                 m = 2; await filehandle('config', config); // writes config.file
                 break;
             case 2:
+                await customLogMenu();
+                break;
+            case 3:
+                break;
+            default:
+                console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function customLogMenu() {
+    let m = 0, boolRemove = false, anime = [], manga = [], boolDisplayOptions = false;
+
+    while (m !== 5) 
+    {
+        if (boolDisplayOptions) { // show if boolDisplayOptions toggled
+            console.log(`\n||\n|| anime: [${anime}]`);
+            console.log(`|| manga: [${manga}]\n||`);
+        }
+
+        console.log('\n||\n|| Custom log MAL\n||');
+        console.log('|| 0 -> Log with options');
+        console.log('|| 1 -> Anime options');
+        console.log('|| 2 -> Manga options');
+        console.log('|| 3 -> Empty options');
+        console.log('|| 4 -> Toggle display options');
+        console.log('|| 5 -> Return to settings menu\n||');
+
+        const userInput = await rl.question('\n|| Input: '); // get user input
+        m = parseInt(userInput, 10); // convert userinput to int
+
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+        switch (m) 
+        {
+            case 0:
+                await log({anime, manga}, lists);
+                break;
+            case 1:
+                while (m !== 6) 
+                {
+                    if (boolDisplayOptions) { // show if boolDisplayOptions toggled
+                        console.log(`\n||\n|| anime: [${anime}]`);
+                        console.log(`|| manga: [${manga}]\n||`);
+                    }
+
+                    console.log('\n||\n|| Custom log MAL\n||');
+                    console.log(`|| 0 -> ${!boolRemove ? 'Add' : 'Remove'} watching`);
+                    console.log(`|| 1 -> ${!boolRemove ? 'Add' : 'Remove'} completed`);
+                    console.log(`|| 2 -> ${!boolRemove ? 'Add' : 'Remove'} on_hold`);
+                    console.log(`|| 3 -> ${!boolRemove ? 'Add' : 'Remove'} dropped`);
+                    console.log(`|| 4 -> ${!boolRemove ? 'Add' : 'Remove'} plan_to_watch`);
+                    console.log(`|| 5 -> Toggle add/remove (currently ${!boolRemove ? 'add' : 'remove'})`);
+                    console.log('|| 6 -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    m = parseInt(userInput, 10); // convert userinput to int
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+                    if (m < 5 && m > -1) { // add/remove entry
+                        if (!boolRemove) {
+                            anime.push(m); // add new entry
+                            anime = [...new Set(anime)]; // removing duplicates
+                            anime.sort((a, b) => a - b); // sort in ascending order
+                        } else {
+                            anime = anime.filter(value => value !== m); // remove entries corresponding to m
+                        }
+                    } else if (m === 5) { // toggle add/remove
+                        if (!boolRemove) boolRemove = true; 
+                        else boolRemove = false; 
+                    } else if (m !== 6) {
+                        console.log('\n|| Please input a valid option'); 
+                    }
+                }
+                break;
+            case 2:
+                while (m !== 6) 
+                {
+                    if (boolDisplayOptions) { // show if boolDisplayOptions toggled
+                        console.log(`\n||\n|| anime: [${anime}]`);
+                        console.log(`|| manga: [${manga}]\n||`);
+                    }
+
+                    console.log('\n||\n|| Custom log MAL\n||');
+                    console.log(`|| 0 -> ${!boolRemove ? 'Add' : 'Remove'} reading`);
+                    console.log(`|| 1 -> ${!boolRemove ? 'Add' : 'Remove'} completed`);
+                    console.log(`|| 2 -> ${!boolRemove ? 'Add' : 'Remove'} on_hold`);
+                    console.log(`|| 3 -> ${!boolRemove ? 'Add' : 'Remove'} dropped`);
+                    console.log(`|| 4 -> ${!boolRemove ? 'Add' : 'Remove'} plan_to_read`);
+                    console.log(`|| 5 -> Toggle add/remove (currently ${!boolRemove ? 'add' : 'remove'})`);
+                    console.log('|| 6 -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    m = parseInt(userInput, 10); // convert userinput to int
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+                    if (m < 5 && m > -1) { // add/remove entry
+                        if (!boolRemove) {
+                            manga.push(m); // add new entry
+                            manga = [...new Set(manga)]; // removing duplicates
+                            manga.sort((a, b) => a - b); // sort in ascending order
+                        } else {
+                            manga = manga.filter(value => value !== m); // remove entries corresponding to m
+                        }
+                    } else if (m === 5) { // toggle add/remove
+                        if (!boolRemove) boolRemove = true; 
+                        else boolRemove = false; 
+                    } else if (m !== 6) {
+                        console.log('\n|| Please input a valid option'); 
+                    }
+                }
+                break;
+            case 3:
+                // re-initializing anime/manga as empty
+                anime = [], manga = []; 
+                console.log('\n||\n|| Cleared all selected anime/manga options\n||');
+                break;
+            case 4:
+                // toggling boolDisplayOptions
+                if (!boolDisplayOptions) boolDisplayOptions = true; 
+                else boolDisplayOptions = false; 
+                break;
+            case 5:
                 break;
             default:
                 console.log('\n|| Please input a valid option');
