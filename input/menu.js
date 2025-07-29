@@ -218,11 +218,11 @@ async function settingsMenu() {
 }
 
 async function customLogMenu() {
-    let m = 0, boolRemove = false, anime = [], manga = [], boolDisplayOptions = false;
+    let m = 0, boolRemove = false, anime = [], manga = [], boolDisplay = false;
 
     while (m !== 5) 
     {
-        if (boolDisplayOptions) { // show if boolDisplayOptions toggled
+        if (boolDisplay) { // show if boolDisplay toggled
             console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
             console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
         }
@@ -232,7 +232,7 @@ async function customLogMenu() {
         console.log('|| 1 -> Anime options');
         console.log('|| 2 -> Manga options');
         console.log('|| 3 -> Empty options');
-        console.log('|| 4 -> Toggle display options');
+        console.log('|| 4 -> Toggle display');
         console.log('|| 5 -> Return to settings menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -248,7 +248,7 @@ async function customLogMenu() {
             case 1:
                 while (m !== 6) 
                 {
-                    if (boolDisplayOptions) { // show if boolDisplayOptions toggled
+                    if (boolDisplay) { // show if boolDisplay toggled
                         console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
                         console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
                     }
@@ -286,7 +286,7 @@ async function customLogMenu() {
             case 2:
                 while (m !== 6) 
                 {
-                    if (boolDisplayOptions) { // show if boolDisplayOptions toggled
+                    if (boolDisplay) { // show if boolDisplay toggled
                         console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
                         console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
                     }
@@ -328,8 +328,8 @@ async function customLogMenu() {
                 break;
             case 4:
                 // toggling boolDisplayOptions
-                if (!boolDisplayOptions) boolDisplayOptions = true; 
-                else boolDisplayOptions = false; 
+                if (!boolDisplay) boolDisplay = true; 
+                else boolDisplay = false; 
                 break;
             case 5:
                 break;
