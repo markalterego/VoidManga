@@ -1,2 +1,2 @@
-export const animeStatus = ['Watching', 'Completed', 'On_hold', 'Dropped', 'Plan_to_watch'];
-export const mangaStatus = ['Reading', 'Completed', 'On_hold', 'Dropped', 'Plan_to_read']; 
+export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
+export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 

@@ -4,6 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
+import { animeStatus, mangaStatus } from "../regular/export.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -222,8 +223,8 @@ async function customLogMenu() {
     while (m !== 5) 
     {
         if (boolDisplayOptions) { // show if boolDisplayOptions toggled
-            console.log(`\n||\n|| anime: [${anime}]`);
-            console.log(`|| manga: [${manga}]\n||`);
+            console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
+            console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
         }
 
         console.log('\n||\n|| Custom log MAL\n||');
@@ -248,8 +249,8 @@ async function customLogMenu() {
                 while (m !== 6) 
                 {
                     if (boolDisplayOptions) { // show if boolDisplayOptions toggled
-                        console.log(`\n||\n|| anime: [${anime}]`);
-                        console.log(`|| manga: [${manga}]\n||`);
+                        console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
+                        console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
                     }
 
                     console.log('\n||\n|| Custom log MAL\n||');
@@ -286,8 +287,8 @@ async function customLogMenu() {
                 while (m !== 6) 
                 {
                     if (boolDisplayOptions) { // show if boolDisplayOptions toggled
-                        console.log(`\n||\n|| anime: [${anime}]`);
-                        console.log(`|| manga: [${manga}]\n||`);
+                        console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
+                        console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
                     }
 
                     console.log('\n||\n|| Custom log MAL\n||');
