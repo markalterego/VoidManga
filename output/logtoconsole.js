@@ -56,7 +56,7 @@ async function logMAL (lists) {
     Object.keys(MAL).forEach((key, i) => { // anime/manga
         if (MAL[key].length > 0) console.log(`\n||\n|| ${!i ? '== Anime ==' : '== Manga =='}`);
         for (const status of MAL[key]) { // status
-            console.log(`||\n|| (${!i ? animeStatus[status] : mangaStatus[status]})\n||`);
+            if (lists[i][status].length > 0) console.log(`||\n|| (${!i ? animeStatus[status] : mangaStatus[status]})\n||`);
             for (const entry of lists[i][status]) { // entry
                 const title = entry.node.title;
                 const progress = `( ${!i ? entry.list_status.num_episodes_watched : entry.list_status.num_chapters_read} / `;
