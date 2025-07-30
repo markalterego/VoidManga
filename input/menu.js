@@ -39,13 +39,12 @@ async function shortMenu() {
     {
         console.log('\n||\n|| What would you like to do?\n||');
         console.log('|| 0 -> Watching anime');
-        console.log('|| 1 -> Completed anime');
-        console.log('|| 2 -> Reading manga');
-        console.log('|| 3 -> Completed manga');
-        console.log('|| 4 -> Full list');
-        console.log('|| 5 -> Poll mangadex');
-        console.log('|| 6 -> Poll mal');
-        console.log('|| 7 -> Clear screen');
+        console.log('|| 1 -> Reading manga');
+        console.log('|| 2 -> Full list');
+        console.log('|| 3 -> Custom log MAL');
+        console.log('|| 4 -> Poll mangadex');
+        console.log('|| 5 -> Poll mal');
+        console.log('|| 6 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -60,25 +59,22 @@ async function shortMenu() {
                 await log({anime: [0]}, lists);
                 break;
             case 1:
-                await log({anime: [1]}, lists);
-                break;
-            case 2:
                 await log({manga: [0]}, lists);
                 break;
-            case 3:
-                await log({manga: [1]}, lists);
-                break;
-            case 4:
+            case 2:
                 await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
                 break;
-            case 5:
+            case 3:
+                await customLogMenu(); // log anime and/or manga by status
+                break;
+            case 4:
                 await pollMangadex(lists); // searches for newest chapters   
                 break;
-            case 6:
+            case 5:
                 lists = await pollMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break;
-            case 7:
+            case 6:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
             case 'e':
@@ -112,9 +108,10 @@ async function longMenu() {
         console.log('|| 8 -> Dropped manga');
         console.log('|| 9 -> Plan to read manga');
         console.log('|| 10 -> All of the above');
-        console.log('|| 11 -> Poll mangadex');
-        console.log('|| 12 -> Poll mal');
-        console.log('|| 13 -> Clear screen');
+        console.log('|| 11 -> Custom log MAL');
+        console.log('|| 12 -> Poll mangadex');
+        console.log('|| 13 -> Poll mal');
+        console.log('|| 14 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -159,13 +156,16 @@ async function longMenu() {
                 await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
                 break;
             case 11:
-                await pollMangadex(lists); // searches for newest chapters   
+                await customLogMenu() // log anime and/or manga by status
                 break;
             case 12:
+                await pollMangadex(lists); // searches for newest chapters   
+                break;
+            case 13:
                 lists = await pollMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break;
-            case 13:
+            case 14:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
             case 'e':
@@ -190,7 +190,6 @@ async function settingsMenu() {
         console.log('\n||\n|| Settings (+experimental)\n||');
         console.log(`|| 0 -> Toggle menu type (currently ${config.menuOption})`);
         console.log(`|| 1 -> Automatically fetch Mangadex when polling (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
-        console.log('|| 2 -> Custom log MAL');
         console.log('|| e -> Return to main menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -208,9 +207,6 @@ async function settingsMenu() {
             case 1:
                 if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
                 await filehandle('config', config); // writes config.file
-                break;
-            case 2:
-                await customLogMenu();
                 break;
             case 'e':
                 break;
@@ -235,7 +231,7 @@ async function customLogMenu() {
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Empty options');
         console.log('|| 3 -> Toggle display');
-        console.log('|| e -> Return to settings menu\n||');
+        console.log('|| e -> Return to menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
         if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
@@ -256,7 +252,7 @@ async function customLogMenu() {
                         console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
                     }
 
-                    console.log(`\n||\n|| Custom log MAL (${!boolManga ? 'anime' : 'manga'})\n||`);
+                    console.log(`\n||\n|| Change options (${!boolManga ? 'anime' : 'manga'})\n||`);
                     if (!boolManga) { 
                         animeStatus.forEach((item, index) => {
                             console.log(`|| ${index} -> ${!boolRemove ? 'Add' : 'Remove'} ${item}`); // options 0-4
@@ -291,10 +287,11 @@ async function customLogMenu() {
                     } else if (m === 6) { // toggle anime/manga
                         if (!boolManga) boolManga = true; 
                         else boolManga = false; 
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option'); 
+                    } else if (m !== 'e') { 
+                        console.log('\n|| Please input a valid option');  
                     }
-                }    
+                }   
+                m = null; // ensuring customLogMenu doesn't exit
                 break;
             case 2:
                 // re-initializing anime/manga as empty
