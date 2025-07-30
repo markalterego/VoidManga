@@ -35,7 +35,7 @@ async function menu(l, c) {
 async function shortMenu() {
     let m = 0, r = false; // m = menu, r = refresh
     
-    while (m !== 8) 
+    while (m !== 'e') 
     {
         console.log('\n||\n|| What would you like to do?\n||');
         console.log('|| 0 -> Watching anime');
@@ -46,10 +46,11 @@ async function shortMenu() {
         console.log('|| 5 -> Poll mangadex');
         console.log('|| 6 -> Poll mal');
         console.log('|| 7 -> Clear screen');
-        console.log('|| 8 -> Exit\n||');
+        console.log('|| e -> Exit\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
-        m = parseInt(userInput, 10); // convert userinput to int
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -80,11 +81,11 @@ async function shortMenu() {
             case 7:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
-            case 8:
+            case 'e':
                 break;
             case 888:
                 await settingsMenu(); 
-                r = true; m = 8; // goes out of loop and refreshes menu
+                r = true; m = 'e'; // goes out of loop and refreshes menu
                 break;
             default:
                 console.log('\n|| Please input a valid option');
@@ -97,7 +98,7 @@ async function shortMenu() {
 async function longMenu() {
     let m = 0, r = false; // m = menu, r = refresh
     
-    while (m !== 14) 
+    while (m !== 'e') 
     {
         console.log('\n||\n|| What would you like to do?\n||');
         console.log('|| 0 -> Watching anime');
@@ -114,10 +115,11 @@ async function longMenu() {
         console.log('|| 11 -> Poll mangadex');
         console.log('|| 12 -> Poll mal');
         console.log('|| 13 -> Clear screen');
-        console.log('|| 14 -> Exit\n||');
+        console.log('|| e -> Exit\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
-        m = parseInt(userInput, 10); // convert userinput to int
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -166,11 +168,11 @@ async function longMenu() {
             case 13:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
-            case 14:
+            case 'e':
                 break;
             case 888:
                 await settingsMenu(); 
-                r = true; m = 14; // goes out of loop and refreshes menu
+                r = true; m = 'e'; // goes out of loop and refreshes menu
                 break;
             default:
                 console.log('\n|| Please input a valid option');
@@ -183,16 +185,17 @@ async function longMenu() {
 async function settingsMenu() {
     let m = 0;
     
-    while (m !== 3) 
+    while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Toggle ${config.menuOption === 'short' ? 'long' : 'short'}Menu`);
+        console.log(`|| 0 -> Toggle menu type (currently ${config.menuOption})`);
         console.log(`|| 1 -> Automatically fetch Mangadex when polling (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
         console.log('|| 2 -> Custom log MAL');
-        console.log('|| 3 -> Return to main menu\n||');
+        console.log('|| e -> Return to main menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
-        m = parseInt(userInput, 10); // convert userinput to int
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -200,16 +203,16 @@ async function settingsMenu() {
         {
             case 0: 
                 if (config.menuOption === 'short') config = { ...config, menuOption: 'long' }; else config = { ...config, menuOption: 'short' }; // changing menuOption
-                m = 2; await filehandle('config', config); // writes config.file
+                await filehandle('config', config); // writes config.file
                 break;
             case 1:
                 if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
-                m = 2; await filehandle('config', config); // writes config.file
+                await filehandle('config', config); // writes config.file
                 break;
             case 2:
                 await customLogMenu();
                 break;
-            case 3:
+            case 'e':
                 break;
             default:
                 console.log('\n|| Please input a valid option');
@@ -220,7 +223,7 @@ async function settingsMenu() {
 async function customLogMenu() {
     let m = 0, boolRemove = false, anime = [], manga = [], boolDisplay = false, boolManga = false;
 
-    while (m !== 4) 
+    while (m !== 'e') 
     {
         if (boolDisplay) { // show if boolDisplay toggled
             console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
@@ -232,10 +235,11 @@ async function customLogMenu() {
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Empty options');
         console.log('|| 3 -> Toggle display');
-        console.log('|| 4 -> Return to settings menu\n||');
+        console.log('|| e -> Return to settings menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
-        m = parseInt(userInput, 10); // convert userinput to int
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -245,7 +249,7 @@ async function customLogMenu() {
                 await log({anime, manga}, lists);
                 break;
             case 1:
-                while (m !== 7) 
+                while (m !== 'e') 
                 {
                     if (boolDisplay) { // show if boolDisplay toggled
                         console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
@@ -264,10 +268,11 @@ async function customLogMenu() {
                     }
                     console.log('|| 5 -> Toggle add/remove');
                     console.log('|| 6 -> Toggle anime/manga');
-                    console.log('|| 7 -> Go back\n||');
+                    console.log('|| e -> Go back\n||');
 
                     const userInput = await rl.question('\n|| Input: '); // get user input
-                    m = parseInt(userInput, 10); // convert userinput to int
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -286,7 +291,7 @@ async function customLogMenu() {
                     } else if (m === 6) { // toggle anime/manga
                         if (!boolManga) boolManga = true; 
                         else boolManga = false; 
-                    } else if (m !== 7) {
+                    } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option'); 
                     }
                 }    
@@ -301,7 +306,7 @@ async function customLogMenu() {
                 if (!boolDisplay) boolDisplay = true; 
                 else boolDisplay = false; 
                 break;
-            case 4:
+            case 'e':
                 break;
             default:
                 console.log('\n|| Please input a valid option');
