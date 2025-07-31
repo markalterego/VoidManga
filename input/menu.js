@@ -4,7 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
-import { animeStatus, mangaStatus } from "../regular/export.js";
+import { animeStatus, mangaStatus, pollMangadexOptions } from "../regular/export.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -42,7 +42,7 @@ async function shortMenu() {
         console.log('|| 1 -> Reading manga');
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
-        console.log('|| 4 -> Poll mangadex');
+        console.log('|| 4 -> Custom poll mangadex');
         console.log('|| 5 -> Poll mal');
         console.log('|| 6 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -65,10 +65,11 @@ async function shortMenu() {
                 await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
                 break;
             case 3:
-                await customLogMenu(); // log anime and/or manga by status
+                await customLogMenuMAL(); // log anime and/or manga by status
                 break;
             case 4:
-                await pollMangadex(lists); // searches for newest chapters   
+                await customPollMenuMangadex();
+                // await pollMangadex(lists); // searches for newest chapters   
                 break;
             case 5:
                 lists = await pollMAL(); // searches and returns MAL lists
@@ -109,7 +110,7 @@ async function longMenu() {
         console.log('|| 9 -> Plan to read manga');
         console.log('|| 10 -> All of the above');
         console.log('|| 11 -> Custom log MAL');
-        console.log('|| 12 -> Poll mangadex');
+        console.log('|| 12 -> Custom poll mangadex');
         console.log('|| 13 -> Poll mal');
         console.log('|| 14 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -156,10 +157,11 @@ async function longMenu() {
                 await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
                 break;
             case 11:
-                await customLogMenu() // log anime and/or manga by status
+                await customLogMenuMAL() // log anime and/or manga by status
                 break;
             case 12:
-                await pollMangadex(lists); // searches for newest chapters   
+                await customPollMenuMangadex();
+                // await pollMangadex(lists); // searches for newest chapters   
                 break;
             case 13:
                 lists = await pollMAL(); // searches and returns MAL lists
@@ -216,7 +218,7 @@ async function settingsMenu() {
     }
 }
 
-async function customLogMenu() {
+async function customLogMenuMAL() {
     let m = 0, boolRemove = false, anime = [], manga = [], boolDisplay = false, boolManga = false;
 
     while (m !== 'e') 
@@ -306,6 +308,69 @@ async function customLogMenu() {
             case 'e':
                 break;
             default:
+                console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function customPollMenuMangadex() {
+    const options = pollMangadexOptions;
+    let customizedLists = lists;
+    let m = 0;
+    let boolDisplay = false;
+    
+    while (m !== 'e') 
+    {
+        if (boolDisplay) { // show if boolDisplay toggled
+            console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
+            console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (!options.MAL_status ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status])}`);
+            console.log(`|| limit_manga: ${options.limit_manga}`);
+            console.log(`|| limit_chapter: ${options.limit_chapter}`);
+            console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
+            console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
+            console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
+            console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
+            console.log(`|| contentRating: [${options.contentRating}]`);
+            console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage}]\n||`);
+        }
+
+        console.log('\n||\n|| Custom poll Mangadex\n||');
+        console.log('|| 0 -> Poll with options');
+        console.log('|| 1 -> Change options');
+        console.log('|| 2 -> Empty options');
+        console.log('|| 3 -> Toggle display');
+        console.log('|| e -> Return to menu\n||');
+
+        const userInput = await rl.question('\n|| Input: '); // get user input
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+        switch (m)
+        {
+            case 0:
+                // polling with given options
+                await pollMangadex(customizedLists, options);
+                break;
+            case 1:
+                break;
+            case 2:
+                // emptying / nullifying all options
+                for (const key in options) {
+                    if (!Array.isArray(options[key])) options[key] = null;
+                    else options[key] = [];
+                }
+                console.log('\n||\n|| Cleared all selected options\n||');
+                break;
+            case 3:
+                // toggle display of options
+                if (!boolDisplay) boolDisplay = true; 
+                else boolDisplay = false; 
+                break;
+            case 'e':
+                break;
+            default: 
                 console.log('\n|| Please input a valid option');
         }
     }
