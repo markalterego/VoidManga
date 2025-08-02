@@ -13,18 +13,18 @@ async function pollMangadex (lists, options) {
 async function fetchChapters (lists, options) {
     try {
         let countFoundManga = 0, countMissingManga = 0, countFoundChapter = 0, countMissingChapter = 0;
-        const mangas = lists[options.MAL_list][options.MAL_status]; // points to preferred search
+        const items = lists[options.MAL_list][options.MAL_status]; // points to preferred search
         console.log('\n>> Now searching for manga >>\n'); 
-        for (const manga of mangas) { // going through mangas
-            const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching MAL mangas based on preference
+        for (const item of items) { // going through items
+            const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
                 params: {
-                    title: manga.node.title, // manga title
+                    title: item.node.title, // item title
                     limit: options.limit_manga, // preferred fetch length 
                     [`order[${options.mangaOrderType}]`]: options.mangaOrderDirection, // e.g 'order[relevance]': 'desc' - orders by most relevant to least relevant
                     contentRating: options.contentRating // includes preferred contentRatings
                 }
             }); 
-            console.log(`-> ${manga.node.title}\n`); // logging MAL manga title
+            console.log(`-> ${item.node.title}\n`); // logging MAL item title
             if (!mangaResponse.data.data.length) { // if manga wasn't found
                 console.log('> Manga was not found');
                 countMissingManga++;
