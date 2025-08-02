@@ -293,7 +293,7 @@ async function customLogMenuMAL() {
                         console.log('\n|| Please input a valid option');  
                     }
                 }   
-                m = null; // ensuring customLogMenu doesn't exit
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 2:
                 // re-initializing anime/manga as empty
@@ -314,7 +314,7 @@ async function customLogMenuMAL() {
 }
 
 async function customPollMenuMangadex() {
-    const options = pollMangadexOptions;
+    let options = pollMangadexOptions;
     let customizedLists = lists;
     let m = 0;
     let boolDisplay = false;
@@ -354,6 +354,8 @@ async function customPollMenuMangadex() {
                 await pollMangadex(customizedLists, options);
                 break;
             case 1:
+                // running menu for changing options
+                options = await changeMangadexOptionMenu(boolDisplay);
                 break;
             case 2:
                 // emptying / nullifying all options
@@ -374,6 +376,84 @@ async function customPollMenuMangadex() {
                 console.log('\n|| Please input a valid option');
         }
     }
+}
+
+async function changeMangadexOptionMenu(boolDisplay) {
+    const options = pollMangadexOptions;
+    let m = 0, i = 0;
+
+    while (m !== 'e') 
+    {
+        if (boolDisplay) { // show if boolDisplay toggled
+            console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
+            console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (!options.MAL_status ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status])}`);
+            console.log(`|| limit_manga: ${options.limit_manga}`);
+            console.log(`|| limit_chapter: ${options.limit_chapter}`);
+            console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
+            console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
+            console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
+            console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
+            console.log(`|| contentRating: [${options.contentRating}]`);
+            console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage}]\n||`);
+        }
+
+        // lists options that can be changed & in case not toggleable goes into separate list to change the wanted option
+        console.log('\n||\n|| Select an option:\n||');
+        for (const key in options) { 
+            console.log(`|| ${i} -> ${key}`);
+            i++; 
+        }
+        console.log('|| e -> Go back\n||');
+        i = 0; // resetting index
+
+        const userInput = await rl.question('\n|| Input: '); // get user input
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        
+        switch (m)
+        {
+            case 0: // MAL_list
+                while (m !== 'e') 
+                {
+                    const optionsArr = Object.keys(options);
+                    console.log(optionsArr);
+                    optionsArr.forEach(item => console.log(`|| ${item}`));
+                    
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                }
+                break;
+            case 1: // MAL_status
+                break;
+            case 2: // limit_manga
+                break;
+            case 3: // limit_chapter
+                break;
+            case 4: // mangaOrderType
+                break;
+            case 5: // chapterOrderType
+                break;
+            case 6: // mangaOrderDirection
+                break;
+            case 7: // chapterOrderDirection
+                break;
+            case 8: // contentRating
+                break;
+            case 9: // chapterTranslatedLanguage
+                break;
+            case 'e':
+                break;
+            default: 
+                console.log('\n|| Please input a valid option');
+        }
+    }
+
+    return options;
 }
 
 export { menu };
