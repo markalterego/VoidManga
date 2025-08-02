@@ -4,7 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
-import { animeStatus, mangaStatus, pollMangadexOptions } from "../regular/export.js";
+import { animeStatus, mangaOrderTypes, mangaStatus, pollMangadexOptions } from "../regular/export.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -531,8 +531,24 @@ async function changeMangadexOptionMenu(boolDisplay) {
                         await customPollMangadexDisplay(options);
                     }
 
-                    console.log(`\n||\n|| Select option for ${key}\n||`)
+                    console.log(`\n||\n|| Select option for ${key}\n||`);
+                    mangaOrderTypes.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
+                    // setting the given option
+                    if (m > -1 && m < mangaOrderTypes.length) {
+                        options.mangaOrderType = mangaOrderTypes[m];
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
@@ -572,7 +588,9 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    
+                    // Make a few common language options hard coded
+                    // into the options and also allow the user to
+                    // input any two letter language code they prefer
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
