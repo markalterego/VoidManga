@@ -423,24 +423,34 @@ async function changeMangadexOptionMenu(boolDisplay) {
                         console.log('\n|| Please input a valid option');
                     }
                 }
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 1: // MAL_status
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 2: // limit_manga
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 3: // limit_chapter
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 4: // mangaOrderType
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 5: // chapterOrderType
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 6: // mangaOrderDirection
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 7: // chapterOrderDirection
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 8: // contentRating
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 9: // chapterTranslatedLanguage
+                m = null; // ensuring upper menu doesn't exit
                 break;
             case 'e':
                 break;
