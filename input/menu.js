@@ -322,16 +322,7 @@ async function customPollMenuMangadex() {
     while (m !== 'e') 
     {
         if (boolDisplay) { // show if boolDisplay toggled
-            console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
-            console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (!options.MAL_status ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status])}`);
-            console.log(`|| limit_manga: ${options.limit_manga}`);
-            console.log(`|| limit_chapter: ${options.limit_chapter}`);
-            console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
-            console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
-            console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
-            console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
-            console.log(`|| contentRating: [${options.contentRating}]`);
-            console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage}]\n||`);
+            await customPollMangadexDisplay(options);
         }
 
         console.log('\n||\n|| Custom poll Mangadex\n||');
@@ -385,16 +376,7 @@ async function changeMangadexOptionMenu(boolDisplay) {
     while (m !== 'e') 
     {
         if (boolDisplay) { // show if boolDisplay toggled
-            console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
-            console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (!options.MAL_status ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status])}`);
-            console.log(`|| limit_manga: ${options.limit_manga}`);
-            console.log(`|| limit_chapter: ${options.limit_chapter}`);
-            console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
-            console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
-            console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
-            console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
-            console.log(`|| contentRating: [${options.contentRating}]`);
-            console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage}]\n||`);
+            await customPollMangadexDisplay(options);
         }
 
         // lists options that can be changed & in case not toggleable goes into separate list to change the wanted option
@@ -415,17 +397,31 @@ async function changeMangadexOptionMenu(boolDisplay) {
         switch (m)
         {
             case 0: // MAL_list
+                const key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    const optionsArr = Object.keys(options);
-                    console.log(optionsArr);
-                    optionsArr.forEach(item => console.log(`|| ${item}`));
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Select option for ${key}\n||`)
+                    console.log('|| 0 -> anime');
+                    console.log('|| 1 -> manga');
+                    console.log(`|| e -> Go back\n||`);
                     
                     const userInput = await rl.question('\n|| Input: '); // get user input
                     if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
                     else m = userInput.toLowerCase(); // convert userinput to lowercase
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    
+                    if (m === 0) {
+                        options.MAL_list = 0;
+                    } else if (m === 1) {
+                        options.MAL_list = 1;
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 break;
             case 1: // MAL_status
@@ -454,6 +450,19 @@ async function changeMangadexOptionMenu(boolDisplay) {
     }
 
     return options;
+}
+
+async function customPollMangadexDisplay (options) {
+    console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
+    console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (!options.MAL_status ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status])}`);
+    console.log(`|| limit_manga: ${options.limit_manga}`);
+    console.log(`|| limit_chapter: ${options.limit_chapter}`);
+    console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
+    console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
+    console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
+    console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
+    console.log(`|| contentRating: [${options.contentRating}]`);
+    console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage}]\n||`);
 }
 
 export { menu };
