@@ -43,7 +43,5 @@ TODO (or not to do...)
 
 - add an option to settings for enable/disable auto search (poll instantly when using pollMangadex.js [no additional menu at pollMangadex.js]) for mangadex polls
 
-- make it possible to do custom log MAL stuff in logtoconsole.js
-
-- consider improving logic and shortening custom search menu in menu.js (additional function etc.)
+- make it possible to do custom log MAL stuff in logtoconsole.js <- add the possibility to log only specific stuff found per item of lists[i][ii] 
 */
