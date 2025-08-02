@@ -527,6 +527,11 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Select option for ${key}\n||`)
                     
                 }
                 m = null; // ensuring upper menu doesn't exit
