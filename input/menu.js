@@ -471,7 +471,27 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
                     
+                    console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    
+                    // setting the given option
+                    if (m > -1 && m < 101) {
+                        options.limit_manga = m;
+                    } else if (m > 100 || m < 0) {
+                        console.log('\n|| The given value has to be be between 0-100');
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
@@ -479,7 +499,27 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
                     
+                    console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    
+                    // setting the given option
+                    if (m > -1 && m < 101) {
+                        options.limit_chapter = m;
+                    } else if (m > 100 || m < 0) {
+                        console.log('\n|| The given value has to be be between 0-100');
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }    
                 m = null; // ensuring upper menu doesn't exit
                 break;
