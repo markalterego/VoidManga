@@ -4,7 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
-import { animeStatus, mangaOrderTypes, mangaStatus, pollMangadexOptions } from "../regular/export.js";
+import { animeStatus, chapterOrderTypes, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, pollMangadexOptions } from "../regular/export.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -315,7 +315,7 @@ async function customLogMenuMAL() {
 
 async function customPollMenuMangadex() {
     let options = pollMangadexOptions;
-    let customizedLists = lists;
+    let customizedLists = [...lists]; // making a copy of lists
     let m = 0;
     let boolDisplay = false;
     
@@ -379,7 +379,7 @@ async function changeMangadexOptionMenu(boolDisplay) {
             await customPollMangadexDisplay(options);
         }
 
-        // lists options that can be changed & in case not toggleable goes into separate list to change the wanted option
+        // lists options that can be changed 
         console.log('\n||\n|| Select an option:\n||');
         for (const key in options) { 
             console.log(`|| ${i} -> ${key}`);
@@ -556,7 +556,28 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Select option for ${key}\n||`);
+                    chapterOrderTypes.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
+                    // setting the given option
+                    if (m > -1 && m < chapterOrderTypes.length) {
+                        options.chapterOrderType = chapterOrderTypes[m];
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
@@ -564,7 +585,28 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Select option for ${key}\n||`);
+                    orderDirections.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
+                    // setting the given option
+                    if (m > -1 && m < orderDirections.length) {
+                        options.mangaOrderDirection = orderDirections[m];
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
@@ -572,7 +614,28 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Select option for ${key}\n||`);
+                    orderDirections.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
+                    // setting the given option
+                    if (m > -1 && m < orderDirections.length) {
+                        options.chapterOrderDirection = orderDirections[m];
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
@@ -580,7 +643,35 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Add option for ${key}\n||`);
+                    contentRatings.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                    console.log(`|| ${contentRatings.length} -> Select all`);
+                    console.log(`|| ${contentRatings.length+1} -> Clear ratings`);
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+                    // setting option / clearing options
+                    if (m > -1 && m < contentRatings.length) {
+                        options.contentRating.push(contentRatings[m]); 
+                        options.contentRating = [...new Set(options.contentRating)]; // get rid of duplicate values
+                    } else if (m === contentRatings.length) {
+                        options.contentRating = [...contentRatings];
+                    } else if (m === contentRatings.length+1) {
+                        options.contentRating = [];
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;

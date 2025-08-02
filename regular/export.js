@@ -9,8 +9,8 @@ export const pollMangadexOptions = {
     chapterOrderType: null, // 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
     mangaOrderDirection: null, // 'asc', 'desc'
     chapterOrderDirection: null, // 'asc', 'desc'
-    contentRating: [null], // ['safe','etc...'], undefined for default behavior
-    chapterTranslatedLanguage: [null], // ['en','es','etc...'], undefined for all languages
+    contentRating: [], // ['safe','etc...'], undefined for default behavior
+    chapterTranslatedLanguage: [], // ['en','es','etc...'], undefined for all languages
 };
 export const mangaOrderTypes = ['title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'];
 export const chapterOrderTypes = ['createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'];
