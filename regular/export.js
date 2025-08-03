@@ -16,6 +16,7 @@ export const mangaOrderTypes = ['title', 'year', 'createdAt', 'updatedAt', 'late
 export const chapterOrderTypes = ['createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'];
 export const orderDirections = ['asc', 'desc'];
 export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
+export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
 
 /*
     Options for fetchChapters() custom search:

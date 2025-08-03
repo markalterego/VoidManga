@@ -4,7 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
-import { animeStatus, chapterOrderTypes, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, pollMangadexOptions } from "../regular/export.js";
+import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, pollMangadexOptions } from "../regular/export.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -679,9 +679,41 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    // Make a few common language options hard coded
-                    // into the options and also allow the user to
-                    // input any two letter language code they prefer
+                    if (boolDisplay) {
+                        await customPollMangadexDisplay(options);
+                    }
+
+                    console.log(`\n||\n|| Add option for ${key} (optionally input custom code)\n||`);
+                    chapterTranslatedLanguages.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                    console.log(`|| ${chapterTranslatedLanguages.length} -> Clear filters`);
+                    console.log('|| e -> Go back\n||');
+
+                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    // regex tests for manually inputted language codes and allows:
+                    // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
+                    const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(userInput); // validating language code
+                    if (!testResult && userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                    else m = userInput.toLowerCase(); // converts userInput to lowercase
+
+                    // options.chapterTranslatedLanguage.forEach(value => console.log(value));
+                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+
+                    // handling menu choice
+                    if (m > -1 && m < chapterTranslatedLanguages.length) { 
+                        // options.chapterTranslatedLanguage = options.chapterTranslatedLanguage.filter(Boolean); // filters undefined
+                        options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[m]);
+                        options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
+                    } else if (m === chapterTranslatedLanguages.length) {
+                        options.chapterTranslatedLanguage = []; // clear current translatedLanguage options 
+                    } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
+                        // options.chapterTranslatedLanguage = options.chapterTranslatedLanguage.filter(Boolean); // filters undefined
+                        options.chapterTranslatedLanguage.push(m);
+                        options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
@@ -704,8 +736,8 @@ async function customPollMangadexDisplay (options) {
     console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
     console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
     console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
-    console.log(`|| contentRating: [${options.contentRating}]`);
-    console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage}]\n||`);
+    console.log(`|| contentRating: [${options.contentRating[0] === undefined ? 'default' : options.contentRating}]`);
+    console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
 export { menu };
