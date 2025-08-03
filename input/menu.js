@@ -21,7 +21,7 @@ async function menu(l, c) {
             } else if (config.menuOption==='long') {
                 refresh = await longMenu(); // displays the long version of the menu
             } else {
-                console.log('\n|| Given menuOption doesn\'t exist');
+                console.log('\n||\n|| Given menuOption doesn\'t exist\n||');
             }
         }
     } catch (error) {
@@ -68,8 +68,9 @@ async function shortMenu() {
                 await customLogMenuMAL(); // log anime and/or manga by status
                 break;
             case 4:
-                await customPollMenuMangadex();
-                // await pollMangadex(lists); // searches for newest chapters   
+                const returnArr = await customPollMenuMangadex();
+                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplay: returnArr[1] };
+                await filehandle('config', config);
                 break;
             case 5:
                 lists = await pollMAL(); // searches and returns MAL lists
@@ -314,11 +315,11 @@ async function customLogMenuMAL() {
 }
 
 async function customPollMenuMangadex() {
-    let options = pollMangadexOptions;
+    const options = !config.pollMangadexOptions ? { ...pollMangadexOptions } : config.pollMangadexOptions;
     let customizedLists = [...lists]; // making a copy of lists
     let m = 0;
-    let boolDisplay = false;
-    
+    let boolDisplay = !config.boolDisplay ? false : config.boolDisplay; 
+
     while (m !== 'e') 
     {
         if (boolDisplay) { // show if boolDisplay toggled
@@ -346,7 +347,7 @@ async function customPollMenuMangadex() {
                 break;
             case 1:
                 // running menu for changing options
-                options = await changeMangadexOptionMenu(boolDisplay);
+                await changeMangadexOptionMenu(boolDisplay, options);
                 break;
             case 2:
                 // emptying / nullifying all options
@@ -367,10 +368,12 @@ async function customPollMenuMangadex() {
                 console.log('\n|| Please input a valid option');
         }
     }
+
+    return [options, boolDisplay];
 }
 
-async function changeMangadexOptionMenu(boolDisplay) {
-    const options = pollMangadexOptions;
+async function changeMangadexOptionMenu(boolDisplay, pollOptions) {
+    const options = pollOptions;
     let m = 0, i = 0, key = null;
 
     while (m !== 'e') 
@@ -697,7 +700,6 @@ async function changeMangadexOptionMenu(boolDisplay) {
                     if (!testResult && userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
                     else m = userInput.toLowerCase(); // converts userInput to lowercase
 
-                    // options.chapterTranslatedLanguage.forEach(value => console.log(value));
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
                     // handling menu choice
@@ -723,8 +725,6 @@ async function changeMangadexOptionMenu(boolDisplay) {
                 console.log('\n|| Please input a valid option');
         }
     }
-
-    return options;
 }
 
 async function customPollMangadexDisplay (options) {

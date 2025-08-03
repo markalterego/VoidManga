@@ -2,6 +2,7 @@ import { pollMAL } from "./fetch/pollMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './input/menu.js';
+import { pollMangadexOptions } from "./regular/export.js";
  
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
@@ -15,7 +16,8 @@ async function main() {
     }
 
     if (!existsSync('./regular/config.file')) {
-        config = { ...config, menuOption: 'short', autoFetchMangadex: false }; // setting initial menu preference
+        // setting initial menu preference
+        config = { ...config, menuOption: 'short', autoFetchMangadex: false, pollMangadexOptions: pollMangadexOptions, boolDisplay: false}; 
         await filehandle('config', config); // writes config.file
     } else {    
         config = await filehandle('config'); // reads config.file
