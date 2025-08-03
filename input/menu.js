@@ -161,8 +161,9 @@ async function longMenu() {
                 await customLogMenuMAL() // log anime and/or manga by status
                 break;
             case 12:
-                await customPollMenuMangadex();
-                // await pollMangadex(lists); // searches for newest chapters   
+                const returnArr = await customPollMenuMangadex();
+                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplay: returnArr[1] };
+                await filehandle('config', config);
                 break;
             case 13:
                 lists = await pollMAL(); // searches and returns MAL lists
