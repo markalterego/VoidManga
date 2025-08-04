@@ -330,8 +330,9 @@ async function customPollMenuMangadex() {
         console.log('\n||\n|| Custom poll Mangadex\n||');
         console.log('|| 0 -> Poll with options');
         console.log('|| 1 -> Change options');
-        console.log('|| 2 -> Empty options');
-        console.log('|| 3 -> Toggle display');
+        console.log('|| 2 -> Filter titles from MAL');
+        console.log('|| 3 -> Empty options');
+        console.log('|| 4 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -351,6 +352,10 @@ async function customPollMenuMangadex() {
                 await changeMangadexOptionMenu(boolDisplay, options);
                 break;
             case 2:
+                // filtering out entries from the copy of MAL list
+                await filterEntriesFromMAL(customizedLists);
+                break;
+            case 3:
                 // emptying / nullifying all options
                 for (const key in options) {
                     if (!Array.isArray(options[key])) options[key] = null;
@@ -358,7 +363,7 @@ async function customPollMenuMangadex() {
                 }
                 console.log('\n||\n|| Cleared all selected options\n||');
                 break;
-            case 3:
+            case 4:
                 // toggle display of options
                 if (!boolDisplay) boolDisplay = true; 
                 else boolDisplay = false; 
@@ -739,6 +744,84 @@ async function customPollMangadexDisplay (options) {
     console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
     console.log(`|| contentRating: [${options.contentRating[0] === undefined ? 'default' : options.contentRating}]`);
     console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
+}
+
+async function filterEntriesFromMAL (customizedLists) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // select where to list statuses from
+        console.log('\n||\n|| Select a type\n||');
+        console.log('|| 0 -> Anime');
+        console.log('|| 1 -> Manga');
+        console.log('|| e -> Go back\n||');
+
+        const userInput = await rl.question('\n|| Input: '); // get user input
+        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+        else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+    
+        // logging statuses by type
+        if (m === 0 || m === 1) {
+            // saving selected type 
+            const type = m;
+            while (m !== 'e') 
+            {
+                console.log('\n||\n|| Select a status\n||');
+                if (type === 0) { // anime
+                    animeStatus.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                } else { // manga
+                    mangaStatus.forEach((value, index) => {
+                        console.log(`|| ${index} -> ${value}`);
+                    });
+                }
+                console.log('|| e -> Go back\n||');
+
+                const userInput = await rl.question('\n|| Input: '); // get user input
+                if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
+
+                // logging titles by status
+                if ((type === 0 && m < animeStatus.length) || (type === 1 && m < mangaStatus.length)) { 
+                    // saving the selected status
+                    const status = m;
+                    while (m !== 'e') 
+                    {
+                        console.log('\n||\n|| Select a title\n||')
+                        customizedLists[type][status].forEach((item, index) => {
+                            console.log(`|| ${index} -> ${item.node.title}`);
+                        });
+                        console.log('|| e -> Go back\n||');
+
+                        const userInput = await rl.question('\n|| Input: '); // get user input
+                        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                        else m = userInput.toLowerCase(); // convert userinput to lowercase
+
+                        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
+                        
+                        if (m > -1 && m < customizedLists[type][status].length) {
+                            // completely removes item at given index
+                            customizedLists[type][status].splice(m, 1);  
+                        } else if (m !== 'e') {
+                            console.log('\n|| Please input a valid option');
+                        }
+                    }
+                    m = null; // ensuring upper menu doesn't exit
+                } else if (m !== 'e') {
+                    console.log('\n|| Please input a valid option');
+                }
+            }
+            m = null; // ensuring upper menu doesn't exit
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
 }
 
 export { menu };
