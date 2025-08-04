@@ -70,7 +70,7 @@ async function shortMenu() {
             case 4:
                 const returnArr = await customPollMenuMangadex();
                 config = { ...config, pollMangadexOptions: returnArr[0], boolDisplay: returnArr[1] };
-                await filehandle('config', config);
+                await filehandle('config', config); await filehandle('mal', lists);
                 break;
             case 5:
                 lists = await pollMAL(); // searches and returns MAL lists
@@ -163,7 +163,7 @@ async function longMenu() {
             case 12:
                 const returnArr = await customPollMenuMangadex();
                 config = { ...config, pollMangadexOptions: returnArr[0], boolDisplay: returnArr[1] };
-                await filehandle('config', config);
+                await filehandle('config', config); await filehandle('mal', lists);
                 break;
             case 13:
                 lists = await pollMAL(); // searches and returns MAL lists
@@ -316,10 +316,9 @@ async function customLogMenuMAL() {
 }
 
 async function customPollMenuMangadex() {
-    const options = !config.pollMangadexOptions ? { ...pollMangadexOptions } : config.pollMangadexOptions;
-    let customizedLists = [...lists]; // making a copy of lists
-    let m = 0;
+    const options = !config.pollMangadexOptions ? JSON.parse(JSON.stringify(pollMangadexOptions)) : config.pollMangadexOptions;
     let boolDisplay = !config.boolDisplay ? false : config.boolDisplay; 
+    let m = 0;
 
     while (m !== 'e') 
     {
@@ -330,7 +329,7 @@ async function customPollMenuMangadex() {
         console.log('\n||\n|| Custom poll Mangadex\n||');
         console.log('|| 0 -> Poll with options');
         console.log('|| 1 -> Change options');
-        console.log('|| 2 -> Filter titles from MAL');
+        console.log('|| 2 -> Poll exclusions');
         console.log('|| 3 -> Empty options');
         console.log('|| 4 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
@@ -345,15 +344,15 @@ async function customPollMenuMangadex() {
         {
             case 0:
                 // polling with given options
-                await pollMangadex(customizedLists, options);
+                await pollMangadex(lists, options);
                 break;
             case 1:
                 // running menu for changing options
                 await changeMangadexOptionMenu(boolDisplay, options);
                 break;
             case 2:
-                // filtering out entries from the copy of MAL list
-                await filterEntriesFromMAL(customizedLists);
+                // filtering items not wanted to be polled
+                await filterEntriesFromPoll();
                 break;
             case 3:
                 // emptying / nullifying all options
@@ -378,7 +377,7 @@ async function customPollMenuMangadex() {
     return [options, boolDisplay];
 }
 
-async function changeMangadexOptionMenu(boolDisplay, pollOptions) {
+async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
     const options = pollOptions;
     let m = 0, i = 0, key = null;
 
@@ -746,15 +745,16 @@ async function customPollMangadexDisplay (options) {
     console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
-async function filterEntriesFromMAL (customizedLists) {
+async function filterEntriesFromPoll() {
     let m = 0;
 
     while (m !== 'e') 
     {
         // select where to list statuses from
-        console.log('\n||\n|| Select a type\n||');
-        console.log('|| 0 -> Anime');
-        console.log('|| 1 -> Manga');
+        console.log('\n||\n|| What do you want to do?\n||');
+        console.log('|| 0 -> Filter anime');
+        console.log('|| 1 -> Filter manga');
+        console.log('|| 2 -> Reset filters');
         console.log('|| e -> Go back\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -793,9 +793,9 @@ async function filterEntriesFromMAL (customizedLists) {
                     const status = m;
                     while (m !== 'e') 
                     {
-                        console.log('\n||\n|| Select a title\n||')
-                        customizedLists[type][status].forEach((item, index) => {
-                            console.log(`|| ${index} -> ${item.node.title}`);
+                        console.log('\n||\n|| Select titles to be polled\n||')
+                        lists[type][status].forEach((item, index) => {
+                            console.log(`|| ${index} -> ${item.node.title} ${item.isPolledMangadex ? '[x]' : '[]'}`); 
                         });
                         console.log('|| e -> Go back\n||');
 
@@ -805,9 +805,11 @@ async function filterEntriesFromMAL (customizedLists) {
 
                         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
                         
-                        if (m > -1 && m < customizedLists[type][status].length) {
-                            // completely removes item at given index
-                            customizedLists[type][status].splice(m, 1);  
+                        // toggling filter at given option
+                        if (m > -1 && m < lists[type][status].length) {
+                            const item = lists[type][status][m]; // referring to item
+                            if (item.isPolledMangadex) item.isPolledMangadex = false; 
+                            else item.isPolledMangadex = true;
                         } else if (m !== 'e') {
                             console.log('\n|| Please input a valid option');
                         }
@@ -818,6 +820,15 @@ async function filterEntriesFromMAL (customizedLists) {
                 }
             }
             m = null; // ensuring upper menu doesn't exit
+        } else if (m === 2) {
+            // reassigning poll filters for Mangadex as true
+            for (const type of lists) {
+                for (const status of type) {
+                    for (const item of status) {
+                        item.isPolledMangadex = true;
+                    }
+                }
+            }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }

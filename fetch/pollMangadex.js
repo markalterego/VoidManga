@@ -16,39 +16,41 @@ async function fetchChapters (lists, options) {
         const items = lists[options.MAL_list][options.MAL_status]; // points to preferred search
         console.log('\n>> Now searching for manga >>\n'); 
         for (const item of items) { // going through items
-            const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
-                params: {
-                    title: item.node.title, // item title
-                    limit: options.limit_manga, // preferred fetch length 
-                    [`order[${options.mangaOrderType}]`]: options.mangaOrderDirection, // e.g 'order[relevance]': 'desc' - orders by most relevant to least relevant
-                    contentRating: options.contentRating // includes preferred contentRatings
-                }
-            }); 
-            console.log(`-> ${item.node.title}\n`); // logging MAL item title
-            if (!mangaResponse.data.data.length) { // if manga wasn't found
-                console.log('> Manga was not found');
-                countMissingManga++;
-            } else { 
-                const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching chapters of manga
+            if (item.isPolledMangadex) { // skip filtered items
+                const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
                     params: {
-                        manga: mangaResponse.data.data[0].id, // id taken from prior manga endpoint fetch
-                        limit: options.limit_chapter, // preferred fetch length 
-                        [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
-                        translatedLanguage: options.chapterTranslatedLanguage // filter by preferred translation
+                        title: item.node.title, // item title
+                        limit: options.limit_manga, // preferred fetch length 
+                        [`order[${options.mangaOrderType}]`]: options.mangaOrderDirection, // e.g 'order[relevance]': 'desc' - orders by most relevant to least relevant
+                        contentRating: options.contentRating // includes preferred contentRatings
                     }
-                });
-                if (!chapterResponse.data.data.length) { // if manga had no chapters for given parameters
-                    console.log('> No chapters found');
-                    countMissingChapter++;
-                } else {
-                    for (let i = 0; i < chapterResponse.data.data.length; i++) { // logging all found chapters
-                        console.log(`> ${chapterResponse.data.data[i].attributes.title ? chapterResponse.data.data[i].attributes.title : 'No title'} - ${chapterResponse.data.data[i].attributes.chapter} - https://mangadex.org/chapter/${chapterResponse.data.data[i].id}`);
-                        countFoundChapter++;
+                }); 
+                console.log(`-> ${item.node.title}\n`); // logging MAL item title
+                if (!mangaResponse.data.data.length) { // if manga wasn't found
+                    console.log('> Manga was not found');
+                    countMissingManga++;
+                } else { 
+                    const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching chapters of manga
+                        params: {
+                            manga: mangaResponse.data.data[0].id, // id taken from prior manga endpoint fetch
+                            limit: options.limit_chapter, // preferred fetch length 
+                            [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
+                            translatedLanguage: options.chapterTranslatedLanguage // filter by preferred translation
+                        }
+                    });
+                    if (!chapterResponse.data.data.length) { // if manga had no chapters for given parameters
+                        console.log('> No chapters found');
+                        countMissingChapter++;
+                    } else {
+                        for (let i = 0; i < chapterResponse.data.data.length; i++) { // logging all found chapters
+                            console.log(`> ${chapterResponse.data.data[i].attributes.title ? chapterResponse.data.data[i].attributes.title : 'No title'} - ${chapterResponse.data.data[i].attributes.chapter} - https://mangadex.org/chapter/${chapterResponse.data.data[i].id}`);
+                            countFoundChapter++;
+                        }
                     }
+                    countFoundManga++;
                 }
-                countFoundManga++;
+                console.log(); // empty line
             }
-            console.log(); // empty line
         }
         // log statistics of all polls
         console.log(`>> Search result >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
