@@ -42,7 +42,7 @@ async function shortMenu() {
         console.log('|| 1 -> Reading manga');
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
-        console.log('|| 4 -> Custom poll Mangadex');
+        console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
         console.log('|| 5 -> Poll mal');
         console.log('|| 6 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -69,11 +69,18 @@ async function shortMenu() {
                 config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
                 await filehandle('config', config); 
                 break; }
-            case 4: {
-                const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
-                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
-                await filehandle('config', config); await filehandle('mal', lists);
-                break; }
+            case 4: 
+                // if autofetching is disabled, loops through customPollMenuMangadex normally (default behavior)
+                // in case enabled, calls pollMangadex right away with options taken from config and goes back 
+                // to upper menu right after completion
+                if (!config.autoFetchMangadex) {
+                    const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
+                    config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
+                    await filehandle('config', config); await filehandle('mal', lists);
+                } else { 
+                    await pollMangadex(lists, config.pollMangadexOptions);
+                }
+                break;
             case 5:
                 lists = await pollMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
@@ -113,7 +120,7 @@ async function longMenu() {
         console.log('|| 9 -> Plan to read manga');
         console.log('|| 10 -> All of the above');
         console.log('|| 11 -> Custom log MAL');
-        console.log('|| 12 -> Custom poll Mangadex');
+        console.log(`|| 12 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
         console.log('|| 13 -> Poll mal');
         console.log('|| 14 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -164,11 +171,18 @@ async function longMenu() {
                 config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
                 await filehandle('config', config); 
                 break; }
-            case 12: {
-                const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
-                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
-                await filehandle('config', config); await filehandle('mal', lists);
-                break; }
+            case 12: 
+                // if autofetching is disabled, loops through customPollMenuMangadex normally (default behavior)
+                // in case enabled, calls pollMangadex right away with options taken from config and goes back 
+                // to upper menu right after completion
+                if (!config.autoFetchMangadex) {
+                    const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
+                    config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
+                    await filehandle('config', config); await filehandle('mal', lists);
+                } else { 
+                    await pollMangadex(lists, config?.pollMangadexOptions);
+                }
+                break;
             case 13:
                 lists = await pollMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
@@ -225,7 +239,7 @@ async function settingsMenu() {
 }
 
 async function customLogMenuMAL() {
-    let boolDisplay = !config.boolDisplayMAL ? false : config.boolDisplayMAL;
+    let boolDisplay = !config?.boolDisplayMAL ? false : config.boolDisplayMAL;
     let anime = !config?.logMALOptions?.anime ? [] : config.logMALOptions.anime;
     let manga = !config?.logMALOptions?.manga ? [] : config.logMALOptions.manga;
     let m = 0, boolRemove = false, boolManga = false;
