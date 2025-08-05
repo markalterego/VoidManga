@@ -66,7 +66,7 @@ async function shortMenu() {
                 break;
             case 3: {
                 const returnArr = await customLogMenuMAL(); // log anime and/or manga by status
-                config = { ...config, boolDisplayMAL: returnArr[0] };
+                config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
                 await filehandle('config', config); 
                 break; }
             case 4: {
@@ -161,7 +161,7 @@ async function longMenu() {
                 break;
             case 11: {
                 const returnArr = await customLogMenuMAL(); // log anime and/or manga by status
-                config = { ...config, boolDisplayMAL: returnArr[0] };
+                config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
                 await filehandle('config', config); 
                 break; }
             case 12: {
@@ -226,8 +226,9 @@ async function settingsMenu() {
 
 async function customLogMenuMAL() {
     let boolDisplay = !config.boolDisplayMAL ? false : config.boolDisplayMAL;
+    let anime = !config?.logMALOptions?.anime ? [] : config.logMALOptions.anime;
+    let manga = !config?.logMALOptions?.manga ? [] : config.logMALOptions.manga;
     let m = 0, boolRemove = false, boolManga = false;
-    let anime = [], manga = [];
 
     while (m !== 'e') 
     {
@@ -319,12 +320,12 @@ async function customLogMenuMAL() {
                 console.log('\n|| Please input a valid option');
         }
     }
-    return [boolDisplay];
+    return [{anime, manga}, boolDisplay];
 }
 
 async function customPollMenuMangadex() {
-    const options = !config.pollMangadexOptions ? JSON.parse(JSON.stringify(pollMangadexOptions)) : config.pollMangadexOptions;
-    let boolDisplay = !config.boolDisplayMangadex ? false : config.boolDisplayMangadex; 
+    const options = !config?.pollMangadexOptions ? JSON.parse(JSON.stringify(pollMangadexOptions)) : config.pollMangadexOptions;
+    let boolDisplay = !config?.boolDisplayMangadex ? false : config.boolDisplayMangadex; 
     let m = 0;
 
     while (m !== 'e') 
