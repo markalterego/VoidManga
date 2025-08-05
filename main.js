@@ -17,7 +17,14 @@ async function main() {
 
     if (!existsSync('./regular/config.file')) {
         // setting initial menu preference
-        config = { ...config, menuOption: 'short', autoFetchMangadex: false, pollMangadexOptions: pollMangadexOptions, boolDisplay: false}; 
+        config = { 
+            ...config, 
+            menuOption: 'short', 
+            autoFetchMangadex: false, 
+            pollMangadexOptions: pollMangadexOptions, 
+            boolDisplayMAL: false,
+            boolDisplayMangadex: false,
+        }; 
         await filehandle('config', config); // writes config.file
     } else {    
         config = await filehandle('config'); // reads config.file
