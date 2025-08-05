@@ -42,7 +42,7 @@ async function shortMenu() {
         console.log('|| 1 -> Reading manga');
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
-        console.log('|| 4 -> Custom poll mangadex');
+        console.log('|| 4 -> Custom poll Mangadex');
         console.log('|| 5 -> Poll mal');
         console.log('|| 6 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -56,22 +56,24 @@ async function shortMenu() {
         switch (m) 
         {
             case 0:
-                await log({anime: [0]}, lists);
+                await log({anime: [0]}, lists); // anime - watching
                 break;
             case 1:
-                await log({manga: [0]}, lists);
+                await log({manga: [0]}, lists); // manga - reading
                 break;
             case 2:
-                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
+                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
                 break;
-            case 3:
-                await customLogMenuMAL(); // log anime and/or manga by status
-                break;
-            case 4:
-                const returnArr = await customPollMenuMangadex();
-                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplay: returnArr[1] };
+            case 3: {
+                const returnArr = await customLogMenuMAL(); // log anime and/or manga by status
+                config = { ...config, boolDisplayMAL: returnArr[0] };
+                await filehandle('config', config); 
+                break; }
+            case 4: {
+                const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
+                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
                 await filehandle('config', config); await filehandle('mal', lists);
-                break;
+                break; }
             case 5:
                 lists = await pollMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
@@ -79,10 +81,10 @@ async function shortMenu() {
             case 6:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
-            case 'e':
-                break;
+            case 'e': // exit
+                break; 
             case 888:
-                await settingsMenu(); 
+                await settingsMenu();  
                 r = true; m = 'e'; // goes out of loop and refreshes menu
                 break;
             default:
@@ -111,7 +113,7 @@ async function longMenu() {
         console.log('|| 9 -> Plan to read manga');
         console.log('|| 10 -> All of the above');
         console.log('|| 11 -> Custom log MAL');
-        console.log('|| 12 -> Custom poll mangadex');
+        console.log('|| 12 -> Custom poll Mangadex');
         console.log('|| 13 -> Poll mal');
         console.log('|| 14 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -125,46 +127,48 @@ async function longMenu() {
         switch (m) 
         {
             case 0:
-                await log({anime: [0]}, lists);
+                await log({anime: [0]}, lists); // anime - watching
                 break;
             case 1:
-                await log({anime: [1]}, lists);
+                await log({anime: [1]}, lists); // anime - completed
                 break;
             case 2:
-                await log({anime: [2]}, lists);
+                await log({anime: [2]}, lists); // anime - on_hold
                 break;
             case 3:
-                await log({anime: [3]}, lists);
+                await log({anime: [3]}, lists); // anime - dropped
                 break;
             case 4:
-                await log({anime: [4]}, lists);
+                await log({anime: [4]}, lists); // anime - plan_to_watch
                 break;
             case 5:
-                await log({manga: [0]}, lists);
+                await log({manga: [0]}, lists); // manga - reading
                 break;
             case 6:
-                await log({manga: [1]}, lists);
+                await log({manga: [1]}, lists); // manga - completed
                 break;
             case 7:
-                await log({manga: [2]}, lists);
+                await log({manga: [2]}, lists); // manga - on_hold
                 break;
             case 8:
-                await log({manga: [3]}, lists);
+                await log({manga: [3]}, lists); // manga - dropped
                 break;
             case 9:
-                await log({manga: [4]}, lists);
+                await log({manga: [4]}, lists); // manga - plan_to_read
                 break;
             case 10:
-                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists);
+                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
                 break;
-            case 11:
-                await customLogMenuMAL() // log anime and/or manga by status
-                break;
-            case 12:
-                const returnArr = await customPollMenuMangadex();
-                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplay: returnArr[1] };
+            case 11: {
+                const returnArr = await customLogMenuMAL(); // log anime and/or manga by status
+                config = { ...config, boolDisplayMAL: returnArr[0] };
+                await filehandle('config', config); 
+                break; }
+            case 12: {
+                const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
+                config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
                 await filehandle('config', config); await filehandle('mal', lists);
-                break;
+                break; }
             case 13:
                 lists = await pollMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
@@ -172,8 +176,8 @@ async function longMenu() {
             case 14:
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                 break;
-            case 'e':
-                break;
+            case 'e': // exit
+                break; 
             case 888:
                 await settingsMenu(); 
                 r = true; m = 'e'; // goes out of loop and refreshes menu
@@ -221,7 +225,9 @@ async function settingsMenu() {
 }
 
 async function customLogMenuMAL() {
-    let m = 0, boolRemove = false, anime = [], manga = [], boolDisplay = false, boolManga = false;
+    let boolDisplay = !config.boolDisplayMAL ? false : config.boolDisplayMAL;
+    let m = 0, boolRemove = false, boolManga = false;
+    let anime = [], manga = [];
 
     while (m !== 'e') 
     {
@@ -313,11 +319,12 @@ async function customLogMenuMAL() {
                 console.log('\n|| Please input a valid option');
         }
     }
+    return [boolDisplay];
 }
 
 async function customPollMenuMangadex() {
     const options = !config.pollMangadexOptions ? JSON.parse(JSON.stringify(pollMangadexOptions)) : config.pollMangadexOptions;
-    let boolDisplay = !config.boolDisplay ? false : config.boolDisplay; 
+    let boolDisplay = !config.boolDisplayMangadex ? false : config.boolDisplayMangadex; 
     let m = 0;
 
     while (m !== 'e') 
