@@ -1,7 +1,7 @@
 import axios from 'axios';
 // import { toZonedTime, format } from 'date-fns-tz'; 
 
-async function pollMangadex (lists, options) {
+async function fetchMangadex (lists, options) {
     try { // <-- consider removing this try catch
         // lists[1][0].push({node: {title: 'fsdaölkjfjlköasdafösldjk'}});
         await fetchChapters(lists, options);
@@ -16,7 +16,7 @@ async function fetchChapters (lists, options) {
         const items = lists[options.MAL_list][options.MAL_status]; // points to preferred search
         console.log('\n>> Now searching for manga >>\n'); 
         for (const item of items) { // going through items
-            if (item.isPolledMangadex) { // skip filtered items
+            if (item.isFetchedMangadex) { // skip filtered items
                 const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
                     params: {
                         title: item.node.title, // item title
@@ -52,7 +52,7 @@ async function fetchChapters (lists, options) {
                 console.log(); // empty line
             }
         }
-        // log statistics of all polls
+        // log statistics of all fetchs
         console.log(`>> Search result >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
     } catch (error) {
         if (error.response) {
@@ -66,4 +66,4 @@ async function fetchChapters (lists, options) {
     }
 }
 
-export { pollMangadex };
+export { fetchMangadex };

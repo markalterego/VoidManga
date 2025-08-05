@@ -1,15 +1,15 @@
-import { pollMAL } from "./fetch/pollMAL.js";
+import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './input/menu.js';
-import { pollMangadexOptions } from "./regular/export.js";
+import { fetchMangadexOptions } from "./regular/export.js";
  
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 
 async function main() {
     if (!existsSync('./regular/mal.file')) {
-        lists = await pollMAL(); // searches and returns MAL lists
+        lists = await fetchMAL(); // searches and returns MAL lists
         await filehandle('mal', lists); // writes mal.file
     } else { 
         lists = await filehandle('mal'); // reads mal.file
@@ -22,7 +22,7 @@ async function main() {
             menuOption: 'short', 
             autoFetchMangadex: false, 
             logMALOptions: { anime: [], manga: [] },
-            pollMangadexOptions: pollMangadexOptions, 
+            fetchMangadexOptions: fetchMangadexOptions, 
             boolDisplayMAL: false,
             boolDisplayMangadex: false,
         }; 
@@ -43,9 +43,9 @@ TODO (or not to do...)
 
 - an option to print out the complete history of every update to MAL (ascending/descending by date)
 
-- add an option to settings for enable/disable auto search (poll instantly when using pollMangadex.js [no additional menu at pollMangadex.js]) for mangadex polls
+- add an option to settings for enable/disable auto search (fetch instantly when using fetchMangadex.js [no additional menu at fetchMangadex.js]) for mangadex fetchs
 
 - logtoconsole.js <- add the possibility to log only specific stuff found per item of lists[i][ii] (more customizable logging...?)
 
-- save Mangadex manga ids to mal.file to enhance polling... 
+- save Mangadex manga ids to mal.file to enhance fetching... 
 */

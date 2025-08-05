@@ -1,10 +1,10 @@
-import { pollMAL } from "../fetch/pollMAL.js";
-import { pollMangadex } from "../fetch/pollMangadex.js";
+import { fetchMAL } from "../fetch/fetchMAL.js";
+import { fetchMangadex } from "../fetch/fetchMangadex.js";
 import { log } from "../output/logtoconsole.js";
 import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
-import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, pollMangadexOptions } from "../regular/export.js";
+import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -43,7 +43,7 @@ async function shortMenu() {
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
         console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 5 -> Poll mal');
+        console.log('|| 5 -> Fetch MAL');
         console.log('|| 6 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
@@ -70,19 +70,19 @@ async function shortMenu() {
                 await filehandle('config', config); 
                 break; }
             case 4: 
-                // if autofetching is disabled, loops through customPollMenuMangadex normally (default behavior)
-                // in case enabled, calls pollMangadex right away with options taken from config and goes back 
+                // if autofetching is disabled, loops through customFetchMenuMangadex normally (default behavior)
+                // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
                 // to upper menu right after completion
                 if (!config.autoFetchMangadex) {
-                    const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
-                    config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
+                    const returnArr = await customFetchMenuMangadex(); // fetch Mangadex by preference
+                    config = { ...config, fetchMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
                     await filehandle('config', config); await filehandle('mal', lists);
                 } else { 
-                    await pollMangadex(lists, config.pollMangadexOptions);
+                    await fetchMangadex(lists, config.fetchMangadexOptions);
                 }
                 break;
             case 5:
-                lists = await pollMAL(); // searches and returns MAL lists
+                lists = await fetchMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break;
             case 6:
@@ -121,7 +121,7 @@ async function longMenu() {
         console.log('|| 10 -> All of the above');
         console.log('|| 11 -> Custom log MAL');
         console.log(`|| 12 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 13 -> Poll mal');
+        console.log('|| 13 -> Fetch MAL');
         console.log('|| 14 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
@@ -172,19 +172,19 @@ async function longMenu() {
                 await filehandle('config', config); 
                 break; }
             case 12: 
-                // if autofetching is disabled, loops through customPollMenuMangadex normally (default behavior)
-                // in case enabled, calls pollMangadex right away with options taken from config and goes back 
+                // if autofetching is disabled, loops through customFetchMenuMangadex normally (default behavior)
+                // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
                 // to upper menu right after completion
                 if (!config.autoFetchMangadex) {
-                    const returnArr = await customPollMenuMangadex(); // poll Mangadex by preference
-                    config = { ...config, pollMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
+                    const returnArr = await customFetchMenuMangadex(); // fetch Mangadex by preference
+                    config = { ...config, fetchMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
                     await filehandle('config', config); await filehandle('mal', lists);
                 } else { 
-                    await pollMangadex(lists, config?.pollMangadexOptions);
+                    await fetchMangadex(lists, config?.fetchMangadexOptions);
                 }
                 break;
             case 13:
-                lists = await pollMAL(); // searches and returns MAL lists
+                lists = await fetchMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break;
             case 14:
@@ -211,7 +211,7 @@ async function settingsMenu() {
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
         console.log(`|| 0 -> Toggle menu type (currently ${config.menuOption})`);
-        console.log(`|| 1 -> Automatically fetch Mangadex when polling (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
+        console.log(`|| 1 -> Automatically fetch Mangadex when fetching (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
         console.log('|| e -> Return to main menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -337,21 +337,21 @@ async function customLogMenuMAL() {
     return [{anime, manga}, boolDisplay];
 }
 
-async function customPollMenuMangadex() {
-    const options = !config?.pollMangadexOptions ? JSON.parse(JSON.stringify(pollMangadexOptions)) : config.pollMangadexOptions;
+async function customFetchMenuMangadex() {
+    const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
     let boolDisplay = !config?.boolDisplayMangadex ? false : config.boolDisplayMangadex; 
     let m = 0;
 
     while (m !== 'e') 
     {
         if (boolDisplay) { // show if boolDisplay toggled
-            await customPollMangadexDisplay(options);
+            await customFetchMangadexDisplay(options);
         }
 
-        console.log('\n||\n|| Custom poll Mangadex\n||');
-        console.log('|| 0 -> Poll with options');
+        console.log('\n||\n|| Custom fetch Mangadex\n||');
+        console.log('|| 0 -> Fetch with options');
         console.log('|| 1 -> Change options');
-        console.log('|| 2 -> Poll exclusions');
+        console.log('|| 2 -> Fetch exclusions');
         console.log('|| 3 -> Empty options');
         console.log('|| 4 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
@@ -365,16 +365,16 @@ async function customPollMenuMangadex() {
         switch (m)
         {
             case 0:
-                // polling with given options
-                await pollMangadex(lists, options);
+                // fetching with given options
+                await fetchMangadex(lists, options);
                 break;
             case 1:
                 // running menu for changing options
                 await changeMangadexOptionMenu(boolDisplay, options);
                 break;
             case 2:
-                // filtering items not wanted to be polled
-                await filterEntriesFromPoll();
+                // filtering items not wanted to be fetched
+                await filterEntriesFromFetch();
                 break;
             case 3:
                 // emptying / nullifying all options
@@ -399,14 +399,14 @@ async function customPollMenuMangadex() {
     return [options, boolDisplay];
 }
 
-async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
-    const options = pollOptions;
+async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
+    const options = fetchOptions;
     let m = 0, i = 0, key = null;
 
     while (m !== 'e') 
     {
         if (boolDisplay) { // show if boolDisplay toggled
-            await customPollMangadexDisplay(options);
+            await customFetchMangadexDisplay(options);
         }
 
         // lists options that can be changed 
@@ -431,7 +431,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Select option for ${key}\n||`)
@@ -459,7 +459,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Select option for ${key}\n||`)
@@ -502,7 +502,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
                     
                     console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
@@ -530,7 +530,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
                     
                     console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
@@ -558,7 +558,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
@@ -587,7 +587,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
@@ -616,7 +616,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
@@ -645,7 +645,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
@@ -674,7 +674,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Add option for ${key}\n||`);
@@ -710,7 +710,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
                 while (m !== 'e') 
                 {
                     if (boolDisplay) {
-                        await customPollMangadexDisplay(options);
+                        await customFetchMangadexDisplay(options);
                     }
 
                     console.log(`\n||\n|| Add option for ${key} (optionally input custom code)\n||`);
@@ -754,7 +754,7 @@ async function changeMangadexOptionMenu (boolDisplay, pollOptions) {
     }
 }
 
-async function customPollMangadexDisplay (options) {
+async function customFetchMangadexDisplay (options) {
     console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
     console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (options.MAL_list === null ? options.MAL_status : (!options.MAL_list ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status]))}`);
     console.log(`|| limit_manga: ${options.limit_manga}`);
@@ -767,7 +767,7 @@ async function customPollMangadexDisplay (options) {
     console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
-async function filterEntriesFromPoll() {
+async function filterEntriesFromFetch() {
     let m = 0;
 
     while (m !== 'e') 
@@ -815,9 +815,9 @@ async function filterEntriesFromPoll() {
                     const status = m;
                     while (m !== 'e') 
                     {
-                        console.log('\n||\n|| Select titles to be polled\n||')
+                        console.log('\n||\n|| Select titles to be fetched\n||')
                         lists[type][status].forEach((item, index) => {
-                            console.log(`|| ${index} -> ${item.node.title} ${item.isPolledMangadex ? '[x]' : '[]'}`); 
+                            console.log(`|| ${index} -> ${item.node.title} ${item.isFetchedMangadex ? '[x]' : '[]'}`); 
                         });
                         console.log('|| e -> Go back\n||');
 
@@ -830,8 +830,8 @@ async function filterEntriesFromPoll() {
                         // toggling filter at given option
                         if (m > -1 && m < lists[type][status].length) {
                             const item = lists[type][status][m]; // referring to item
-                            if (item.isPolledMangadex) item.isPolledMangadex = false; 
-                            else item.isPolledMangadex = true;
+                            if (item.isFetchedMangadex) item.isFetchedMangadex = false; 
+                            else item.isFetchedMangadex = true;
                         } else if (m !== 'e') {
                             console.log('\n|| Please input a valid option');
                         }
@@ -843,11 +843,11 @@ async function filterEntriesFromPoll() {
             }
             m = null; // ensuring upper menu doesn't exit
         } else if (m === 2) {
-            // reassigning poll filters for Mangadex as true
+            // reassigning fetch filters for Mangadex as true
             for (const type of lists) {
                 for (const status of type) {
                     for (const item of status) {
-                        item.isPolledMangadex = true;
+                        item.isFetchedMangadex = true;
                     }
                 }
             }

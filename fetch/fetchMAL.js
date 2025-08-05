@@ -10,15 +10,15 @@ let animemangalist = [
     Array(animeStatus.length).fill(null).map(() => [])  // mangalist
 ]; 
 
-async function pollMAL() {
+async function fetchMAL() {
     const startTime = performance.now();
 
-    console.log(`\n||\n|| Now polling MAL lists for \'${process.env.MAL_USERNAME}\'\n||`);
+    console.log(`\n||\n|| Now fetching MAL lists for \'${process.env.MAL_USERNAME}\'\n||`);
     
     await fetchSeries(); // fetching user's MAL lists
-    const pollMALTimeTaken = Math.round(performance.now()-startTime); // how long did fetching the anime-/mangalist take
+    const fetchMALTimeTaken = Math.round(performance.now()-startTime); // how long did fetching the anime-/mangalist take
 
-    console.log(`\n||\n|| Fetching user's MAL lists took ${Number(pollMALTimeTaken/1000).toFixed(3)}s\n||`);
+    console.log(`\n||\n|| Fetching user's MAL lists took ${Number(fetchMALTimeTaken/1000).toFixed(3)}s\n||`);
 
     return animemangalist;
 }
@@ -64,7 +64,7 @@ async function sortSeriesByStatus (animelist, mangalist) {
         for (let ii = 0, iii = 0; ii < animelist.length; ii++) { // sort by all series corresponding to animeStatus[i]
             if (animelist[ii].list_status.status === animeStatus[i]) { // if status of anime at point ii same as animestatus
                 animemangalist[0][i][iii] = animelist[ii]; 
-                animemangalist[0][i][iii].isPolledMangadex = true;
+                animemangalist[0][i][iii].isFetchedMangadex = true;
                 iii++; 
             }
         }
@@ -73,11 +73,11 @@ async function sortSeriesByStatus (animelist, mangalist) {
         for (let ii = 0, iii = 0; ii < mangalist.length; ii++) { // sort by all series corresponding to mangaStatus[i]
             if (mangalist[ii].list_status.status === mangaStatus[i]) { // if status of manga at point ii same as mangastatus
                 animemangalist[1][i][iii] = mangalist[ii]; 
-                animemangalist[1][i][iii].isPolledMangadex = true;
+                animemangalist[1][i][iii].isFetchedMangadex = true;
                 iii++; 
             }
         }
     }
 }
 
-export { pollMAL };
+export { fetchMAL };
