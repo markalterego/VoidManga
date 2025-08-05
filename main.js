@@ -40,4 +40,6 @@ TODO (or not to do...)
 - logtoconsole.js <- add the possibility to log only specific stuff found per item of lists[i][ii] 
 
 - return boolDisplay from customLogMenuMAL as well and save it to config.file, saving boolDisplay's as boolDisplayMAL+boolDisplayMangadex would also make them easier to differentiate 
+
+- save Mangadex manga ids to mal.file to enhance polling... 
 */
