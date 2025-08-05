@@ -21,6 +21,7 @@ async function main() {
             ...config, 
             menuOption: 'short', 
             autoFetchMangadex: false, 
+            logMALOptions: { anime: [], manga: [] },
             pollMangadexOptions: pollMangadexOptions, 
             boolDisplayMAL: false,
             boolDisplayMangadex: false,
