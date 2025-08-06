@@ -813,27 +813,32 @@ async function filterEntriesFromFetch() {
                 if ((type === 0 && m < animeStatus.length) || (type === 1 && m < mangaStatus.length)) { 
                     // saving the selected status
                     const status = m;
-                    while (m !== 'e') 
-                    {
-                        console.log('\n||\n|| Select titles to be fetched\n||')
-                        lists[type][status].forEach((item, index) => {
-                            console.log(`|| ${index} -> ${item.node.title} ${item.isFetchedMangadex ? '[x]' : '[]'}`); 
-                        });
-                        console.log('|| e -> Go back\n||');
+                    // going back to upper menu in case lists[type][status] is empty
+                    if (!lists[type][status].length) { 
+                        console.log('\n||\n|| No titles found for the selected status\n||'); 
+                    } else {
+                        while (m !== 'e') 
+                        {
+                            console.log('\n||\n|| Select titles to be fetched\n||')
+                            lists[type][status].forEach((item, index) => {
+                                console.log(`|| ${index} -> ${item.node.title} ${item.isFetchedMangadex ? '[x]' : '[]'}`); 
+                            });
+                            console.log('|| e -> Go back\n||');             
 
-                        const userInput = await rl.question('\n|| Input: '); // get user input
-                        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                        else m = userInput.toLowerCase(); // convert userinput to lowercase
+                            const userInput = await rl.question('\n|| Input: '); // get user input
+                            if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
+                            else m = userInput.toLowerCase(); // convert userinput to lowercase
 
-                        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
-                        
-                        // toggling filter at given option
-                        if (m > -1 && m < lists[type][status].length) {
-                            const item = lists[type][status][m]; // referring to item
-                            if (item.isFetchedMangadex) item.isFetchedMangadex = false; 
-                            else item.isFetchedMangadex = true;
-                        } else if (m !== 'e') {
-                            console.log('\n|| Please input a valid option');
+                            process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
+                            
+                            // toggling filter at given option
+                            if (m > -1 && m < lists[type][status].length) {
+                                const item = lists[type][status][m]; // referring to item
+                                if (item.isFetchedMangadex) item.isFetchedMangadex = false; 
+                                else item.isFetchedMangadex = true;
+                            } else if (m !== 'e') {
+                                console.log('\n|| Please input a valid option');
+                            }
                         }
                     }
                     m = null; // ensuring upper menu doesn't exit
