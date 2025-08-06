@@ -46,4 +46,6 @@ TODO (or not to do...)
 - logtoconsole.js <- add the possibility to log only specific stuff found per item of lists[i][ii] (more customizable logging...?)
 
 - save Mangadex manga ids to mal.file to enhance fetching... 
+
+- make it so that you can update .env username through e.g. settings menu
 */
