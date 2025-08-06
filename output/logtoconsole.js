@@ -1,8 +1,8 @@
 import { animeStatus, mangaStatus } from "../regular/export.js";
 
 const MAL = { // determines what is logged
-    anime: [],
-    manga: []
+    anime: [], // 0-4 - animeStatus
+    manga: [] // 0-4 - mangaStatus
 }
 
 async function log (options, lists) {
@@ -43,19 +43,20 @@ async function parseOptions (options, lists) {
         }
     } 
     // checking if lists has given options
-    Object.keys(MAL).forEach((key, i) => { // anime/manga
-        for (const status of MAL[key]) { // status
+    Object.keys(MAL).forEach((type, i) => { // anime/manga
+        for (const status of MAL[type]) { // status
             if (lists[i][status].length > 0) result = true;
         }   
     });
     if (!result) console.log('\n||\n|| None of the given options were found on MAL\n||');
     return result;
-}
+} 
 
-async function logMAL (lists) {
-    Object.keys(MAL).forEach((key, i) => { // anime/manga
-        if (MAL[key].length > 0) console.log(`\n||\n|| ${!i ? '== Anime ==' : '== Manga =='}`);
-        for (const status of MAL[key]) { // status
+async function logMAL (lists) {  
+    Object.keys(MAL).forEach((type, i) => { // anime/manga
+        let headerFlag = true;
+        for (const status of MAL[type]) { // status
+            if (lists[i][status].length > 0 && headerFlag) { console.log(`\n||\n|| ${!i ? '== Anime ==' : '== Manga =='}`); headerFlag = false; };
             if (lists[i][status].length > 0) console.log(`||\n|| (${!i ? animeStatus[status] : mangaStatus[status]})\n||`);
             for (const entry of lists[i][status]) { // entry
                 const title = entry.node.title;
@@ -64,7 +65,7 @@ async function logMAL (lists) {
                 console.log(`|| - ${title} ${status ? '' : progress + length}`);
             }
         }   
-        if (MAL[key].length > 0) console.log('||');
+        if (!headerFlag) console.log('||'); 
     });
 }
 
