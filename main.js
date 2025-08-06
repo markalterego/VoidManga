@@ -43,8 +43,6 @@ TODO (or not to do...)
 
 - an option to print out the complete history of every update to MAL (ascending/descending by date)
 
-- add an option to settings for enable/disable auto search (fetch instantly when using fetchMangadex.js [no additional menu at fetchMangadex.js]) for mangadex fetchs
-
 - logtoconsole.js <- add the possibility to log only specific stuff found per item of lists[i][ii] (more customizable logging...?)
 
 - save Mangadex manga ids to mal.file to enhance fetching... 
