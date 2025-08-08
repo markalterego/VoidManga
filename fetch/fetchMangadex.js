@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setTimeout } from "timers/promises";
 // import { toZonedTime, format } from 'date-fns-tz'; 
 
 async function fetchMangadex (lists, options) {
@@ -17,6 +18,7 @@ async function fetchChapters (lists, options) {
         console.log('\n>> Now searching for manga >>\n'); 
         for (const item of items) { // going through items
             if (item.isFetchedMangadex) { // skip filtered items
+                const startTimeManga = performance.now(); // timing manga fetch start
                 const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
                     params: {
                         title: item.node.title, // item title
@@ -25,11 +27,14 @@ async function fetchChapters (lists, options) {
                         contentRating: options.contentRating // includes preferred contentRatings
                     }
                 }); 
+                const mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for manga fetch
+                if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
                 console.log(`-> ${item.node.title}\n`); // logging MAL item title
                 if (!mangaResponse.data.data.length) { // if manga wasn't found
                     console.log('> Manga was not found');
                     countMissingManga++;
                 } else { 
+                    const startTimeChapter = performance.now(); // timing chapter fetch start
                     const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching chapters of manga
                         params: {
                             manga: mangaResponse.data.data[0].id, // id taken from prior manga endpoint fetch
@@ -38,12 +43,19 @@ async function fetchChapters (lists, options) {
                             translatedLanguage: options.chapterTranslatedLanguage // filter by preferred translation
                         }
                     });
+                    const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
+                    if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit
                     if (!chapterResponse.data.data.length) { // if manga had no chapters for given parameters
                         console.log('> No chapters found');
                         countMissingChapter++;
                     } else {
                         for (let i = 0; i < chapterResponse.data.data.length; i++) { // logging all found chapters
-                            console.log(`> ${chapterResponse.data.data[i].attributes.title ? chapterResponse.data.data[i].attributes.title : 'No title'} - ${chapterResponse.data.data[i].attributes.chapter} - https://mangadex.org/chapter/${chapterResponse.data.data[i].id}`);
+                            const chapter = chapterResponse.data.data[i]; // chapter info
+                            const transLang = chapter.attributes?.translatedLanguage ? chapter.attributes.translatedLanguage + ' - ' : ''; // chapter translation language
+                            const title = chapter.attributes?.title ? chapter.attributes.title + ' - ' : 'No title - '; // chapter title
+                            const number = chapter.attributes?.chapter ? chapter.attributes?.chapter + ' - ' : 'No chapter number - '; // chapter number
+                            const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
+                            console.log(`> ${title}${number}${transLang}${link}`);
                             countFoundChapter++;
                         }
                     }
