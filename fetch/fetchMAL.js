@@ -64,7 +64,7 @@ async function sortSeriesByStatus (animelist, mangalist) {
         for (let ii = 0, iii = 0; ii < animelist.length; ii++) { // sort by all series corresponding to animeStatus[i]
             if (animelist[ii].list_status.status === animeStatus[i]) { // if status of anime at point ii same as animestatus
                 animemangalist[0][i][iii] = animelist[ii]; 
-                animemangalist[0][i][iii].isFetchedMangadex = true;
+                animemangalist[0][i][iii].includeInMangadexFetch = true;
                 iii++; 
             }
         }
@@ -73,7 +73,7 @@ async function sortSeriesByStatus (animelist, mangalist) {
         for (let ii = 0, iii = 0; ii < mangalist.length; ii++) { // sort by all series corresponding to mangaStatus[i]
             if (mangalist[ii].list_status.status === mangaStatus[i]) { // if status of manga at point ii same as mangastatus
                 animemangalist[1][i][iii] = mangalist[ii]; 
-                animemangalist[1][i][iii].isFetchedMangadex = true;
+                animemangalist[1][i][iii].includeInMangadexFetch = true;
                 iii++; 
             }
         }

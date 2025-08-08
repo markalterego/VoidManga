@@ -821,7 +821,7 @@ async function filterEntriesFromFetch() {
                         {
                             console.log('\n||\n|| Select titles to be fetched\n||')
                             lists[type][status].forEach((item, index) => {
-                                console.log(`|| ${index} -> ${item.node.title} ${item.isFetchedMangadex ? '[x]' : '[]'}`); 
+                                console.log(`|| ${index} -> ${item.node.title} ${item.includeInMangadexFetch ? '[x]' : '[]'}`); 
                             });
                             console.log('|| e -> Go back\n||');             
 
@@ -834,8 +834,8 @@ async function filterEntriesFromFetch() {
                             // toggling filter at given option
                             if (m > -1 && m < lists[type][status].length) {
                                 const item = lists[type][status][m]; // referring to item
-                                if (item.isFetchedMangadex) item.isFetchedMangadex = false; 
-                                else item.isFetchedMangadex = true;
+                                if (item.includeInMangadexFetch) item.includeInMangadexFetch = false; 
+                                else item.includeInMangadexFetch = true;
                             } else if (m !== 'e') {
                                 console.log('\n|| Please input a valid option');
                             }
@@ -852,7 +852,7 @@ async function filterEntriesFromFetch() {
             for (const type of lists) {
                 for (const status of type) {
                     for (const item of status) {
-                        item.isFetchedMangadex = true;
+                        item.includeInMangadexFetch = true;
                     }
                 }
             }

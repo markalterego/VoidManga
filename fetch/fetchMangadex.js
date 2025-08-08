@@ -17,7 +17,7 @@ async function fetchChapters (lists, options) {
         const items = lists[options.MAL_list][options.MAL_status]; // points to preferred search
         console.log('\n>> Now searching for manga >>\n'); 
         for (const item of items) { // going through items
-            if (item.isFetchedMangadex) { // skip filtered items
+            if (item.includeInMangadexFetch) { // skip filtered items
                 const startTimeManga = performance.now(); // timing manga fetch start
                 const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
                     params: {
