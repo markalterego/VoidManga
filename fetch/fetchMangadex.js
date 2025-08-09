@@ -54,9 +54,11 @@ async function fetchChapters (lists, options) {
                             const chapter = chapterResponse.data.data[i]; // chapter info
                             const transLang = chapter.attributes?.translatedLanguage ? chapter.attributes.translatedLanguage + ' - ' : ''; // chapter translation language
                             const title = chapter.attributes?.title ? chapter.attributes.title + ' - ' : 'No title - '; // chapter title
-                            const number = chapter.attributes?.chapter ? chapter.attributes?.chapter + ' - ' : 'No chapter number - '; // chapter number
+                            const number = chapter.attributes?.chapter; // chapter number
+                            const numberAsText = number !== undefined ? number + ' - ' : 'No chapter number - '; // chapter number as string
                             const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
-                            console.log(`> ${title}${number}${transLang}${link}`);
+                            const newChapter = parseInt(number, 10) > item.list_status?.num_chapters_read ? ' {( New! )}' : ''; // appends 'new' when chapter is unread
+                            console.log(`> ${title}${numberAsText}${transLang}${link}${newChapter}`);
                             countFoundChapter++;
                         }
                     }
