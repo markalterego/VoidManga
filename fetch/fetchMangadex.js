@@ -16,6 +16,7 @@ async function fetchChapters (lists, options) {
         let countFoundManga = 0, countMissingManga = 0, countFoundChapter = 0, countMissingChapter = 0;
         const items = lists[options.MAL_list][options.MAL_status]; // points to preferred search
         console.log('\n>> Now searching for manga >>\n'); 
+        const startTime = performance.now(); // timing fetch start
         for (const item of items) { // going through items
             if (item.includeInMangadexFetch) { // skip filtered items
                 const startTimeManga = performance.now(); // timing manga fetch start
@@ -64,8 +65,9 @@ async function fetchChapters (lists, options) {
                 console.log(); // empty line
             }
         }
+        const fetchTimeTaken = Math.round(performance.now()-startTime); // time taken for full fetch
         // log statistics of all fetchs
-        console.log(`>> Search result >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
+        console.log(`>> Search result (${fetchTimeTaken}ms) >>\n\n> Found manga: ${countFoundManga}\n> Manga with no chapters: ${countMissingChapter}\n> Missing manga: ${countMissingManga}\n> Found chapter: ${countFoundChapter}`);
     } catch (error) {
         if (error.response) {
             console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
