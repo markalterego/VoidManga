@@ -434,7 +434,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                         await customFetchMangadexDisplay(options);
                     }
 
-                    console.log(`\n||\n|| Select option for ${key}\n||`)
+                    console.log(`\n||\n|| Select option for ${key}\n||`);
                     console.log('|| 0 -> anime');
                     console.log('|| 1 -> manga');
                     console.log(`|| e -> Go back\n||`);
@@ -462,7 +462,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                         await customFetchMangadexDisplay(options);
                     }
 
-                    console.log(`\n||\n|| Select option for ${key}\n||`)
+                    console.log(`\n||\n|| Select option for ${key}\n||`);
                     if (options.MAL_list === null) {
                         while (i < animeStatus.length) {
                             // watching/reading & plan_to_watch/plan_to_read
