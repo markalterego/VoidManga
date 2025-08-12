@@ -5,6 +5,7 @@ import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
+import { fetchAnilist } from "../fetch/fetchAnilist.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -212,6 +213,7 @@ async function settingsMenu() {
         console.log('\n||\n|| Settings (+experimental)\n||');
         console.log(`|| 0 -> Toggle menu type (currently ${config.menuOption})`);
         console.log(`|| 1 -> Automatically fetch Mangadex when fetching (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
+        console.log(`|| 2 -> Fetch Anilist (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
         const userInput = await rl.question('\n|| Input: '); // get user input
@@ -229,6 +231,9 @@ async function settingsMenu() {
             case 1:
                 if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
                 await filehandle('config', config); // writes config.file
+                break;
+            case 2:
+                await fetchAnilist()
                 break;
             case 'e':
                 break;

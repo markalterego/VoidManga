@@ -1,35 +1,40 @@
 import axios from "axios";
+import { setTimeout } from "timers/promises";
 
 async function fetchAnilist() {
-    const response = await fetchManga();
-    console.log(response.data);
-    return response;
+    await fetchManga();
 }   
 
 async function fetchManga() {
     try {
-        const query = ``; // a string consisting variables sent to the api
-        const variables = {
-            /*
-            e.g.
-            id: 1234,
-            */
-        };
-        // anilist api 
-        const url = 'https://graphql.anilist.co';
-        const options = {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-            body: JSON.stringify({ query: query, variables: variables })
-        }; 
-        
-
-
-
-
+        // basis for the query
+        const query = `
+        query ($search: String!) {
+            Page (perPage: 3) {
+                media(search: $search, type: MANGA) {
+                id
+                title {
+                    romaji
+                    english
+                }
+                }
+            }
+        }`; 
+        const response = await axios.post('https://graphql.anilist.co', { // body
+                query: query,
+                variables: {
+                    search: 'Frieren'
+                }
+            }, { // config
+                headers: {
+                    'Content-Type': 'application/json', 
+                    'Accept': 'application/json' 
+                }
+            }
+        );
+        const responseArr = response.data.data.Page.media;
+        responseArr.forEach(value => console.log(value));
+        await setTimeout(2000); // avoiding rate-limit
     } catch (error) {
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
