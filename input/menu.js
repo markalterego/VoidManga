@@ -5,6 +5,7 @@ import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
+import { testFetching } from "../fetch/testFetching.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -232,6 +233,7 @@ async function settingsMenu() {
                 await filehandle('config', config); // writes config.file
                 break;
             case 2:
+                await testFetching();
                 break;
             case 'e':
                 break;
