@@ -2,29 +2,14 @@ import axios from 'axios';
 import { setTimeout } from "timers/promises";
 
 async function testFetching() {
-    await fetchComickAPI();
+    // await fetchComickAPI();
     // await fetchMangaUpdatesAPI();
 }
 
-async function fetchComickAPI() {
+async function fetchSomething() {
     try {
-        // https://api.comick.io/v1.0/search?limit=50&page=1&q=frieren
         const startTime = performance.now(); // starting timing fetch
-        const response = await axios.get('https://api.comick.io/v1.0/search', {
-            params: {
-                q: 'frieren',
-                limit: 10,
-                page: 1
-            }, 
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:141.0) Gecko/20100101 Firefox/141.0",
-                "Accept": "*/*",
-                "Accept-Language": "en-US,en;q=0.5",
-            },
-            "referrer": "https://comick.io/",
-        });
         const fetchTimeTaken = Math.round(performance.now()-startTime); // time it took to fetch
-        console.log(response.data);
         console.log(`\n> ${fetchTimeTaken}ms`); // logging time taken by fetch
     } catch (error) {
         console.log(error);
