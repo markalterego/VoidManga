@@ -6,7 +6,8 @@
   "main": "main.js",
   "scripts": {
     "start": "node main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon main.js"
   },
   "keywords": [],
   "author": "",
@@ -16,5 +17,8 @@
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
     "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
