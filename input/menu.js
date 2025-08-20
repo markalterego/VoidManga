@@ -5,8 +5,7 @@ import readline from 'readline/promises';
 import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
-import { existsSync } from 'fs';
-// import { testFetching } from "../fetch/testFetching.js";
+import { testFetching } from "../fetch/testFetching.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -233,13 +232,8 @@ async function settingsMenu() {
                 if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
                 await filehandle('config', config); // writes config.file
                 break;
-            case 2: // async import and running of testFetching.js
-                if (!existsSync('./fetch/testFetching.js')) {
-                    console.log('\n||\n|| testFetching file not found\n||'); 
-                } else {
-                    const imp = await import('../fetch/testFetching.js');
-                    await imp.testFetching();
-                }
+            case 2: 
+                await testFetching();    
                 break;
             case 'e':
                 break;
