@@ -54,11 +54,15 @@ async function fetchLocalServer(search) {
         const fetchTimeTaken = Math.round(performance.now()-startTime); // time it took to fetch
         console.log(`\n> ${fetchTimeTaken}ms`); // logging time taken by fetch
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.code}\n||`);
         } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
+            if (error.code!=='ECONNREFUSED') {
+                console.error(`\n||\n|| Error: ${error.message}\n||`);
+            } else {
+                console.error(`\n||\n|| Error: Server most likely not running\n||`);
+            }
         }
     }
 }
