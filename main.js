@@ -3,11 +3,15 @@ import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './input/menu.js';
 import { fetchMangadexOptions } from "./regular/export.js";
- 
+import { stdin as input, stdout as output } from 'process';
+import readline from 'readline/promises';
+
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
+const rl = readline.createInterface({ input, output }); // enabling input/output
 
-async function main() {
+// main
+(async () => {
     if (!existsSync('./regular/mal.file')) {
         lists = await fetchMAL(); // searches and returns MAL lists
         await filehandle('mal', lists); // writes mal.file
@@ -31,10 +35,14 @@ async function main() {
         config = await filehandle('config'); // reads config.file
     }
 
-    await menu(lists, config);
-}
+    try {
+        await menu(lists, config);
+    } finally {
+        rl.close();
+    }  
+})()
 
-main();
+export { rl };
 
 /*
 TODO (or not to do...)
