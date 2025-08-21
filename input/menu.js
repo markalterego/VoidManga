@@ -1,16 +1,15 @@
 import { fetchMAL } from "../fetch/fetchMAL.js";
 import { fetchMangadex } from "../fetch/fetchMangadex.js";
 import { log } from "../output/logtoconsole.js";
-import readline from 'readline/promises';
-import { stdin as input, stdout as output } from 'process';
 import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
 import { testFetching } from "../fetch/testFetching.js";
+import { takeUserInput } from "./helper.js";
+import { rl } from '../main.js';
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
 let refresh = true; // loops through menu while set to true
-const rl = readline.createInterface({ input, output }); // enabling input/output
 
 async function menu(l, c) {
     try {
@@ -26,11 +25,8 @@ async function menu(l, c) {
             }
         }
     } catch (error) {
-        if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
-        console.error(`\n||\n|| Error: ${error.message}\n||`); // handles e.g. CTRL + C
-    } finally {
-        rl.close(); 
-    }
+        console.error(`\n||\n|| Error: ${error.message}\n||`); 
+    } 
 }
 
 async function shortMenu() {
@@ -48,9 +44,7 @@ async function shortMenu() {
         console.log('|| 6 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -126,9 +120,7 @@ async function longMenu() {
         console.log('|| 14 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -216,9 +208,7 @@ async function settingsMenu() {
         console.log(`|| 2 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -263,9 +253,7 @@ async function customLogMenuMAL() {
         console.log('|| 3 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -296,9 +284,7 @@ async function customLogMenuMAL() {
                     console.log('|| 6 -> Toggle anime/manga');
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -361,9 +347,7 @@ async function customFetchMenuMangadex() {
         console.log('|| 4 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -423,9 +407,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
         console.log('|| e -> Go back\n||');
         i = 0; // resetting index
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
         
@@ -444,9 +426,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     console.log('|| 1 -> manga');
                     console.log(`|| e -> Go back\n||`);
                     
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -487,9 +467,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     }
                     console.log(`|| e -> Go back\n||`);
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -513,9 +491,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -541,9 +517,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -572,9 +546,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     });
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -601,9 +573,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     });
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -630,9 +600,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     });
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -659,9 +627,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     });
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
                     
@@ -690,9 +656,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     console.log(`|| ${contentRatings.length+1} -> Clear ratings`);
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
-                    if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // convert userinput to lowercase
+                    m = await takeUserInput(); // get user input
 
                     process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
 
@@ -784,9 +748,7 @@ async function filterEntriesFromFetch() {
         console.log('|| 2 -> Reset filters');
         console.log('|| e -> Go back\n||');
 
-        const userInput = await rl.question('\n|| Input: '); // get user input
-        if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-        else m = userInput.toLowerCase(); // convert userinput to lowercase
+        m = await takeUserInput(); // get user input
 
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
     
@@ -808,9 +770,7 @@ async function filterEntriesFromFetch() {
                 }
                 console.log('|| e -> Go back\n||');
 
-                const userInput = await rl.question('\n|| Input: '); // get user input
-                if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                else m = userInput.toLowerCase(); // convert userinput to lowercase
+                m = await takeUserInput(); // get user input
 
                 process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
 
@@ -830,9 +790,7 @@ async function filterEntriesFromFetch() {
                             });
                             console.log('|| e -> Go back\n||');             
 
-                            const userInput = await rl.question('\n|| Input: '); // get user input
-                            if (userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                            else m = userInput.toLowerCase(); // convert userinput to lowercase
+                            m = await takeUserInput(); // get user input
 
                             process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
                             
