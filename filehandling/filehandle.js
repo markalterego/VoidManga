@@ -1,12 +1,9 @@
 import { readFile, writeFile } from 'fs/promises';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import path from 'path';
 
 async function filehandle (fileIdentifier, input) {
     try {
-        const __filepath = fileURLToPath(import.meta.url); // refers to current filepath e.g. C:\Code\file.js
-        const __dirname = dirname(__filepath); // refers to current folder e.g. C:\Code 
-        const destination = join(__dirname, '..', 'regular', (fileIdentifier + '.file')); // refers to regular folder
+        const destination = path.resolve(import.meta.dirname, '../regular', `${fileIdentifier}.file`); // refers to regular folder
         if (fileIdentifier==='mal') {
             if (!input) { // read mal.file
                 const data = await readFile(destination, 'utf8');
