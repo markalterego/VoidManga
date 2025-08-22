@@ -1,15 +1,25 @@
-import { rl } from '../main.js';
+import { stdin as input, stdout as output } from 'process';
+import readline from 'readline/promises';
 
 async function takeUserInput() {
+    const rl = readline.createInterface({ input , output }); // enabling input/output
     try {
         let userInput = await rl.question('\n|| Input: '); // get user input
         if (userInput.toLowerCase() !== 'e') userInput = parseInt(userInput, 10); // convert userinput to int
         else userInput = userInput.toLowerCase(); // convert userinput to lowercase
         return userInput;
     } catch (error) {
-        if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
-        console.error(`\n||\n|| Error: ${error.message}\n||`); // handles e.g. CTRL + C
-    } 
-}
+        if (error.code==='ABORT_ERR') {
+            console.error(); // extra newline for extra cleanliness :)
+            console.error(`\n||\n|| Error: ${error.message}\n||`); // handles e.g. CTRL + C 
+            rl.close(); // closes readline interface
+            process.exit(0); // exits program
+        } else {
+            console.error(`\n||\n|| Error: ${error.message}\n||`); 
+        }
+    } finally {
+        rl.close(); // close readline interface
+    }
+} 
 
 export { takeUserInput };
