@@ -3,12 +3,9 @@ import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './input/menu.js';
 import { fetchMangadexOptions } from "./regular/export.js";
-import { stdin as input, stdout as output } from 'process';
-import readline from 'readline/promises';
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
-const rl = readline.createInterface({ input, output }); // enabling input/output
 
 // main
 (async () => {
@@ -35,14 +32,8 @@ const rl = readline.createInterface({ input, output }); // enabling input/output
         config = await filehandle('config'); // reads config.file
     }
 
-    try {
-        await menu(lists, config);
-    } finally {
-        rl.close();
-    }  
+    await menu(lists, config);
 })()
-
-export { rl };
 
 /*
 TODO (or not to do...)
