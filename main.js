@@ -47,4 +47,6 @@ TODO (or not to do...)
 - save Mangadex manga ids to mal.file to enhance fetching... 
 
 - make it so that you can update .env username through e.g. settings menu
+
+- make a separate menu to select titles from your mal lists and then fetch the selected ones from comick api (opposite of exluding feature at mangadex fetch)
 */
