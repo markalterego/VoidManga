@@ -22,4 +22,9 @@ async function takeUserInput() {
     }
 } 
 
-export { takeUserInput };
+async function clearScreen() {
+    // ANSI for full terminal reset (using in place of cls [this actually works])
+    process.stdout.write('\x1Bc'); 
+}
+
+export { takeUserInput, clearScreen };
