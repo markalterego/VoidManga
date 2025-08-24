@@ -4,7 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
 import { testFetching } from "../fetch/testFetching.js";
-import { takeUserInput } from "./helper.js";
+import { takeUserInput, clearScreen } from "./helper.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -13,7 +13,7 @@ let refresh = true; // loops through menu while set to true
 async function menu(l, c) {
     try {
         lists = l; config = c;
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window   
         while (refresh) {
             refresh = await rootMenu(); // displays rootMenu
         }
@@ -40,7 +40,7 @@ async function rootMenu() {
 
         m = await takeUserInput(); // get user input
 
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window  
 
         switch (m) 
         {
@@ -75,7 +75,7 @@ async function rootMenu() {
                 await filehandle('mal', lists);
                 break;
             case 6:
-                process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                await clearScreen(); // clears console window   
                 break;
             case 'e': // exit
                 break; 
@@ -103,7 +103,7 @@ async function settingsMenu() {
 
         m = await takeUserInput(); // get user input
 
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window   
 
         switch (m) 
         {
@@ -144,7 +144,7 @@ async function customLogMenuMAL() {
 
         m = await takeUserInput(); // get user input
 
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window   
 
         switch (m) 
         {
@@ -175,7 +175,7 @@ async function customLogMenuMAL() {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
 
                     if (m < 5 && m > -1) { // add/remove entry
                         if (!boolRemove) {
@@ -238,7 +238,7 @@ async function customFetchMenuMangadex() {
 
         m = await takeUserInput(); // get user input
 
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window   
 
         switch (m)
         {
@@ -298,7 +298,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
         m = await takeUserInput(); // get user input
 
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window   
         
         switch (m)
         {
@@ -317,7 +317,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m === 0 || m === 1) {
@@ -358,7 +358,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < 5) {
@@ -382,7 +382,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < 101) {
@@ -408,7 +408,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < 101) {
@@ -437,7 +437,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < mangaOrderTypes.length) {
@@ -464,7 +464,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < chapterOrderTypes.length) {
@@ -491,7 +491,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < orderDirections.length) {
@@ -518,7 +518,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
                     
                     // setting the given option
                     if (m > -1 && m < orderDirections.length) {
@@ -547,7 +547,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
 
                     // setting option / clearing options
                     if (m > -1 && m < contentRatings.length) {
@@ -593,7 +593,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     if (!testResult && userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
                     else m = userInput.toLowerCase(); // converts userInput to lowercase
 
-                    process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+                    await clearScreen(); // clears console window   
 
                     // handling menu choice
                     if (m > -1 && m < chapterTranslatedLanguages.length) { 
@@ -647,7 +647,7 @@ async function filterEntriesFromFetch() {
 
         m = await takeUserInput(); // get user input
 
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
+        await clearScreen(); // clears console window   
     
         // logging statuses by type
         if (m === 0 || m === 1) {
@@ -669,7 +669,7 @@ async function filterEntriesFromFetch() {
 
                 m = await takeUserInput(); // get user input
 
-                process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
+                await clearScreen(); // clears console window  
 
                 // logging titles by status
                 if ((type === 0 && m < animeStatus.length) || (type === 1 && m < mangaStatus.length)) { 
@@ -689,7 +689,7 @@ async function filterEntriesFromFetch() {
 
                             m = await takeUserInput(); // get user input
 
-                            process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])  
+                            await clearScreen(); // clears console window  
                             
                             // toggling filter at given option
                             if (m > -1 && m < lists[type][status].length) {
