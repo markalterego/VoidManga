@@ -4,7 +4,7 @@ import { log } from "../output/logtoconsole.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
 import { testFetching } from "../fetch/testFetching.js";
-import { takeUserInput, clearScreen } from "./helper.js";
+import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "./helper.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -618,19 +618,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 console.log('\n|| Please input a valid option');
         }
     }
-}
-
-async function customFetchMangadexDisplay (options) {
-    console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
-    console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (options.MAL_list === null ? options.MAL_status : (!options.MAL_list ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status]))}`);
-    console.log(`|| limit_manga: ${options.limit_manga}`);
-    console.log(`|| limit_chapter: ${options.limit_chapter}`);
-    console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
-    console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
-    console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
-    console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
-    console.log(`|| contentRating: [${options.contentRating[0] === undefined ? 'default' : options.contentRating}]`);
-    console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
 async function filterEntriesFromFetch() {

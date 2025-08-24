@@ -1,5 +1,6 @@
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
+import { animeStatus, mangaStatus } from '../regular/export.js';
 
 async function takeUserInput() {
     const rl = readline.createInterface({ input , output }); // enabling input/output
@@ -27,4 +28,17 @@ async function clearScreen() {
     process.stdout.write('\x1Bc'); 
 }
 
-export { takeUserInput, clearScreen };
+async function customFetchMangadexDisplay (options) {
+    console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
+    console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (options.MAL_list === null ? options.MAL_status : (!options.MAL_list ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status]))}`);
+    console.log(`|| limit_manga: ${options.limit_manga}`);
+    console.log(`|| limit_chapter: ${options.limit_chapter}`);
+    console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
+    console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
+    console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
+    console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
+    console.log(`|| contentRating: [${options.contentRating[0] === undefined ? 'default' : options.contentRating}]`);
+    console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
+}
+
+export { takeUserInput, clearScreen, customFetchMangadexDisplay };
