@@ -15,13 +15,7 @@ async function menu(l, c) {
         lists = l; config = c;
         process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
         while (refresh) {
-            if (config.menuOption==='short') {
-                refresh = await shortMenu(); // displays the short version of the menu
-            } else if (config.menuOption==='long') {
-                refresh = await longMenu(); // displays the long version of the menu
-            } else {
-                console.log('\n||\n|| Given menuOption doesn\'t exist\n||');
-            }
+            refresh = await rootMenu(); // displays rootMenu
         }
     } catch (error) {
         if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
@@ -29,7 +23,7 @@ async function menu(l, c) {
     } 
 }
 
-async function shortMenu() {
+async function rootMenu() {
     let m = 0, r = false; // m = menu, r = refresh
     
     while (m !== 'e') 
@@ -97,115 +91,14 @@ async function shortMenu() {
     return r;
 }
 
-async function longMenu() {
-    let m = 0, r = false; // m = menu, r = refresh
-    
-    while (m !== 'e') 
-    {
-        console.log('\n||\n|| What would you like to do?\n||');
-        console.log('|| 0 -> Watching anime');
-        console.log('|| 1 -> Completed anime');
-        console.log('|| 2 -> On hold anime');
-        console.log('|| 3 -> Dropped anime');
-        console.log('|| 4 -> Plan to watch anime');
-        console.log('|| 5 -> Reading manga');
-        console.log('|| 6 -> Completed manga');
-        console.log('|| 7 -> On hold manga');
-        console.log('|| 8 -> Dropped manga');
-        console.log('|| 9 -> Plan to read manga');
-        console.log('|| 10 -> All of the above');
-        console.log('|| 11 -> Custom log MAL');
-        console.log(`|| 12 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 13 -> Fetch MAL');
-        console.log('|| 14 -> Clear screen');
-        console.log('|| e -> Exit\n||');
-
-        m = await takeUserInput(); // get user input
-
-        process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
-
-        switch (m) 
-        {
-            case 0:
-                await log({anime: [0]}, lists); // anime - watching
-                break;
-            case 1:
-                await log({anime: [1]}, lists); // anime - completed
-                break;
-            case 2:
-                await log({anime: [2]}, lists); // anime - on_hold
-                break;
-            case 3:
-                await log({anime: [3]}, lists); // anime - dropped
-                break;
-            case 4:
-                await log({anime: [4]}, lists); // anime - plan_to_watch
-                break;
-            case 5:
-                await log({manga: [0]}, lists); // manga - reading
-                break;
-            case 6:
-                await log({manga: [1]}, lists); // manga - completed
-                break;
-            case 7:
-                await log({manga: [2]}, lists); // manga - on_hold
-                break;
-            case 8:
-                await log({manga: [3]}, lists); // manga - dropped
-                break;
-            case 9:
-                await log({manga: [4]}, lists); // manga - plan_to_read
-                break;
-            case 10:
-                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
-                break;
-            case 11: {
-                const returnArr = await customLogMenuMAL(); // log anime and/or manga by status
-                config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
-                await filehandle('config', config); 
-                break; }
-            case 12: 
-                // if autofetching is disabled, loops through customFetchMenuMangadex normally (default behavior)
-                // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
-                // to upper menu right after completion
-                if (!config.autoFetchMangadex) {
-                    const returnArr = await customFetchMenuMangadex(); // fetch Mangadex by preference
-                    config = { ...config, fetchMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
-                    await filehandle('config', config); await filehandle('mal', lists);
-                } else { 
-                    await fetchMangadex(lists, config?.fetchMangadexOptions);
-                }
-                break;
-            case 13:
-                lists = await fetchMAL(); // searches and returns MAL lists
-                await filehandle('mal', lists);
-                break;
-            case 14:
-                process.stdout.write('\x1Bc'); // ANSI for full terminal reset (using in place of cls [this actually works])   
-                break;
-            case 'e': // exit
-                break; 
-            case 888:
-                await settingsMenu(); 
-                r = true; m = 'e'; // goes out of loop and refreshes menu
-                break;
-            default:
-                console.log('\n|| Please input a valid option');
-        }
-    }
-
-    return r;
-}
-
 async function settingsMenu() {
     let m = 0;
     
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Toggle menu type (currently ${config.menuOption})`);
-        console.log(`|| 1 -> Automatically fetch Mangadex when fetching (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
-        console.log(`|| 2 -> Fetch ??? (WIP)`);
+        console.log(`|| 0 -> Automatically fetch Mangadex when fetching (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
+        console.log(`|| 1 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -214,15 +107,11 @@ async function settingsMenu() {
 
         switch (m) 
         {
-            case 0: // short-/longmenu toggle
-                if (config.menuOption === 'short') config = { ...config, menuOption: 'long' }; else config = { ...config, menuOption: 'short' }; // changing menuOption
-                await filehandle('config', config); // writes config.file
-                break;
-            case 1: // autoFetchMangadex toggle
+            case 0: // autoFetchMangadex toggle
                 if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
                 await filehandle('config', config); // writes config.file
                 break;
-            case 2: 
+            case 1: 
                 await testFetching();    
                 break;
             case 'e':
