@@ -721,6 +721,34 @@ async function filterEntriesFromMangadexFetch() {
     }
 }
 
+async function filterEntriesFromLocalServerFetch() {
+    let m; 
+
+    while (m !== 'e') 
+    {
+        console.log('\n||\n|| What do you want to do?\n||');
+        console.log('|| 0 -> Fetch local server');
+        console.log('|| 1 -> Add search titles');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // take user input
+
+        await clearScreen(); // clears console window
+
+        if (m === 0) {
+            await testFetching() // fetching local server
+        } else if (m === 1) {
+
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function addSearchTitlesToLocalServerFetch() {
+    
+}
+
 export { menu };
 
 /*
