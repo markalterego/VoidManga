@@ -3,12 +3,15 @@ import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
 import { fetchMangadexOptions } from "./helpers/export.js";
+import { clearScreen } from "./helpers/functions.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 
 // main
 (async () => {
+    await clearScreen(); // starting app on a fresh screen
+
     if (!existsSync('./data/mal.file')) {
         lists = await fetchMAL(); // searches and returns MAL lists
         await filehandle('mal', lists); // writes mal.file
@@ -19,8 +22,7 @@ let config = null; // holds user specific options
     if (!existsSync('./data/config.file')) {
         // setting initial menu preference
         config = { 
-            ...config, 
-            menuOption: 'short', 
+            ...config,  
             autoFetchMangadex: false, 
             logMALOptions: { anime: [], manga: [] },
             fetchMangadexOptions: fetchMangadexOptions, 

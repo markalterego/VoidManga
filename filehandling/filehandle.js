@@ -1,9 +1,12 @@
+import { existsSync, mkdirSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import path from 'path';
 
 async function filehandle (fileIdentifier, input) {
     try {
-        const destination = path.resolve(import.meta.dirname, '../data', `${fileIdentifier}.file`); // refers to regular folder
+        const folderDestination = path.resolve(import.meta.dirname, '../data'); // refers to data folder
+        if (!existsSync(folderDestination)) mkdirSync(folderDestination); // creates data folder if it doesn't exist
+        const destination = path.resolve(folderDestination, `${fileIdentifier}.file`); // file creation 
         if (fileIdentifier==='mal') {
             if (!input) { // read mal.file
                 const data = await readFile(destination, 'utf8');
