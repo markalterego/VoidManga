@@ -13,7 +13,6 @@ let refresh = true; // loops through menu while set to true
 async function menu(l, c) {
     try {
         lists = l; config = c;
-        await clearScreen(); // clears console window   
         while (refresh) {
             refresh = await rootMenu(); // displays rootMenu
         }
