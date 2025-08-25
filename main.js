@@ -49,4 +49,6 @@ TODO (or not to do...)
 - make it so that you can update .env username through e.g. settings menu
 
 - make a separate menu to select titles from your mal lists and then fetch the selected ones from comick api (opposite of exluding feature at mangadex fetch)
+
+- integrate headless browser into main and similar logic as found in localserver files
 */
