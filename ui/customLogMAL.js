@@ -1,11 +1,11 @@
-import { animeStatus, mangaStatus } from "../regular/export.js";
+import { animeStatus, mangaStatus } from "../helpers/export.js";
 
 const MAL = { // determines what is logged
     anime: [], // 0-4 - animeStatus
     manga: [] // 0-4 - mangaStatus
 }
 
-async function log (options, lists) {
+async function customLogMAL (options, lists) {
     try {
         if (await validateOptions(options)) { // making sure options is formatted correctly
             if (await parseOptions(options, lists)) { // parsing options and saving them to MAL
@@ -69,4 +69,4 @@ async function logMAL (lists) {
     });
 }
 
-export { log };
+export { customLogMAL };

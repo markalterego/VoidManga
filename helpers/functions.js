@@ -1,6 +1,6 @@
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
-import { animeStatus, mangaStatus } from '../regular/export.js';
+import { animeStatus, mangaStatus } from './export.js';
 
 async function takeUserInput() {
     const rl = readline.createInterface({ input , output }); // enabling input/output

@@ -3,7 +3,7 @@ import path from 'path';
 
 async function filehandle (fileIdentifier, input) {
     try {
-        const destination = path.resolve(import.meta.dirname, '../regular', `${fileIdentifier}.file`); // refers to regular folder
+        const destination = path.resolve(import.meta.dirname, '../data', `${fileIdentifier}.file`); // refers to regular folder
         if (fileIdentifier==='mal') {
             if (!input) { // read mal.file
                 const data = await readFile(destination, 'utf8');

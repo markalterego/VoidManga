@@ -1,22 +1,22 @@
 import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
-import { menu } from './input/menu.js';
-import { fetchMangadexOptions } from "./regular/export.js";
+import { menu } from './ui/menu.js';
+import { fetchMangadexOptions } from "./helpers/export.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 
 // main
 (async () => {
-    if (!existsSync('./regular/mal.file')) {
+    if (!existsSync('./data/mal.file')) {
         lists = await fetchMAL(); // searches and returns MAL lists
         await filehandle('mal', lists); // writes mal.file
     } else { 
         lists = await filehandle('mal'); // reads mal.file
     }
 
-    if (!existsSync('./regular/config.file')) {
+    if (!existsSync('./data/config.file')) {
         // setting initial menu preference
         config = { 
             ...config, 

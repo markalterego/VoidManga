@@ -1,10 +1,10 @@
 import { fetchMAL } from "../fetch/fetchMAL.js";
 import { fetchMangadex } from "../fetch/fetchMangadex.js";
-import { log } from "../output/logtoconsole.js";
+import { customLogMAL } from "./customLogMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
-import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../regular/export.js";
+import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { testFetching } from "../fetch/testFetching.js";
-import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "./helper.js";
+import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -45,13 +45,13 @@ async function rootMenu() {
         switch (m) 
         {
             case 0:
-                await log({anime: [0]}, lists); // anime - watching
+                await customLogMAL({anime: [0]}, lists); // anime - watching
                 break;
             case 1:
-                await log({manga: [0]}, lists); // manga - reading
+                await customLogMAL({manga: [0]}, lists); // manga - reading
                 break;
             case 2:
-                await log({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
+                await customLogMAL({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
                 break;
             case 3: {
                 const returnArr = await customLogMenuMAL(); // log anime and/or manga by status
@@ -149,7 +149,7 @@ async function customLogMenuMAL() {
         switch (m) 
         {
             case 0:
-                await log({anime, manga}, lists);
+                await customLogMAL({anime, manga}, lists);
                 break;
             case 1:
                 while (m !== 'e') 
@@ -746,7 +746,7 @@ async function filterEntriesFromLocalServerFetch() {
 }
 
 async function addSearchTitlesToLocalServerFetch() {
-    
+
 }
 
 export { menu };

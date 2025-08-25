@@ -1,7 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 import { setTimeout } from "timers/promises";
-import { animeStatus, mangaStatus } from "../regular/export.js";
+import { animeStatus, mangaStatus } from "../helpers/export.js";
 
 dotenv.config();
 
