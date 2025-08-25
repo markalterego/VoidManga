@@ -252,7 +252,7 @@ async function customFetchMenuMangadex() {
                 break;
             case 2:
                 // filtering items not wanted to be fetched
-                await filterEntriesFromFetch();
+                await filterEntriesFromMangadexFetch();
                 break;
             case 3:
                 // emptying / nullifying all options
@@ -620,7 +620,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
     }
 }
 
-async function filterEntriesFromFetch() {
+async function filterEntriesFromMangadexFetch() {
     let m = 0;
 
     while (m !== 'e') 
@@ -629,7 +629,8 @@ async function filterEntriesFromFetch() {
         console.log('\n||\n|| What do you want to do?\n||');
         console.log('|| 0 -> Filter anime');
         console.log('|| 1 -> Filter manga');
-        console.log('|| 2 -> Reset filters');
+        console.log('|| 2 -> Include all');
+        console.log('|| 3 -> Exclude all');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
@@ -703,6 +704,17 @@ async function filterEntriesFromFetch() {
                     }
                 }
             }
+            console.log('\n||\n|| Included all titles to fetch\n||');
+        } else if (m === 3) {
+            // reassigning fetch filters for Mangadex as false
+            for (const type of lists) {
+                for (const status of type) {
+                    for (const item of status) {
+                        item.includeInMangadexFetch = false;
+                    }
+                }
+            }
+            console.log('\n||\n|| Excluded all titles from fetch\n||');
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
