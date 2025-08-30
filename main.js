@@ -4,9 +4,12 @@ import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
 import { fetchMangadexOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
+import { stdin as input, stdout as output } from 'process';
+import readline from 'readline/promises';
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
+const rl = readline.createInterface({ input , output }); // enabling input/output
 
 // main
 (async () => {
@@ -35,7 +38,23 @@ let config = null; // holds user specific options
     }
 
     await menu(lists, config);
+
+    process.exit(0); // exiting through exit handler 
 })()
+
+// handling ctrl + c 
+process.on('SIGINT', () => {
+    console.log(`\n\n||\n|| SIGINT caught (Ctrl+C)...\n||\n`); 
+    process.exit(0);
+});
+
+// handling graceful exiting
+process.on('exit', () => {
+    rl.close(); // closing readline interface
+    // <-- close browser instance here!!
+});
+
+export { rl }; // exporting readline
 
 /*
 TODO (or not to do...)

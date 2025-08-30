@@ -5,6 +5,7 @@ import { filehandle } from "../filehandling/filehandle.js";
 import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRatings, mangaOrderTypes, mangaStatus, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
+import { rl } from '../main.js';
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -577,15 +578,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     console.log(`|| ${chapterTranslatedLanguages.length} -> Clear filters`);
                     console.log('|| e -> Go back\n||');
 
-                    // taking userinput
-                    const readline = await import('readline/promises'); // import readline
-                    const rl = readline.createInterface({ input: process.stdin, output: process.stdout }); // create readline interface
-                    let userInput;
-                    try {
-                        userInput = await rl.question('\n|| Input: '); // get user input
-                    } finally {
-                        rl.close(); // close readline interface
-                    }
+                    const userInput = await rl.question('\n|| Input: '); // get user input
                     // regex tests for manually inputted language codes and allows:
                     // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
                     const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(userInput); // validating language code
