@@ -6,10 +6,22 @@ import { fetchMangadexOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
+import { chromium } from "playwright";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 const rl = readline.createInterface({ input , output }); // enabling input/output
+
+// launching and initializing a browser instance
+const browser = await chromium.launch({ headless: true });
+const context = await browser.newContext({ // both viewport and userAgent definitions are essential
+    viewport: { width: 1280, height: 800}, 
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+});
+const page = await context.newPage(); // opening a new page in browser
+await page.addInitScript(() => { // runs before loading each site
+    Object.defineProperty(navigator, 'webdriver', { get: () => false }); // I'm not a bot flag
+});
 
 // main
 (async () => {
@@ -37,24 +49,16 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
         config = await filehandle('config'); // reads config.file
     }
 
-    await menu(lists, config);
+    await menu(lists, config); // menu ui
+    await cleanup(); // clears interfaces etc...
+})();
 
-    process.exit(0); // exiting through exit handler 
-})()
-
-// handling ctrl + c 
-process.on('SIGINT', () => {
-    console.log(`\n\n||\n|| SIGINT caught (Ctrl+C)...\n||\n`); 
-    process.exit(0);
-});
-
-// handling graceful exiting
-process.on('exit', () => {
+async function cleanup() {
     rl.close(); // closing readline interface
-    // <-- close browser instance here!!
-});
+    await browser.close(); // closing browser instance
+}
 
-export { rl }; // exporting readline
+export { rl, page }; // exporting readline
 
 /*
 TODO (or not to do...)
