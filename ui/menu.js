@@ -6,6 +6,7 @@ import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRati
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
 import { rl } from '../main.js';
+import { fetchComick } from "../fetch/fetchComick.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -35,7 +36,8 @@ async function rootMenu() {
         console.log('|| 3 -> Custom log MAL');
         console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
         console.log('|| 5 -> Fetch MAL');
-        console.log('|| 6 -> Clear screen');
+        console.log('|| 6 -> Custom fetch Comick');
+        console.log('|| 7 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
@@ -75,6 +77,9 @@ async function rootMenu() {
                 await filehandle('mal', lists);
                 break;
             case 6:
+                await customFetchMenuComick(); // search and log Comick API
+                break;
+            case 7:
                 await clearScreen(); // clears console window   
                 break;
             case 'e': // exit
@@ -570,9 +575,21 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     if (boolDisplay) {
                         await customFetchMangadexDisplay(options);
                     }
+                    /*
+                    When changing the option for chapterTranslatedLanguage the user has two options:
+                    
+                    1. Select from one of the pre-defined language options by inputting 
+                       the corresponding number next to desired option
 
+                        e.g. || 0 -> en
+                             || 1 -> pl
+                    
+                    2. Input a custom language code option in one of two formats
+
+                        'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
+                    */
                     console.log(`\n||\n|| Add option for ${key} (optionally input custom code)\n||`);
-                    chapterTranslatedLanguages.forEach((value, index) => {
+                    chapterTranslatedLanguages.forEach((value, index) => { 
                         console.log(`|| ${index} -> ${value}`);
                     });
                     console.log(`|| ${chapterTranslatedLanguages.length} -> Clear filters`);
@@ -713,32 +730,29 @@ async function filterEntriesFromMangadexFetch() {
     }
 }
 
-async function filterEntriesFromLocalServerFetch() {
-    let m; 
+async function customFetchMenuComick() {
+    let m = 0, searchTitle = 'frieren';
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| What do you want to do?\n||');
-        console.log('|| 0 -> Fetch local server');
-        console.log('|| 1 -> Add search titles');
-        console.log('|| e -> Go back\n||');
+        console.log(`\n||\n|| Current search: ${searchTitle}\n||`);
+        console.log('\n||\n|| Custom fetch Comick\n||');
+        console.log('|| 0 -> Fetch with options');
+        console.log('|| 1 -> Change search');
+        console.log('|| e -> Exit\n||');
 
-        m = await takeUserInput(); // take user input
+        m = await takeUserInput(); // get user input
 
-        await clearScreen(); // clears console window
+        await clearScreen(); // clear console window
 
         if (m === 0) {
-            await testFetching() // fetching local server
+            await fetchComick(searchTitle); // fetch Comick
         } else if (m === 1) {
-
+            // change search/options
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
-}
-
-async function addSearchTitlesToLocalServerFetch() {
-
 }
 
 export { menu };
