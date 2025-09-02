@@ -43,6 +43,7 @@ await page.addInitScript(() => { // runs before loading each site
             fetchMangadexOptions: fetchMangadexOptions, 
             boolDisplayMAL: false,
             boolDisplayMangadex: false,
+            toggleStringSearchComick: false
         }; 
         await filehandle('config', config); // writes config.file
     } else {    
