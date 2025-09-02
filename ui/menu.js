@@ -73,7 +73,9 @@ async function rootMenu() {
                 }
                 break;
             case 5:
-                await customFetchMenuComick(); // search and log Comick API
+                const toggleStringSearch = await customFetchMenuComick(); // search and log Comick API
+                config = { ...config, toggleStringSearchComick: toggleStringSearch }; // save toggleStringSearch to config
+                await filehandle('config', config); // save config to config.file
                 break;
             case 6:
                 lists = await fetchMAL(); // searches and returns MAL lists
@@ -731,13 +733,9 @@ async function filterEntriesFromMangadexFetch() {
 }
 
 async function customFetchMenuComick() {
-    let m = 0, count = 0, searchString = null, toggleStringSearch = false, selectionFound = false;
-
-    // NOTE FOR SELF!!!
-    //
-    // - make it so that toggleStringSearch is saved to config and 
-    //   taken as input from config at the start of function (unless undefined) 
-
+    let m = 0, count = 0, searchString = null, selectionFound = false;
+    let toggleStringSearch = config.toggleStringSearchComick ? config.toggleStringSearchComick : false;
+    
     // the user can either search with an inputted searchString OR
     // search with MAL titles that have includeInComickFetch set as true
 
@@ -748,9 +746,9 @@ async function customFetchMenuComick() {
         if (!toggleStringSearch) { 
             // log current selection
             console.log('\n||\n|| Current selection:\n||');
-            lists.forEach((type) => { 
-                type.forEach((status) => {
-                    status.forEach((item) => {
+            lists.forEach((type) => { // anime/manga
+                type.forEach((status) => { // status
+                    status.forEach((item) => { // item
                         if (item.includeInComickFetch) { 
                             console.log(`|| ${++count}: ${item.node.title}`);
                             selectionFound = true;
@@ -801,6 +799,7 @@ async function customFetchMenuComick() {
                 console.log('\n|| Please input a valid option');
         }
     }
+    return toggleStringSearch;
 }
 
 export { menu };
