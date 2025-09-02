@@ -3,7 +3,7 @@ import { setTimeout } from 'timers/promises';
 
 async function fetchComick (search) {
     try {
-        await baselinePageSetup(); // setup page
+        await avoidCloudFlareBlock(); // setup page
         // const mangaData = await fetchManga(search); // fetch manga endpoint
         // const chapterData = await fetchChapter(mangaData); // fetch chapter endpoint
         // await logData(mangaData, chapterData);
@@ -12,7 +12,7 @@ async function fetchComick (search) {
     }
 }
 
-async function baselinePageSetup() {
+async function avoidCloudFlareBlock() {
     try {
         // getting cookies etc. from main page to avoid getting cloudflare blocked later 
         await page.goto('https://comick.io/'); // go to comick.io
