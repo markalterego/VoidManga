@@ -733,9 +733,9 @@ async function filterEntriesFromMangadexFetch() {
 }
 
 async function customFetchMenuComick() {
-    let m = 0, count = 0, searchString = null, selectionFound = false;
+    let m = 0, count = 0, searchString = '', selectionFound = false;
     let toggleStringSearch = config.toggleStringSearchComick ? config.toggleStringSearchComick : false;
-    
+
     // the user can either search with an inputted searchString OR
     // search with MAL titles that have includeInComickFetch set as true
 
@@ -756,6 +756,7 @@ async function customFetchMenuComick() {
                     });
                 });
             });
+            count = 0; // resetting count
             // if no titles were selected show it clearly to user
             if (!selectionFound) {
                 console.log('|| - No Titles Selected\n||');
@@ -780,6 +781,11 @@ async function customFetchMenuComick() {
         switch (m) 
         {
             case 0:
+                if (!toggleStringSearch) { // fetch Comick by MAL 
+                    await fetchComick(lists);
+                } else { // fetch Comick by string
+                    await fetchComick(searchString);
+                }
                 break;
             case 1:
                 if (!toggleStringSearch) { 
