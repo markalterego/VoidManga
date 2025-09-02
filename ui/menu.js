@@ -35,8 +35,8 @@ async function rootMenu() {
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
         console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 5 -> Fetch MAL');
-        console.log('|| 6 -> Custom fetch Comick');
+        console.log('|| 5 -> Custom fetch Comick');
+        console.log('|| 6 -> Fetch MAL');
         console.log('|| 7 -> Clear screen');
         console.log('|| e -> Exit\n||');
 
@@ -73,11 +73,11 @@ async function rootMenu() {
                 }
                 break;
             case 5:
-                lists = await fetchMAL(); // searches and returns MAL lists
-                await filehandle('mal', lists);
+                await customFetchMenuComick(); // search and log Comick API
                 break;
             case 6:
-                await customFetchMenuComick(); // search and log Comick API
+                lists = await fetchMAL(); // searches and returns MAL lists
+                await filehandle('mal', lists);
                 break;
             case 7:
                 await clearScreen(); // clears console window   
@@ -731,26 +731,74 @@ async function filterEntriesFromMangadexFetch() {
 }
 
 async function customFetchMenuComick() {
-    let m = 0, searchTitle = 'frieren';
+    let m = 0, count = 0, searchString = null, toggleStringSearch = false, selectionFound = false;
+
+    // NOTE FOR SELF!!!
+    //
+    // - make it so that toggleStringSearch is saved to config and 
+    //   taken as input from config at the start of function (unless undefined) 
+
+    // the user can either search with an inputted searchString OR
+    // search with MAL titles that have includeInComickFetch set as true
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Current search: ${searchTitle}\n||`);
-        console.log('\n||\n|| Custom fetch Comick\n||');
+        // display either MAL selection OR searchString
+        // to user, based on toggled preference
+        if (!toggleStringSearch) { 
+            // log current selection
+            console.log('\n||\n|| Current selection:\n||');
+            lists.forEach((type) => { 
+                type.forEach((status) => {
+                    status.forEach((item) => {
+                        if (item.includeInComickFetch) { 
+                            console.log(`|| ${++count}: ${item.node.title}`);
+                            selectionFound = true;
+                        }
+                    });
+                });
+            });
+            // if no titles were selected show it clearly to user
+            if (!selectionFound) {
+                console.log('|| - No Titles Selected\n||');
+            } else {
+                console.log('||');
+            }
+        } else {
+            // log current searchString or '???' if unavailable
+            console.log(`\n||\n|| Current search:\n||\n|| - ${searchString ? searchString : '???'}\n||`);
+        }
+
+        console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'String'})\n||`);
         console.log('|| 0 -> Fetch with options');
-        console.log('|| 1 -> Change search');
+        console.log(`|| 1 -> ${!toggleStringSearch ? 'Exclude from search' : 'Change search'}`);
+        console.log('|| 2 -> Toggle search type');
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
 
         await clearScreen(); // clear console window
 
-        if (m === 0) {
-            await fetchComick(searchTitle); // fetch Comick
-        } else if (m === 1) {
-            // change search/options
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
+        switch (m) 
+        {
+            case 0:
+                break;
+            case 1:
+                if (!toggleStringSearch) { 
+                    // <-- Function to include/exlude MAL titles from fetch
+                } else { 
+                    // <-- Function to change searchString
+                }
+                break;
+            case 2:
+                // switch for toggling string search
+                if (toggleStringSearch) toggleStringSearch = false;
+                else toggleStringSearch = true;
+                break;
+            case 'e': 
+                break;
+            default: 
+                console.log('\n|| Please input a valid option');
         }
     }
 }
