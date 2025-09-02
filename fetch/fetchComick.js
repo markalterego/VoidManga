@@ -1,9 +1,12 @@
 import { page } from '../main.js';
 import { setTimeout } from 'timers/promises';
 
-async function fetchComick (search) {
+
+async function fetchComick (stringOrLists) {
     try {
         await avoidCloudFlareBlock(); // setup page
+        const mangaData = await fetchManga(stringOrLists); // fetch manga endpoint
+        console.log(mangaData);
         // const mangaData = await fetchManga(search); // fetch manga endpoint
         // const chapterData = await fetchChapter(mangaData); // fetch chapter endpoint
         // await logData(mangaData, chapterData);
@@ -22,21 +25,34 @@ async function avoidCloudFlareBlock() {
     }   
 }
 
-async function fetchManga (search) {
+async function fetchManga (stringOrLists) {
     try {
-        const url = `https://api.comick.io/v1.0/search?${search}`; // mapping search as parameter to url
-        const startTime = performance.now(); // starting timing
-        const data = await page.evaluate(async (url) => { // calling the api
-            const res = await fetch(url, {
-                headers: {
-                    'Accept': 'application/json'
+        if (typeof stringOrLists !== 'string') { // search by lists
+            const lists = stringOrLists, data = [];
+            for (const type of lists) { // anime/manga
+                for (const status of type) { // status
+                    for (const entry of status) { // entry
+                        if (entry.includeInComickFetch) { // included in search
+                            const title = entry.node.title; // entry title
+                            const url = `https://api.comick.io/v1.0/search?q=${title}`; // mapping MAL title to params
+                            const startTime = performance.now(); // starting timing
+                            const mangaData = await page.evaluate(async (url) => { // calling the api
+                                const res = await fetch(url, {
+                                    headers: {
+                                        'Accept': 'application/json'
+                                    }
+                                });
+                                return res.json();
+                            }, url); // <-- search inputted here
+                            data.push(mangaData); // append search result to data
+                            const timeTaken = Math.round(performance.now()-startTime); // avoiding rate-limit
+                            if (timeTaken < 250) await setTimeout(250-timeTaken);
+                        }
+                    }
                 }
-            });
-            return res.json();
-        }, url); // <-- search inputted here
-        const timeTaken = Math.round(performance.now()-startTime); // avoiding rate-limit
-        if (timeTaken < 250) await setTimeout(250-timeTaken);
-        return data; 
+            }
+            return data; 
+        }        
     } catch (error) {
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
