@@ -1,32 +1,28 @@
 import { page } from '../main.js';
 import { setTimeout } from 'timers/promises';
 
-
 async function fetchComick (stringOrLists) {
     try {
         await avoidCloudFlareBlock(); // setup page
         const mangaData = await fetchManga(stringOrLists); // fetch manga endpoint
-        console.log(mangaData);
-        // const mangaData = await fetchManga(search); // fetch manga endpoint
-        // const chapterData = await fetchChapter(mangaData); // fetch chapter endpoint
+        // <-- select a specific manga from search results which is
+        //     then fetched from chapter endpoint ( temporary solution to API 
+        //                                          not really sorting mangas by 
+        //                                          relevance )
+        //
+        // NOTE: only make this option for when Comick is fetched with lists
+        // NOTE2: actually, maybe I should do it for both... it's not like 
+        //        searching with a string is necessarily more relevant in info 
+        const chapterData = await fetchChapter(mangaData); // fetch chapter endpoint
         // await logData(mangaData, chapterData);
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
 }
 
-async function avoidCloudFlareBlock() {
+async function fetchComickManga (stringOrLists) {
     try {
-        // getting cookies etc. from main page to avoid getting cloudflare blocked later 
-        await page.goto('https://comick.io/'); // go to comick.io
-        await page.waitForSelector('#__next', { timeout: 5000 }); // wait for cloudflare checks
-    } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
-    }   
-}
-
-async function fetchManga (stringOrLists) {
-    try {
+        await avoidCloudFlareBlock(); // setup page 
         if (typeof stringOrLists !== 'string') { // search by lists
             const lists = stringOrLists, data = [];
             for (const type of lists) { // anime/manga
@@ -44,13 +40,15 @@ async function fetchManga (stringOrLists) {
                                 });
                                 return res.json();
                             }, url); // <-- search inputted here
-                            data.push(mangaData); // append search result to data
+                            const mangaDataFinal = { ...mangaData, MAL_title: entry.node.title };
+                            data.push(mangaDataFinal); // append search result to data
                             const timeTaken = Math.round(performance.now()-startTime); // avoiding rate-limit
                             if (timeTaken < 250) await setTimeout(250-timeTaken);
                         }
                     }
                 }
             }
+            // returns array consisting found mangas
             return data; 
         }        
     } catch (error) {
@@ -62,11 +60,32 @@ async function fetchManga (stringOrLists) {
     }
 }
 
-async function fetchChapter() {
+async function fetchComickChapter (manga) { // takes one manga as input
+    try {
+        await avoidCloudFlareBlock(); // setup page
 
+
+
+    } catch (error) {
+        if (error.response) {
+            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
+        } else {
+            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        }
+    }
 }
 
-async function logData (mangaData, chapterData) {
+async function avoidCloudFlareBlock() {
+    try {
+        // getting cookies etc. from main page to avoid getting cloudflare blocked later 
+        await page.goto('https://comick.io/'); // go to comick.io
+        await page.waitForSelector('#__next', { timeout: 5000 }); // wait for cloudflare checks
+    } catch (error) {
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
+    }   
+}
+
+async function logComick (mangaData, chapterData) {
     try {
         console.log(mangaData);
         console.log(chapterData);
@@ -83,8 +102,7 @@ async function logData (mangaData, chapterData) {
     }
 }
 
-export { fetchComick };
-
+export { fetchComickManga, fetchComickChapter, logComick };
 
 /*
     HOX!!!!!!
