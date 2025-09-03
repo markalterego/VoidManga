@@ -6,7 +6,7 @@ import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRati
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
 import { rl } from '../main.js';
-import { fetchComick } from "../fetch/fetchComick.js";
+import { fetchComickManga, fetchComickChapter, logComick } from "../fetch/fetchComick.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -738,6 +738,12 @@ async function customFetchMenuComick() {
 
     // the user can either search with an inputted searchString OR
     // search with MAL titles that have includeInComickFetch set as true
+    // 
+    // 1. Mangas are searched by MAL titles/searchString
+    // 2. The user is then presented the search result from which he can pick the 
+    //    specific manga/s he want's chapter info about 
+    // 3. The specified manga/s is then passed into the chapter endpoint which
+    //    then returns the requested chapters 
 
     while (m !== 'e') 
     {
@@ -781,12 +787,30 @@ async function customFetchMenuComick() {
         switch (m) 
         {
             case 0:
-                if (!toggleStringSearch) { // fetch Comick by MAL 
-                    await fetchComick(lists);
-                } else { // fetch Comick by string
-                    await fetchComick(searchString);
+                {
+                    let mangaData = false, selectedMangas = false, chapterData = false; 
+                    if (!toggleStringSearch) { // fetch Comick by MAL 
+                        mangaData = await fetchComickManga(lists); // returns arr 
+                    } else { // fetch Comick by string
+                        mangaData = await fetchComickManga(searchString); // returns arr
+                    } 
+                    if (!mangaData) { 
+                        console.log('\n||\n|| Manga endpoint returned no results\n||');
+                    } else {
+                        selectedMangas = await selectMangasFromFetchResults(mangaData); // returns arr
+                        if (!selectedMangas) console.log('\n||\n|| No mangas were selected\n||');
+                        // else chapterData = await fetchComickChapter(selectedMangas); // fetching chapters
+                    }
+                    
+                    // I could try making a two depth array that holds [manga][chapters] after both found
+
+                    // if (!chapterData) {
+                    //     console.log('\n||\n|| Chapter endpoint returned no results\n||');
+                    // } else {
+                    //     await logComick(selectedMangas, chapterData); // log 
+                    // }
+                    break;
                 }
-                break;
             case 1:
                 if (!toggleStringSearch) { 
                     // <-- Function to include/exlude MAL titles from fetch
@@ -806,6 +830,53 @@ async function customFetchMenuComick() {
         }
     }
     return toggleStringSearch;
+}
+
+async function selectMangasFromFetchResults (mangaData) {
+    let m = 0, selectedMangas;
+    /*
+        mangadata <- array consisting arrays consisting objects
+        e.g. [[{data}, MAL_title: string], [{data}, MAL_title: string], etc...]
+
+        Your search result for titles: yadiyadi yaada
+        are as follows: 
+
+        ||
+        || title1:
+        || 0 -> res1 info 
+        || 1 -> res2 info 
+        || 2 -> res3 info 
+        || 3 -> res4 info 
+        || 
+        || title2:
+        || 0 -> res1 info
+        || 1 -> res2 info
+        || 2 -> res3 info
+        || 3 -> res4 info
+        || 
+        || Selected:
+        || 0 -> title1
+        || 1 -> title2
+        ||
+    */
+
+    mangaData.forEach((searchResults, results_index) => {
+        const MAL_title = searchResults?.MAL_title; // title that was used for search
+        if (results_index === 0) process.stdout.write('\n');
+        console.log(`||\n|| ${MAL_title}:\n||`);
+        let result_index = 0;
+        for (const key in searchResults) {
+            if (key !== 'MAL_title') {
+                const data = searchResults[key]; // searchResult at Comick.io
+                const title = data?.title; // title 
+                const slug = data?.slug; // slug
+                const link = `https://comick.io/comic/${slug}`;
+                console.log(`|| ${result_index} -> ${title}\n||\t${link}`);
+                result_index++;
+            }
+        }
+        console.log('||');
+    });
 }
 
 export { menu };
