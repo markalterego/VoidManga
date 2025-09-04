@@ -6,7 +6,7 @@ import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, contentRati
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
 import { rl } from '../main.js';
-import { fetchComickManga, fetchComickChapter, logComick } from "../fetch/fetchComick.js";
+import { fetchComickMangas, fetchComickChapters, logComick } from "../fetch/fetchComick.js";
 
 let lists = null; // holds animelist and mangalist, refer to bottom of file for more info on syntax
 let config = null; // holds user specific options
@@ -790,16 +790,16 @@ async function customFetchMenuComick() {
                 {
                     let mangaData = false, selectedMangas = false, chapterData = false; 
                     if (!toggleStringSearch) { // fetch Comick by MAL 
-                        mangaData = await fetchComickManga(lists); // returns arr 
+                        mangaData = await fetchComickMangas(lists); // returns arr 
                     } else { // fetch Comick by string
-                        mangaData = await fetchComickManga(searchString); // returns arr
+                        mangaData = await fetchComickMangas(searchString); // returns arr
                     } 
                     if (!mangaData) { 
                         console.log('\n||\n|| Manga endpoint returned no results\n||');
                     } else {
                         selectedMangas = await selectMangasFromFetchResults(mangaData); // returns arr
                         if (!selectedMangas) console.log('\n||\n|| No mangas were selected\n||');
-                        // else chapterData = await fetchComickChapter(selectedMangas); // fetching chapters
+                        else chapterData = await fetchComickChapters(selectedMangas); // fetching chapters
                     }
                     
                     // I could try making a two depth array that holds [manga][chapters] after both found
@@ -833,7 +833,7 @@ async function customFetchMenuComick() {
 }
 
 async function selectMangasFromFetchResults (mangaData) {
-    let m = 0, selectedMangas;
+    let m = 0, selectedMangas = [], index = 0;
     /*
         mangadata <- array consisting arrays consisting objects
         e.g. [[{data}, MAL_title: string], [{data}, MAL_title: string], etc...]
@@ -859,24 +859,59 @@ async function selectMangasFromFetchResults (mangaData) {
         || 1 -> title2
         ||
     */
-
-    mangaData.forEach((searchResults, results_index) => {
-        const MAL_title = searchResults?.MAL_title; // title that was used for search
-        if (results_index === 0) process.stdout.write('\n');
-        console.log(`||\n|| ${MAL_title}:\n||`);
-        let result_index = 0;
-        for (const key in searchResults) {
-            if (key !== 'MAL_title') {
-                const data = searchResults[key]; // searchResult at Comick.io
-                const title = data?.title; // title 
-                const slug = data?.slug; // slug
-                const link = `https://comick.io/comic/${slug}`;
-                console.log(`|| ${result_index} -> ${title}\n||\t${link}`);
-                result_index++;
+    // console.log(mangaData);
+    // [mangas][results for manga fetches]
+    // -> each manga has it's own distinct results
+    
+    while (m !== 'e') 
+    {
+        console.log('\n||\n|| Mangas by search:\n||');
+        mangaData.forEach((search) => {
+            console.log(`|| ${search.searchQuery}:\n||`);
+            for (const key in search) { // single search result
+                const searchResult = search[key]; // single search result
+                if (searchResult !== search.searchQuery) {
+                    const title = searchResult?.title ? searchResult.title : 'No Title';
+                    console.log(`|| ${index++} -> ${title}`);
+                }
             }
+        });
+        const highest_selectable_index = index-1; // last index pointing to searchResults
+        console.log(`|| ${index} -> Clear selections`);
+        console.log(`|| e -> ${selectedMangas.length > 0 ? 'Search chapters' : 'Cancel search' }\n||`);
+        index = 0; // resetting index
+
+        m = await takeUserInput(); // get user input 
+        await clearScreen(); // clear console window
+
+        if (m >= 0 && m <= highest_selectable_index) { 
+            // push selected searchResult to selectedMangas[]
+        } else if (m === index) {
+            // clear selectedMangas[]
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
         }
-        console.log('||');
-    });
+    }
+
+    // console.log(Object.values(mangaData)[0][0]);
+    
+    // mangaData.forEach((searchResults, results_index) => {
+    //     const MAL_title = searchResults?.MAL_title; // title that was used for search
+    //     if (results_index === 0) process.stdout.write('\n');
+    //     console.log(`||\n|| ${MAL_title}:\n||`);
+    //     let result_index = 0;
+    //     for (const key in searchResults) {
+    //         if (key !== 'MAL_title') {
+    //             const data = searchResults[key]; // searchResult at Comick.io
+    //             const title = data?.title; // title 
+    //             const slug = data?.slug; // slug
+    //             const link = `https://comick.io/comic/${slug}`;
+    //             console.log(`|| ${result_index} -> ${title}\n||\t${link}`);
+    //             result_index++;
+    //         }
+    //     }
+    //     console.log('||');
+    // });
 }
 
 export { menu };
