@@ -1,26 +1,7 @@
 import { page } from '../main.js';
 import { setTimeout } from 'timers/promises';
 
-async function fetchComick (stringOrLists) {
-    try {
-        await avoidCloudFlareBlock(); // setup page
-        const mangaData = await fetchManga(stringOrLists); // fetch manga endpoint
-        // <-- select a specific manga from search results which is
-        //     then fetched from chapter endpoint ( temporary solution to API 
-        //                                          not really sorting mangas by 
-        //                                          relevance )
-        //
-        // NOTE: only make this option for when Comick is fetched with lists
-        // NOTE2: actually, maybe I should do it for both... it's not like 
-        //        searching with a string is necessarily more relevant in info 
-        const chapterData = await fetchChapter(mangaData); // fetch chapter endpoint
-        // await logData(mangaData, chapterData);
-    } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
-    }
-}
-
-async function fetchComickManga (stringOrLists) {
+async function fetchComickMangas (stringOrLists) {
     try {
         await avoidCloudFlareBlock(); // setup page 
         if (typeof stringOrLists !== 'string') { // search by lists
@@ -40,10 +21,10 @@ async function fetchComickManga (stringOrLists) {
                                 });
                                 return res.json();
                             }, url); // <-- search inputted here
-                            const mangaDataFinal = { ...mangaData, MAL_title: entry.node.title };
+                            const mangaDataFinal = { ...mangaData, searchQuery: entry.node.title };
                             data.push(mangaDataFinal); // append search result to data
-                            const timeTaken = Math.round(performance.now()-startTime); // avoiding rate-limit
-                            if (timeTaken < 250) await setTimeout(250-timeTaken);
+                            const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
+                            if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
                         }
                     }
                 }
@@ -60,12 +41,40 @@ async function fetchComickManga (stringOrLists) {
     }
 }
 
-async function fetchComickChapter (manga) { // takes one manga as input
+async function fetchComickChapters (mangas) { // array of mangas taken as input
     try {
         await avoidCloudFlareBlock(); // setup page
+        const data = Array(mangas?.length).fill(null).map(() => []); // [manga][chapters]
+        let manga_index = 0;
+        for (const manga of mangas) { // selected manga
+            const manga_hid = manga?.hid; // used to search chapter endpoint
+            const url = `https://api.comick.io/comic/${manga_hid}/chapters`; // the least required to access endpoint
+            const startTime = performance.now(); // starting timing
+            const chapterData = await page.evaluate(async (url) => { // calling chapter endpoint
+                const res = await fetch(url, {
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                return res.json();
+            }, url); // <-- search inputted here
+            data[manga_index++].push(chapterData); // append chapterData to data
+            const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
+            if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
+        }
+        // returns two deep array = [manga][chapters] 
 
+        data.forEach((manga) =>  {
+            manga.forEach((chapter) => {
+                const chapter_num = chapter.chap ? parseInt(chapter.chap, 10) : 'Unknown'; // chapter number 
+                const chapter_title = chapter.title ? chapter.title : 'No Title'; // chapter title
+                const chapter_hid = chapter.hid ? chapter.hid : false; // needed for url
+                const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
+                console.log(`> ${chapter_title} - ${chapter_num} - ${url}`);
+            });
+        });
 
-
+        return data; 
     } catch (error) {
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
@@ -102,7 +111,7 @@ async function logComick (mangaData, chapterData) {
     }
 }
 
-export { fetchComickManga, fetchComickChapter, logComick };
+export { fetchComickMangas, fetchComickChapters, logComick };
 
 /*
     HOX!!!!!!
