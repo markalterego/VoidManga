@@ -48,7 +48,7 @@ async function fetchComickChapters (mangas) { // array of mangas taken as input
         let manga_index = 0;
         for (const manga of mangas) { // selected manga
             const manga_hid = manga?.hid; // used for chapter endpoint url
-            const url = `https://api.comick.io/comic/${manga_hid}/chapters?limit=10`; // chapter endpoint
+            const url = `https://api.comick.io/comic/${manga_hid}/chapters?limit=10&lang=en`; // chapter endpoint
             const startTime = performance.now(); // starting timing
             const chapterData = await page.evaluate(async (url) => { // calling chapter endpoint
                 const res = await fetch(url, {
