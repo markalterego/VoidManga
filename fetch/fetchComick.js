@@ -47,8 +47,8 @@ async function fetchComickChapters (mangas) { // array of mangas taken as input
         const data = Array(mangas?.length).fill(null).map(() => []); // [manga][chapters]
         let manga_index = 0;
         for (const manga of mangas) { // selected manga
-            const manga_hid = manga?.hid; // used to search chapter endpoint
-            const url = `https://api.comick.io/comic/${manga_hid}/chapters`; // the least required to access endpoint
+            const manga_hid = manga?.hid; // used for chapter endpoint url
+            const url = `https://api.comick.io/comic/${manga_hid}/chapters?limit=10`; // chapter endpoint
             const startTime = performance.now(); // starting timing
             const chapterData = await page.evaluate(async (url) => { // calling chapter endpoint
                 const res = await fetch(url, {
@@ -58,22 +58,10 @@ async function fetchComickChapters (mangas) { // array of mangas taken as input
                 });
                 return res.json();
             }, url); // <-- search inputted here
-            data[manga_index++].push(chapterData); // append chapterData to data
+            data[manga_index++].push(chapterData.chapters); // append chapterData to data
             const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
             if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
         }
-        // returns two deep array = [manga][chapters] 
-
-        data.forEach((manga) =>  {
-            manga.forEach((chapter) => {
-                const chapter_num = chapter.chap ? parseInt(chapter.chap, 10) : 'Unknown'; // chapter number 
-                const chapter_title = chapter.title ? chapter.title : 'No Title'; // chapter title
-                const chapter_hid = chapter.hid ? chapter.hid : false; // needed for url
-                const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
-                console.log(`> ${chapter_title} - ${chapter_num} - ${url}`);
-            });
-        });
-
         return data; 
     } catch (error) {
         if (error.response) {
@@ -94,18 +82,24 @@ async function avoidCloudFlareBlock() {
     }   
 }
 
-async function logComick (mangaData, chapterData) {
+async function logComick (selectedMangaData, chapterData) {
     try {
-        console.log(mangaData);
-        console.log(chapterData);
-        // console.log(`\n-> ${manga_title}\n`);
-        // chapterData.forEach((chapter) => {
-        //     const chapter_num = chapter.chap ? parseInt(chapter.chap, 10) : 'Unknown'; // chapter number 
-        //     const chapter_title = chapter.title ? chapter.title : 'No Title'; // chapter title
-        //     const chapter_hid = chapter.hid ? chapter.hid : false; // needed for url
-        //     const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
-        //     console.log(`> ${chapter_title} - ${chapter_num} - ${url}`);
-        // });
+        chapterData.forEach((search, search_index) => {
+            const manga = Object.values(selectedMangaData)[search_index]; // manga info
+            const manga_title = manga?.title; // title
+            const manga_slug = manga?.slug; // needed for url
+            Object.keys(search).forEach((key) => {
+                console.log(`\n-> ${manga_title}\n`);
+                const chapters = search[key]; // chapter info
+                Object.values(chapters).forEach((chapter) => {
+                    const chapter_num = chapter.chap ? parseInt(chapter.chap, 10) : 'Unknown'; // chapter number 
+                    const chapter_title = chapter.title ? chapter.title : 'No Title'; // chapter title
+                    const chapter_hid = chapter.hid ? chapter.hid : false; // needed for url
+                    const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
+                    console.log(`> ${chapter_title} - ${chapter_num} - ${url}`);
+                });
+            });
+        });
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);        
     }
