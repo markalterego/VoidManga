@@ -17,7 +17,7 @@ export const chapterOrderTypes = ['createdAt', 'updatedAt', 'publishAt', 'readab
 export const orderDirections = ['asc', 'desc'];
 export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
-
+export const expectedFilters = ['includeInMangadexFetch', 'includeInComickFetch']; // expected function parameter values at filterEntriesFromFetch
 /*
     Options for fetchChapters() custom search:
         -MAL_list - anime/manga = 0/1
