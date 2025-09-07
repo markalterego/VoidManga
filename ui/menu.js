@@ -655,7 +655,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
 async function customFetchMenuComick() {
     let m = 0, count = 0, searchStrings = [], selectionFound = false;
-    let toggleStringSearch = config.toggleStringSearchComick ? config.toggleStringSearchComick : false;
+    let toggleStringSearch = config?.toggleStringSearchComick ? config.toggleStringSearchComick : false;
+    const useFirstResult = config?.useFirstResultComick ? config.useFirstResultComick : false;
 
     // the user can either search with an inputted searchString OR
     // search with MAL titles that have includeInComickFetch set as true
@@ -701,7 +702,7 @@ async function customFetchMenuComick() {
             if (searchStrings?.length === 0) console.log('|| - No searches found\n||');
         }
         console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'Strings'})\n||`);
-        console.log('|| 0 -> Fetch with options');
+        console.log(`|| 0 -> Fetch with options`);
         console.log(`|| 1 -> ${!toggleStringSearch ? 'Filter MAL titles' : 'Add/Remove searches'}`);
         console.log('|| 2 -> Toggle search type');
         console.log('|| e -> Exit\n||');
@@ -714,7 +715,7 @@ async function customFetchMenuComick() {
         {
             case 0:
                 {
-                    let mangaData = false, selectedMangas = false, chapterData = false; 
+                    let mangaData = false, selectedMangas = [], chapterData = false; 
                     if (!toggleStringSearch) { // fetch Comick by MAL 
                         mangaData = await fetchComickMangas(lists, toggleStringSearch); // returns arr 
                     } else { // fetch Comick by string
@@ -723,9 +724,20 @@ async function customFetchMenuComick() {
                     if (!mangaData?.length > 0) { 
                         console.log('\n||\n|| Manga endpoint returned no results\n||');
                     } else {
-                        selectedMangas = await selectMangasFromFetchResults(mangaData); // select mangas to use in fetch
-                        if (!selectedMangas?.length > 0) console.log('\n||\n|| No mangas were selected\n||');
-                        else {
+                        if (!useFirstResult) {
+                            // select mangas to use in fetch
+                            selectedMangas = await selectMangasFromFetchResults(mangaData);
+                        } else {
+                            // skip manga selection and use the first result from each search
+                            mangaData.forEach((search) => { // searches
+                                const firstSearchResult = search[0]; // first search result
+                                selectedMangas.push(firstSearchResult); // push first search result to selected
+                                selectedMangas = [...new Set(selectedMangas)]; // get rid of duplicates
+                            });
+                        }
+                        if (!selectedMangas?.length > 0) {
+                            console.log('\n||\n|| No mangas were selected\n||')
+                        } else {
                             chapterData = await fetchComickChapters(selectedMangas); // fetching chapters
                             if (!chapterData?.length > 0) console.log('\n||\n|| Chapter endpoint returned no results\n||');
                             else await logComick(selectedMangas, chapterData); // log fetched data
