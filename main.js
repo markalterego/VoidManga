@@ -39,6 +39,7 @@ await page.addInitScript(() => { // runs before loading each site
         config = { 
             ...config,  
             autoFetchMangadex: false, 
+            autoFetchComick: false,
             logMALOptions: { anime: [], manga: [] },
             fetchMangadexOptions: fetchMangadexOptions, 
             boolDisplayMAL: false,
