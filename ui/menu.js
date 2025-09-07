@@ -634,7 +634,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 }
 
 async function customFetchMenuComick() {
-    let m = 0, count = 0, searchString = '', selectionFound = false;
+    let m = 0, count = 0, searchStrings = [], selectionFound = false;
     let toggleStringSearch = config.toggleStringSearchComick ? config.toggleStringSearchComick : false;
 
     // the user can either search with an inputted searchString OR
@@ -666,19 +666,23 @@ async function customFetchMenuComick() {
             count = 0; // resetting count
             // if no titles were selected show it clearly to user
             if (!selectionFound) {
-                console.log('|| - No Titles Selected\n||');
+                console.log('|| - No titles selected\n||');
             } else {
                 console.log('||');
                 selectionFound = false;
             }
         } else {
-            // log current searchString or '???' if unavailable
-            console.log(`\n||\n|| Current search:\n||\n|| - ${searchString ? searchString : '???'}\n||`);
+            // log current searchStrings
+            console.log(`\n||\n|| Current searches:\n||`);
+            searchStrings.forEach((search, search_index) => {
+                console.log(`|| - ${search}`);
+                if (search_index === searchStrings.length-1) console.log('||'); // last index
+            });
+            if (searchStrings?.length === 0) console.log('|| - No searches found\n||');
         }
-
-        console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'String'})\n||`);
+        console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'Strings'})\n||`);
         console.log('|| 0 -> Fetch with options');
-        console.log(`|| 1 -> ${!toggleStringSearch ? 'Filter MAL titles' : 'Change search'}`);
+        console.log(`|| 1 -> ${!toggleStringSearch ? 'Filter MAL titles' : 'Add/Remove searches'}`);
         console.log('|| 2 -> Toggle search type');
         console.log('|| e -> Exit\n||');
 
@@ -692,9 +696,9 @@ async function customFetchMenuComick() {
                 {
                     let mangaData = false, selectedMangas = false, chapterData = false; 
                     if (!toggleStringSearch) { // fetch Comick by MAL 
-                        mangaData = await fetchComickMangas(lists); // returns arr 
+                        mangaData = await fetchComickMangas(lists, toggleStringSearch); // returns arr 
                     } else { // fetch Comick by string
-                        mangaData = await fetchComickMangas(searchString); // returns arr
+                        mangaData = await fetchComickMangas(searchStrings, toggleStringSearch); // returns arr
                     } 
                     if (!mangaData?.length > 0) { 
                         console.log('\n||\n|| Manga endpoint returned no results\n||');
@@ -703,7 +707,7 @@ async function customFetchMenuComick() {
                         if (!selectedMangas?.length > 0) console.log('\n||\n|| No mangas were selected\n||');
                         else {
                             chapterData = await fetchComickChapters(selectedMangas); // fetching chapters
-                            if (!chapterData?.chapters?.length > 0) console.log('\n||\n|| Chapter endpoint returned no results\n||');
+                            if (!chapterData?.length > 0) console.log('\n||\n|| Chapter endpoint returned no results\n||');
                             else await logComick(selectedMangas, chapterData); // log fetched data
                         } 
                     }
@@ -713,7 +717,7 @@ async function customFetchMenuComick() {
                 if (!toggleStringSearch) { 
                     await filterEntriesFromFetch('includeInComickFetch'); // include/exlude MAL titles from fetch
                 } else { 
-                    // <-- Function to change searchString
+                    searchStrings = await changeSearchStrings(searchStrings); // change searchString for Manga fetch
                 }
                 break;
             case 2:
@@ -737,7 +741,7 @@ async function selectMangasFromFetchResults (mangaData) {
     // mangaData[0][0] = specific result { id: 1234, hid: '1234', etc...}
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Mangas by search:\n||');
+        console.log('\n||\n|| Select Manga from search results:\n||');
         mangaData.forEach((search) => {
             console.log(`|| ${search.searchQuery}:\n||`);
             for (const key in search) { // single search result
@@ -750,15 +754,16 @@ async function selectMangasFromFetchResults (mangaData) {
             console.log('||');
         });
         const highest_selectable_index = index-1; // last index pointing to searchResults
-        console.log(`|| ${index} -> Clear selections`);
-        console.log(`|| e -> ${selectedMangas.length > 0 ? 'Search chapters' : 'Cancel search' }\n||`);
         // log current selection
+        console.log('\n||\n|| Current Selection:\n||');
         selectedMangas.forEach((manga, manga_index) => {
-            if (manga_index === 0) console.log('\n||\n|| Current Selection:\n||');
-            console.log(`|| ${manga_index+1}: ${manga.title}`);
+            console.log(`|| - ${manga.title}`);
             if (manga_index === selectedMangas.length-1) console.log('||');
         });
-       
+        if (selectedMangas?.length === 0) console.log('|| - No titles selected\n||');
+        console.log(`\n||\n|| c -> Clear selections`);
+        console.log(`|| e -> ${selectedMangas.length > 0 ? 'Search chapters' : 'Cancel search' }\n||`);
+        
         m = await takeUserInput(); // get user input 
         await clearScreen(); // clear console window
 
@@ -776,7 +781,7 @@ async function selectMangasFromFetchResults (mangaData) {
                     }
                 });
             });
-        } else if (m === index) {
+        } else if (m === 'c') {
             selectedMangas = []; // clear selectedMangas
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -785,6 +790,45 @@ async function selectMangasFromFetchResults (mangaData) {
     }
     // return array containing selected mangas
     return selectedMangas;
+}
+
+async function changeSearchStrings (searches) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // log current searches
+        console.log(`\n||\n|| Current searches:\n||`);
+        searches.forEach((search, search_index) => {
+            console.log(`|| - ${search}`);
+            if (search_index === searches.length-1) console.log('||'); // last index
+        });
+        if (searches?.length === 0) console.log('|| - No searches found\n||');
+        
+        console.log(`\n||\n|| Input desired search:\n||`);
+        console.log(`|| c -> Clear searches`);
+        console.log(`|| e -> Exit\n||`);
+
+        let userInput = (await rl.question('\n|| Input: ')).trim(); // get user input and remove leading/trailing whitespaces
+
+        await clearScreen(); // clear console window
+
+        // 3 letters or more = added to search
+        // c = clears inputs
+        // e = exits menu
+
+        if (userInput.length >= 3) { 
+            searches.push(userInput); // push search to array
+            searches = [...new Set(searches)]; // get rid of duplicates
+        } else if (userInput.toLowerCase() === 'c') { 
+            searches = []; // clear searches
+        } else if (userInput.toLowerCase() === 'e') { 
+            m = userInput.toLowerCase(); // exiting while loop
+        } else {
+            console.log('\n||\n|| Minimum required search length is 3\n||');
+        }
+    }
+    return searches;
 }
 
 async function filterEntriesFromFetch (key) { 
