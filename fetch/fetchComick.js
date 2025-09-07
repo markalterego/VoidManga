@@ -1,11 +1,14 @@
 import { page } from '../main.js';
 import { setTimeout } from 'timers/promises';
 
-async function fetchComickMangas (stringOrLists) {
+async function fetchComickMangas (stringsOrLists, isStrings) {
     try {
         await avoidCloudFlareBlock(); // setup page 
-        if (typeof stringOrLists !== 'string') { // search by lists
-            const lists = stringOrLists, data = [];
+        let data = []; // initializing data
+        if (isStrings === undefined) { // option not received
+            console.log(`\n||\n|| Value of isStrings is not defined\n||`);
+        } else if (isStrings === false) { // search by lists
+            const lists = stringsOrLists; // MAL lists
             for (const type of lists) { // anime/manga
                 for (const status of type) { // status
                     for (const entry of status) { // entry
@@ -29,9 +32,29 @@ async function fetchComickMangas (stringOrLists) {
                     }
                 }
             }
-            // returns array consisting found mangas
-            return data; 
-        }        
+        } else if (isStrings === true) { // search by searchStrings
+            const searches = stringsOrLists; // arr consisting of search strings
+            for (const search of searches) {
+                const title = search; // search
+                const url = `https://api.comick.io/v1.0/search?q=${title}`; // mapping MAL title to params
+                const startTime = performance.now(); // starting timing
+                const mangaData = await page.evaluate(async (url) => { // calling the api
+                    const res = await fetch(url, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    return res.json();
+                }, url); // <-- search inputted here
+                const mangaDataFinal = { ...mangaData, searchQuery: search };
+                data.push(mangaDataFinal); // append search result to data
+                const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
+                if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
+            }
+        }      
+        // returns array consisting found mangas or 
+        // an empty array in case no input was given
+        return data; 
     } catch (error) {
         if (error.response) {
             console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
@@ -98,6 +121,7 @@ async function logComick (selectedMangaData, chapterData) {
                     const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
                     console.log(`> ${chapter_title} - ${chapter_num} - ${url}`);
                 });
+                if (Object.values(chapters)?.length === 0) console.log(`> No Chapters found`);
             });
         });
     } catch (error) {
