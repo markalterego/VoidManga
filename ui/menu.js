@@ -37,7 +37,7 @@ async function rootMenu() {
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
         console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 5 -> Custom fetch Comick');
+        console.log(`|| 5 -> ${config?.autoFetchComick ? 'Auto' : 'Custom'} fetch Comick`);
         console.log('|| 6 -> Fetch MAL');
         console.log('|| 7 -> Clear screen');
         console.log('|| e -> Exit\n||');
@@ -75,9 +75,13 @@ async function rootMenu() {
                 }
                 break;
             case 5:
-                const toggleStringSearch = await customFetchMenuComick(); // search and log Comick API
-                config = { ...config, toggleStringSearchComick: toggleStringSearch }; // save toggleStringSearch to config
-                await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
+                if (!config.autoFetchComick) {
+                    const toggleStringSearch = await customFetchMenuComick(); // search and log Comick API
+                    config = { ...config, toggleStringSearchComick: toggleStringSearch }; // save toggleStringSearch to config
+                    await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
+                } else {
+                    await autoFetchComickChapters(true);
+                }
                 break;
             case 6:
                 lists = await fetchMAL(); // searches and returns MAL lists
@@ -106,8 +110,9 @@ async function settingsMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Automatically fetch Mangadex when fetching (currently ${config.autoFetchMangadex ? 'on' : 'off'})`);
-        console.log(`|| 1 -> Fetch ??? (WIP)`);
+        console.log(`|| 0 -> Automatically fetch Mangadex when fetching (currently ${config?.autoFetchMangadex ? 'on' : 'off'})`);
+        console.log(`|| 1 -> Automatically fetch Comick when fetching (currently ${config?.autoFetchComick ? 'on' : 'off'})`);
+        console.log(`|| 2 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -117,10 +122,14 @@ async function settingsMenu() {
         switch (m) 
         {
             case 0: // autoFetchMangadex toggle
-                if (config.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
+                if (config?.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
                 await filehandle('config', config); // writes config.file
                 break;
-            case 1: 
+            case 1: // autoFetchComick toggle
+                if (config?.autoFetchComick) config = { ...config, autoFetchComick: false }; else config = { ...config, autoFetchComick: true }; // toggling autofetching on Comick
+                await filehandle('config', config); // writes config.file
+                break;
+            case 2: 
                 await testFetching();    
                 break;
             case 'e':
@@ -732,6 +741,33 @@ async function customFetchMenuComick() {
         }
     }
     return toggleStringSearch;
+}
+
+async function autoFetchComickChapters (useFirstResult) { // <-- make useFirstresult to config etc...
+    try {
+        // At first I'll make this so that it only supports searching by 
+        // tagged MAL titles, I might make it so that it somehow searches
+        // by using the last searches made by string as well...
+        const mangaData = await fetchComickMangas(lists, false); // <-- fetch manga
+        let selectedMangas = [], chapterData = []; // holds mangas selected for fetch
+        if (!useFirstResult) { // go through selectmangas first
+            selectedMangas = await selectMangasFromFetchResults(mangaData); // select mangas use in chapter fetch
+        } else { // <-- use first result from manga fetch to fetch chapters
+            mangaData.forEach((search) => { // searches
+                const firstSearchResult = search[0]; // first search result
+                selectedMangas.push(firstSearchResult); // push first search result to selected
+                selectedMangas = [...new Set(selectedMangas)]; // get rid of duplicates
+            });
+        }
+        if (!selectedMangas?.length > 0) console.log('\n||\n|| No mangas were selected\n||');
+        else {
+            chapterData = await fetchComickChapters(selectedMangas); // fetching chapters
+            if (!chapterData?.length > 0) console.log('\n||\n|| Chapter endpoint returned no results\n||');
+            else await logComick(selectedMangas, chapterData); // log fetched data
+        }
+    } catch (error) {
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
+    }
 }
 
 async function selectMangasFromFetchResults (mangaData) {
