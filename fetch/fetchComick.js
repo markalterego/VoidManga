@@ -24,7 +24,13 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                                 });
                                 return res.json();
                             }, url); // <-- search inputted here
-                            const mangaDataFinal = { ...mangaData, searchQuery: entry.node.title };
+                            const mangaDataFinal = mangaData.map((search_result) => { // mapping extra info to search result
+                                return { 
+                                    ...search_result,
+                                    searchQuery: entry.node.title, // MAL title
+                                    num_chapters_read: (entry.list_status.status === 'reading' ? entry.list_status.num_chapters_read : false) // chapters_read for reading titles
+                                };
+                            });
                             data.push(mangaDataFinal); // append search result to data
                             const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
                             if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
@@ -115,11 +121,13 @@ async function logComick (selectedMangaData, chapterData) {
                 console.log(`\n-> ${manga_title}\n`);
                 const chapters = search[key]; // chapter info
                 Object.values(chapters).forEach((chapter) => {
-                    const chapter_num = chapter.chap ? parseInt(chapter.chap, 10) : 'Unknown'; // chapter number 
-                    const chapter_title = chapter.title ? chapter.title : 'No Title'; // chapter title
+                    const chapter_title = chapter.title ? (chapter.title + ' - ') : 'No Title - '; // chapter title
+                    const chapter_num = chapter.chap ? parseInt(chapter.chap, 10) : 0; // chapter number 
+                    const chapter_num_string = chapter.chap ? (chapter.chap + ' - ') : 'Unknown - '; // chapter number as string
                     const chapter_hid = chapter.hid ? chapter.hid : false; // needed for url
                     const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
-                    console.log(`> ${chapter_title} - ${chapter_num} - ${url}`);
+                    const new_chapter = !manga.num_chapters_read ? '' : (manga.num_chapters_read < chapter_num ? ' {( New! )}' : ''); // marks if chapter has yet been read
+                    console.log(`> ${chapter_title}${chapter_num_string}${url}${new_chapter}`);
                 });
                 if (Object.values(chapters)?.length === 0) console.log(`> No Chapters found`);
             });
