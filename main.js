@@ -76,7 +76,7 @@ TODO (or not to do...)
 
 - make it so that you can update .env username through e.g. settings menu
 
-- make a separate menu to select titles from your mal lists and then fetch the selected ones from comick api (opposite of exluding feature at mangadex fetch)
+- could try to make it so that when you fetch chapters from Comick/Mangadex, you could then, by inputting the index next to the found chapter, automatically open said chapter in the browser on a new tab
 
-- integrate headless browser into main and similar logic as found in localserver files
+- consider finally making the settings menu visible in the rootMenu so that casual user's could also access it easily
 */
