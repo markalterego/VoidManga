@@ -77,6 +77,4 @@ TODO (or not to do...)
 - make it so that you can update .env username through e.g. settings menu
 
 - could try to make it so that when you fetch chapters from Comick/Mangadex, you could then, by inputting the index next to the found chapter, automatically open said chapter in the browser on a new tab
-
-- consider finally making the settings menu visible in the rootMenu so that casual user's could also access it easily
 */
