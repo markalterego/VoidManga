@@ -39,7 +39,7 @@ async function rootMenu() {
         console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
         console.log(`|| 5 -> ${config?.autoFetchComick ? (config?.useFirstResultComick ? 'Auto' : 'Semi-Auto') : 'Custom'} fetch Comick`);
         console.log('|| 6 -> Fetch MAL');
-        console.log('|| 7 -> Clear screen');
+        console.log('|| s -> Settings');
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
@@ -93,15 +93,12 @@ async function rootMenu() {
                 lists = await fetchMAL(); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break;
-            case 7:
-                await clearScreen(); // clears console window   
-                break;
-            case 'e': // exit
-                break; 
-            case 888:
+            case 's':
                 await settingsMenu();  
                 r = true; m = 'e'; // goes out of loop and refreshes menu
                 break;
+            case 'e': // exit
+                break;                 
             default:
                 console.log('\n|| Please input a valid option');
         }
