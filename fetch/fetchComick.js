@@ -70,14 +70,17 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
     }
 }
 
-async function fetchComickChapters (mangas) { // array of mangas taken as input
+async function fetchComickChapters (mangas, chapter_number, chapter_order_direction) { // array of mangas taken as input
     try {
         await avoidCloudFlareBlock(); // setup page
+        const order_direction = chapter_order_direction !== undefined && (chapter_order_direction === 0 || chapter_order_direction === 1) ? chapter_order_direction : 0; // 0=descending, 1=ascending 
+        const limit = 10, transLang = 'en'; // limit & translated language
         const data = Array(mangas?.length).fill(null).map(() => []); // [manga][chapters]
         let manga_index = 0;
         for (const manga of mangas) { // selected manga
             const manga_hid = manga?.hid; // used for chapter endpoint url
-            const url = `https://api.comick.io/comic/${manga_hid}/chapters?limit=10&lang=en`; // chapter endpoint
+            const url = chapter_number === undefined ? `https://api.comick.io/comic/${manga_hid}/chapters?limit=${limit}&lang=${transLang}&chap-order=${order_direction}` : // chapter endpoint
+                                                       `https://api.comick.io/comic/${manga_hid}/chapters?limit=${limit}&lang=${transLang}&chap-order=${order_direction}&chap=${chapter_number}`; // single chapter fetch 
             const startTime = performance.now(); // starting timing
             const chapterData = await page.evaluate(async (url) => { // calling chapter endpoint
                 const res = await fetch(url, {
