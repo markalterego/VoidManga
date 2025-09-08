@@ -3,7 +3,7 @@ import { animeStatus, mangaStatus } from './export.js';
 
 async function takeUserInput() {
     let userInput = await rl.question('\n|| Input: '); // get user input
-    if (userInput.toLowerCase() !== 'e' && userInput.toLowerCase() !== 'c') userInput = parseInt(userInput, 10); // convert userinput to int
+    if (userInput.toLowerCase() !== 'e' && userInput.toLowerCase() !== 'c' && userInput.toLowerCase() !== 's') userInput = parseInt(userInput, 10); // convert userinput to int
     else userInput = userInput.toLowerCase(); // convert userinput to lowercase
     return userInput;
 } 
