@@ -105,13 +105,9 @@ async function fetchComickChapters (mangas, chapter_number, chapter_order_direct
 }
 
 async function avoidCloudFlareBlock() {
-    try {
-        // getting cookies etc. from main page to avoid getting cloudflare blocked later 
-        await page.goto('https://comick.io/'); // go to comick.io
-        await page.waitForSelector('#__next', { timeout: 5000 }); // wait for cloudflare checks
-    } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
-    }   
+    // getting cookies etc. from main page to avoid getting cloudflare blocked later 
+    await page.goto('https://comick.io/'); // go to comick.io
+    await page.waitForSelector('#__next', { timeout: 5000 }); // wait for cloudflare checks
 }
 
 async function logComick (selectedMangaData, chapterData) {
