@@ -89,10 +89,10 @@ async function rootMenu() {
                     await autoFetchComickChapters(config?.useFirstResultComick);
                 }
                 break;
-            case 6:
-                lists = await fetchMAL(); // searches and returns MAL lists
+            case 6: 
+                lists = await fetchMAL(lists); // searches and returns MAL lists
                 await filehandle('mal', lists);
-                break;
+                break; 
             case 's':
                 await settingsMenu();  
                 r = true; m = 'e'; // goes out of loop and refreshes menu
