@@ -28,7 +28,7 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                                 return { 
                                     ...search_result,
                                     searchQuery: entry.node.title, // MAL title
-                                    num_chapters_read: (entry.list_status.status === 'reading' ? entry.list_status.num_chapters_read : false) // chapters_read for reading titles
+                                    num_chapters_read: entry.list_status.num_chapters_read // chapters_read 
                                 };
                             });
                             data.push(mangaDataFinal); // append search result to data
@@ -125,7 +125,7 @@ async function logComick (selectedMangaData, chapterData) {
                     const chapter_num_string = chapter.chap ? (chapter.chap + ' - ') : 'Unknown - '; // chapter number as string
                     const chapter_hid = chapter.hid ? chapter.hid : false; // needed for url
                     const url = chapter_hid ? `https://comick.io/comic/${manga_slug}/${chapter_hid}` : `No URL`; // e.g. https://comick.io/comic/00-sousou-no-frieren/8Qv95pQa-chapter-140-en
-                    const new_chapter = !manga.num_chapters_read ? '' : (manga.num_chapters_read < chapter_num ? ' {( New! )}' : ''); // marks if chapter has yet been read
+                    const new_chapter = manga.num_chapters_read === undefined ? '' : (manga.num_chapters_read < chapter_num ? ' {( Unread! )}' : ''); // marks if chapter has not been read
                     console.log(`> ${chapter_title}${chapter_num_string}${url}${new_chapter}`);
                 });
                 if (Object.values(chapters)?.length === 0) console.log(`> No Chapters found`);
