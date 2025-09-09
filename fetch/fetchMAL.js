@@ -100,7 +100,7 @@ async function handleFilters (animeOrManga, title, old_lists) {
     //       in a way that it still retains the filter for that title
     // note2: from my understanding, there shouldn't be identical titles at MAL under the
     //        the same type of list (anime/manga) but if there are, this will not work as expected
-    let result = { includeInMangadexFetch: true, includeInComickFetch: false };
+    let result = { includeInMangadexFetch: false, includeInComickFetch: false };
     if (Array.isArray(old_lists)) {
         for (const status of old_lists[animeOrManga]) { // go through old list
             for (const entry of status) { // entry of old list
