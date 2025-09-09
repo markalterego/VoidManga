@@ -57,7 +57,7 @@ async function fetchChapters (lists, options) {
                             const number = chapter.attributes?.chapter; // chapter number
                             const numberAsText = number !== undefined ? number + ' - ' : 'No chapter number - '; // chapter number as string
                             const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
-                            const newChapter = parseInt(number, 10) > item.list_status?.num_chapters_read ? ' {( New! )}' : ''; // appends 'new' when chapter is unread
+                            const newChapter = parseInt(number, 10) > item.list_status?.num_chapters_read ? ' {( Unread! )}' : ''; // appends 'unread' when chapter is unread
                             console.log(`> ${title}${numberAsText}${transLang}${link}${newChapter}`);
                             countFoundChapter++;
                         }
