@@ -76,8 +76,8 @@ async function rootMenu() {
                 // if autofetching is disabled, loops through customFetchMenuComick normally (default behavior)
                 // in case enabled, calls autoFetchComickChapters instead with useFirstResult
                 if (!config?.autoFetchComick) {
-                    const toggleStringSearch = await menuFetchComick(lists, config); // search and log Comick API
-                    config = { ...config, toggleStringSearchComick: toggleStringSearch }; // save toggleStringSearch to config
+                    const returnArr = await menuFetchComick(lists, config); // search and log Comick API
+                    config = { ...config, useFirstResultComick: returnArr[0], toggleStringSearchComick: returnArr[1] }; // save toggleStringSearch to config
                     await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
                 } else {
                     // if useFirstResult is false, the user is still able to select the Manga from the Manga endpoint fetch
@@ -113,8 +113,7 @@ async function settingsMenu() {
         console.log('\n||\n|| Settings (+experimental)\n||');
         console.log(`|| 0 -> Auto-fetch Mangadex [${config?.autoFetchMangadex ? 'x' : ''}]`);
         console.log(`|| 1 -> Auto-fetch Comick [${config?.autoFetchComick ? 'x' : ''}]`);
-        console.log(`|| 2 -> Skip Comick manga selection [${config?.useFirstResultComick ? 'x' : ''}]`);
-        console.log(`|| 3 -> Fetch ??? (WIP)`);
+        console.log(`|| 2 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -131,11 +130,7 @@ async function settingsMenu() {
                 if (config?.autoFetchComick) config = { ...config, autoFetchComick: false }; else config = { ...config, autoFetchComick: true }; // toggling autofetching on Comick
                 await filehandle('config', config); // writes config.file
                 break;
-            case 2: // useFirstResult
-                if (config?.useFirstResultComick) config = { ...config, useFirstResultComick: false }; else config = { ...config, useFirstResultComick: true }; // toggling useFirstResultComick
-                await filehandle('config', config); // writes config.file
-                break;
-            case 3: 
+            case 2: 
                 await testFetching();    
                 break;
             case 'e':

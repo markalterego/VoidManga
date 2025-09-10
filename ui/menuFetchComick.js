@@ -6,7 +6,7 @@ import { filterEntriesFromFetch } from './menuFetchFilters.js';
 async function menuFetchComick (lists, config) {
     let m = 0, count = 0, searchStrings = [], selectionFound = false;
     let toggleStringSearch = config?.toggleStringSearchComick ? config.toggleStringSearchComick : false;
-    const useFirstResult = config?.useFirstResultComick ? config.useFirstResultComick : false;
+    let useFirstResult = config?.useFirstResultComick ? config.useFirstResultComick : false;
 
     // the user can either search with an inputted searchString OR
     // search with MAL titles that have includeInComickFetch set as true
@@ -54,7 +54,8 @@ async function menuFetchComick (lists, config) {
         console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'Strings'})\n||`);
         console.log(`|| 0 -> Fetch with options`);
         console.log(`|| 1 -> ${!toggleStringSearch ? 'Filter MAL titles' : 'Add/Remove searches'}`);
-        console.log('|| 2 -> Toggle search type');
+        console.log(`|| 2 -> Toggle skip manga selection [${useFirstResult ? 'x' : ''}]`);
+        console.log('|| 3 -> Toggle search type');
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
@@ -103,6 +104,11 @@ async function menuFetchComick (lists, config) {
                 }
                 break;
             case 2:
+                // toggle skip manga selection menu
+                if (useFirstResult) useFirstResult = false;
+                else useFirstResult = true;
+                break;
+            case 3:
                 // switch for toggling string search
                 if (toggleStringSearch) toggleStringSearch = false;
                 else toggleStringSearch = true;
@@ -113,7 +119,7 @@ async function menuFetchComick (lists, config) {
                 console.log('\n|| Please input a valid option');
         }
     }
-    return toggleStringSearch;
+    return [useFirstResult, toggleStringSearch];
 }
 
 async function autoFetchComickChapters (lists, useFirstResult) {
