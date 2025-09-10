@@ -3,7 +3,7 @@ import { takeUserInput, clearScreen } from "../helpers/functions.js";
 import { fetchComickMangas, fetchComickChapters, logComick } from "../fetch/fetchComick.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 
-async function customFetchMenuComick (lists, config) {
+async function menuFetchComick (lists, config) {
     let m = 0, count = 0, searchStrings = [], selectionFound = false;
     let toggleStringSearch = config?.toggleStringSearchComick ? config.toggleStringSearchComick : false;
     const useFirstResult = config?.useFirstResultComick ? config.useFirstResultComick : false;
@@ -239,4 +239,4 @@ async function changeSearchStrings (searches) {
     return searches;
 }
 
-export { customFetchMenuComick, autoFetchComickChapters };
+export { menuFetchComick, autoFetchComickChapters };

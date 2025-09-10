@@ -4,9 +4,9 @@ import { customLogMAL } from "./customLogMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput, clearScreen } from "../helpers/functions.js";
-import { customFetchMenuComick, autoFetchComickChapters } from "./customFetchMenuComick.js";
-import { customFetchMenuMangadex } from "./customFetchMenuMangadex.js";
-import { customLogMenuMAL } from "./customLogMenuMAL.js";
+import { menuFetchComick, autoFetchComickChapters } from "./menuFetchComick.js";
+import { menuFetchMangadex } from "./menuFetchMangadex.js";
+import { menuLogMAL } from "./menuLogMAL.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
@@ -56,7 +56,7 @@ async function rootMenu() {
                 await customLogMAL({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
                 break;
             case 3: {
-                const returnArr = await customLogMenuMAL(lists, config); // log anime and/or manga by status
+                const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
                 config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
                 await filehandle('config', config); 
                 break; }
@@ -65,7 +65,7 @@ async function rootMenu() {
                 // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
                 // to upper menu right after completion
                 if (!config?.autoFetchMangadex) {
-                    const returnArr = await customFetchMenuMangadex(lists, config); // fetch Mangadex by preference
+                    const returnArr = await menuFetchMangadex(lists, config); // fetch Mangadex by preference
                     config = { ...config, fetchMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
                     await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
                 } else { 
@@ -76,7 +76,7 @@ async function rootMenu() {
                 // if autofetching is disabled, loops through customFetchMenuComick normally (default behavior)
                 // in case enabled, calls autoFetchComickChapters instead with useFirstResult
                 if (!config?.autoFetchComick) {
-                    const toggleStringSearch = await customFetchMenuComick(lists, config); // search and log Comick API
+                    const toggleStringSearch = await menuFetchComick(lists, config); // search and log Comick API
                     config = { ...config, toggleStringSearchComick: toggleStringSearch }; // save toggleStringSearch to config
                     await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
                 } else {

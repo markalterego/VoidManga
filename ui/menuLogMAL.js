@@ -2,7 +2,7 @@ import { takeUserInput, clearScreen } from '../helpers/functions.js';
 import { customLogMAL } from "./customLogMAL.js";
 import { animeStatus, mangaStatus } from '../helpers/export.js';
 
-async function customLogMenuMAL (lists, config) {
+async function menuLogMAL (lists, config) {
     let boolDisplay = !config?.boolDisplayMAL ? false : config.boolDisplayMAL;
     let anime = !config?.logMALOptions?.anime ? [] : config.logMALOptions.anime;
     let manga = !config?.logMALOptions?.manga ? [] : config.logMALOptions.manga;
@@ -97,4 +97,4 @@ async function customLogMenuMAL (lists, config) {
     return [{anime, manga}, boolDisplay];
 }
 
-export { customLogMenuMAL };
+export { menuLogMAL };

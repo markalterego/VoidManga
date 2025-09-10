@@ -6,7 +6,7 @@ import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages,
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchMangadex } from '../fetch/fetchMangadex.js';
 
-async function customFetchMenuMangadex (lists, config) {
+async function menuFetchMangadex (lists, config) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
     let boolDisplay = !config?.boolDisplayMangadex ? false : config.boolDisplayMangadex; 
     let m = 0;
@@ -413,4 +413,4 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
     }
 }
 
-export { customFetchMenuMangadex };
+export { menuFetchMangadex };
