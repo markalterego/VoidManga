@@ -52,7 +52,12 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                     });
                     return res.json();
                 }, url); // <-- search inputted here
-                const mangaDataFinal = { ...mangaData, searchQuery: search };
+                const mangaDataFinal = mangaData.map((search_result) => { // mapping extra info to search result
+                    return { 
+                        ...search_result,
+                        searchQuery: search // searchString
+                    };
+                });
                 data.push(mangaDataFinal); // append search result to data
                 const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
                 if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
