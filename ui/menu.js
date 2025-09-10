@@ -111,9 +111,9 @@ async function settingsMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Automatically fetch Mangadex when fetching (currently ${config?.autoFetchMangadex ? 'on' : 'off'})`);
-        console.log(`|| 1 -> Automatically fetch Comick when fetching (currently ${config?.autoFetchComick ? 'on' : 'off'})`);
-        console.log(`|| 2 -> Skip Manga selection when fetching Comick chapters (currently ${config?.useFirstResultComick ? 'on' : 'off'})`);
+        console.log(`|| 0 -> Auto-fetch Mangadex [${config?.autoFetchMangadex ? 'x' : ''}]`);
+        console.log(`|| 1 -> Auto-fetch Comick [${config?.autoFetchComick ? 'x' : ''}]`);
+        console.log(`|| 2 -> Skip Comick manga selection [${config?.useFirstResultComick ? 'x' : ''}]`);
         console.log(`|| 3 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
