@@ -26,4 +26,26 @@ async function customFetchMangadexDisplay (options) {
     console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay };
+async function menuFetchFiltersDisplay (lists, key) {
+    // display current filters
+    let selectionFound = false;
+    lists.forEach((type, type_index) => { // anime/manga
+        if (type_index === 0) {
+            console.log('\n||\n|| Current selection:\n||');
+        }
+        type.forEach(status => { // status
+            status.forEach(entry => { // entry
+                if (entry[key]) { // key is set to true
+                    console.log(`|| - ${entry.node.title} (${entry.list_status.status})`);
+                    selectionFound = true;
+                }
+            });
+        });
+        if (type_index === lists.length-1) {
+            if (!selectionFound) console.log('|| - No titles selected');
+            console.log('||');
+        }
+    });
+}
+
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay };
