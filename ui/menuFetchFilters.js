@@ -1,4 +1,4 @@
-import { takeUserInput, clearScreen } from '../helpers/functions.js';
+import { takeUserInput, clearScreen, menuFetchFiltersDisplay } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters } from '../helpers/export.js';
 
 async function filterEntriesFromFetch (lists, key) { 
@@ -10,6 +10,9 @@ async function filterEntriesFromFetch (lists, key) {
     } else { // function parameter is an expected value
         while (m !== 'e') 
         {
+            // display current filters
+            await menuFetchFiltersDisplay(lists, key);
+            
             // select where to list statuses from
             console.log(`\n||\n|| Filtering ${key}:\n||`);
             console.log('|| 0 -> Filter anime');
@@ -28,6 +31,9 @@ async function filterEntriesFromFetch (lists, key) {
                 const type = m;
                 while (m !== 'e') 
                 {
+                    // display current filters
+                    await menuFetchFiltersDisplay(lists, key);
+
                     console.log('\n||\n|| Select a status\n||');
                     if (type === 0) { // anime
                         animeStatus.forEach((value, index) => {
@@ -54,6 +60,9 @@ async function filterEntriesFromFetch (lists, key) {
                         } else {
                             while (m !== 'e') 
                             {
+                                // display current filters
+                                await menuFetchFiltersDisplay(lists, key);  
+
                                 console.log('\n||\n|| Select titles to be fetched\n||')
                                 lists[type][status].forEach((item, index) => {
                                     console.log(`|| ${index} -> ${item.node.title} ${item[key] ? '[x]' : '[]'}`); 
