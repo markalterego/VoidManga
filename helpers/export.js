@@ -18,8 +18,15 @@ export const orderDirections = ['asc', 'desc'];
 export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
 export const expectedFilters = ['includeInMangadexFetch', 'includeInComickFetch']; // expected function parameter values at filterEntriesFromFetch
+export const fetchComickOptions = {
+    limit_manga: null, // <-- check if does anything
+    limit_chapter: null, // limit response size
+    chapter_trans_lang: null, // default: undefined (filter translated language)
+    chapter_order_direction: null, // default: 0, 0 or 1 (0 = desc, 1 = asc)
+    chapter_number: null // default: undefined (specific chapter num)
+};
 /*
-    Options for fetchChapters() custom search:
+    Options for Mangadex's fetchChapters() custom search:
         -MAL_list - anime/manga = 0/1
         -MAL_status - watching/reading, completed, on-hold, dropped, plan-to-watch/plan-to-read = 0/1/2/3/4
         -limit_manga: 0-100, undefined for default behavior (10)
