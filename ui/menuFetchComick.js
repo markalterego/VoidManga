@@ -1,10 +1,10 @@
 import { rl } from '../main.js';
-import { takeUserInput, clearScreen } from "../helpers/functions.js";
+import { takeUserInput, clearScreen, menuFetchFiltersDisplay } from "../helpers/functions.js";
 import { fetchComickMangas, fetchComickChapters, logComick } from "../fetch/fetchComick.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 
 async function menuFetchComick (lists, config) {
-    let m = 0, count = 0, searchStrings = [], selectionFound = false;
+    let m = 0, searchStrings = [];
     let toggleStringSearch = config?.toggleStringSearchComick ? config.toggleStringSearchComick : false;
     let useFirstResult = config?.useFirstResultComick ? config.useFirstResultComick : false;
 
@@ -22,26 +22,8 @@ async function menuFetchComick (lists, config) {
         // display either MAL selection OR searchString
         // to user, based on toggled preference
         if (!toggleStringSearch) { 
-            // log current selection
-            console.log('\n||\n|| Current selection:\n||');
-            lists.forEach((type) => { // anime/manga
-                type.forEach((status) => { // status
-                    status.forEach((item) => { // item
-                        if (item.includeInComickFetch) { 
-                            console.log(`|| ${++count}: ${item.node.title}`);
-                            selectionFound = true;
-                        }
-                    });
-                });
-            });
-            count = 0; // resetting count
-            // if no titles were selected show it clearly to user
-            if (!selectionFound) {
-                console.log('|| - No titles selected\n||');
-            } else {
-                console.log('||');
-                selectionFound = false;
-            }
+            // display current selection
+            await menuFetchFiltersDisplay(lists, 'includeInComickFetch');
         } else {
             // log current searchStrings
             console.log(`\n||\n|| Current searches:\n||`);
@@ -51,11 +33,12 @@ async function menuFetchComick (lists, config) {
             });
             if (searchStrings?.length === 0) console.log('|| - No searches found\n||');
         }
-        console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'Strings'})\n||`);
+        console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'String'})\n||`);
         console.log(`|| 0 -> Fetch with options`);
-        console.log(`|| 1 -> ${!toggleStringSearch ? 'Filter MAL titles' : 'Add/Remove searches'}`);
-        console.log(`|| 2 -> Toggle skip manga selection [${useFirstResult ? 'x' : ''}]`);
-        console.log('|| 3 -> Toggle search type');
+        console.log('|| 1 -> Change options');
+        console.log(`|| 2 -> ${!toggleStringSearch ? 'Filter MAL titles' : 'Add/Remove searches'}`);
+        console.log(`|| 3 -> Toggle skip manga selection [${useFirstResult ? 'x' : ''}]`);
+        console.log('|| 4 -> Toggle search type');
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
@@ -97,18 +80,22 @@ async function menuFetchComick (lists, config) {
                     break;
                 }
             case 1:
+                // change options used in fetching
+                await changeFetchOption();
+                break;
+            case 2:
                 if (!toggleStringSearch) { 
                     await filterEntriesFromFetch(lists, 'includeInComickFetch'); // include/exlude MAL titles from fetch
                 } else { 
                     searchStrings = await changeSearchStrings(searchStrings); // change searchString for Manga fetch
                 }
                 break;
-            case 2:
+            case 3:
                 // toggle skip manga selection menu
                 if (useFirstResult) useFirstResult = false;
                 else useFirstResult = true;
                 break;
-            case 3:
+            case 4:
                 // switch for toggling string search
                 if (toggleStringSearch) toggleStringSearch = false;
                 else toggleStringSearch = true;
@@ -243,6 +230,21 @@ async function changeSearchStrings (searches) {
         }
     }
     return searches;
+}
+
+async function changeFetchOption() {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        console.log('\n||\n|| Select an option:\n||');
+        
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput();
+
+        await clearScreen();
+    }
 }
 
 export { menuFetchComick, autoFetchComickChapters };
