@@ -77,4 +77,6 @@ TODO (or not to do...)
 - make it so that you can update .env username through e.g. settings menu
 
 - could try to make it so that when you fetch chapters from Comick/Mangadex, you could then, by inputting the index next to the found chapter, automatically open said chapter in the browser on a new tab
+
+- idea for MAL logging... e.g. user presses '0' to log watching from MAL, then can press '0' again and by doing that log the index of some specific entry in list (could also only implement this in customLogMAL) 
 */
