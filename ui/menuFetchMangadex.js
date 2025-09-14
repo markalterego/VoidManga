@@ -1,5 +1,5 @@
 import { rl } from '../main.js';
-import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
+import { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
@@ -12,6 +12,8 @@ async function menuFetchMangadex (lists, config) {
 
     while (m !== 'e') 
     {
+        await menuFetchFiltersDisplay(lists, 'includeInMangadexFetch');
+
         if (boolDisplay) { // show if boolDisplay toggled
             await customFetchMangadexDisplay(options);
         }
