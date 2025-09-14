@@ -12,6 +12,7 @@ async function menuFetchMangadex (lists, config) {
 
     while (m !== 'e') 
     {
+        // logs currently selected MAL titles to be used in fetch
         await menuFetchFiltersDisplay(lists, 'includeInMangadexFetch');
 
         if (boolDisplay) { // show if boolDisplay toggled
