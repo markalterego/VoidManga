@@ -1,8 +1,7 @@
 import { rl } from '../main.js';
 import { takeUserInput, clearScreen, customFetchMangadexDisplay } from "../helpers/functions.js";
-import { animeStatus, chapterOrderTypes, chapterTranslatedLanguages, 
-         contentRatings, mangaOrderTypes, mangaStatus, orderDirections, 
-         fetchMangadexOptions } from "../helpers/export.js";
+import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
+         mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchMangadex } from '../fetch/fetchMangadex.js';
 
@@ -91,74 +90,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
         
         switch (m)
         {
-            case 0: // MAL_list
-                key = Object.keys(options)[m];
-                while (m !== 'e') 
-                {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
-
-                    console.log(`\n||\n|| Select option for ${key}\n||`);
-                    console.log('|| 0 -> anime');
-                    console.log('|| 1 -> manga');
-                    console.log(`|| e -> Go back\n||`);
-                    
-                    m = await takeUserInput(); // get user input
-
-                    await clearScreen(); // clears console window   
-                    
-                    // setting the given option
-                    if (m === 0 || m === 1) {
-                        options.MAL_list = m;
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                m = null; // ensuring upper menu doesn't exit
-                break;
-            case 1: // MAL_status
-                key = Object.keys(options)[m];
-                while (m !== 'e') 
-                {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
-
-                    console.log(`\n||\n|| Select option for ${key}\n||`);
-                    if (options.MAL_list === null) {
-                        while (i < animeStatus.length) {
-                            // watching/reading & plan_to_watch/plan_to_read
-                            if (i === 0 || i === 4) console.log(`|| ${i} -> ${animeStatus[i]}/${mangaStatus[i]}`);
-                            else console.log(`|| ${i} -> ${animeStatus[i]}`);
-                            i++;    
-                        }
-                        i = 0; // resetting index
-                    } else if (options.MAL_list === 0) {
-                        animeStatus.forEach((value, index) => {
-                            console.log(`|| ${index} -> ${value}`);
-                        });
-                    } else if (options.MAL_list === 1) {
-                        mangaStatus.forEach((value, index) => {
-                            console.log(`|| ${index} -> ${value}`);
-                        });
-                    }
-                    console.log(`|| e -> Go back\n||`);
-
-                    m = await takeUserInput(); // get user input
-
-                    await clearScreen(); // clears console window   
-                    
-                    // setting the given option
-                    if (m > -1 && m < 5) {
-                        options.MAL_status = m;
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                m = null; // ensuring upper menu doesn't exit
-                break;
-            case 2: // limit_manga
+            case 0: // limit_manga
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -184,7 +116,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 3: // limit_chapter
+            case 1: // limit_chapter
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -210,7 +142,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }    
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 4: // mangaOrderType
+            case 2: // mangaOrderType
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -237,7 +169,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 5: // chapterOrderType
+            case 3: // chapterOrderType
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -264,7 +196,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 6: // mangaOrderDirection
+            case 4: // mangaOrderDirection
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -291,7 +223,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 7: // chapterOrderDirection
+            case 5: // chapterOrderDirection
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -318,7 +250,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 8: // contentRating
+            case 6: // contentRating
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
@@ -352,7 +284,7 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 }
                 m = null; // ensuring upper menu doesn't exit
                 break;
-            case 9: // chapterTranslatedLanguage
+            case 7: // chapterTranslatedLanguage
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
