@@ -1,5 +1,4 @@
 import { rl } from '../main.js'
-import { animeStatus, mangaStatus } from './export.js';
 
 async function takeUserInput() {
     let userInput = await rl.question('\n|| Input: '); // get user input
