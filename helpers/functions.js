@@ -14,9 +14,7 @@ async function clearScreen() {
 }
 
 async function customFetchMangadexDisplay (options) {
-    console.log(`\n||\n|| MAL_list: ${options.MAL_list === null ? options.MAL_list : (!options.MAL_list ? 'anime' : 'manga')}`);
-    console.log(`|| MAL_status: ${options.MAL_status === null ? options.MAL_status : (options.MAL_list === null ? options.MAL_status : (!options.MAL_list ? animeStatus[options.MAL_status] : mangaStatus[options.MAL_status]))}`);
-    console.log(`|| limit_manga: ${options.limit_manga}`);
+    console.log(`\n||\n|| limit_manga: ${options.limit_manga}`);
     console.log(`|| limit_chapter: ${options.limit_chapter}`);
     console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
     console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
