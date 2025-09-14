@@ -2,7 +2,7 @@ import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { fetchMangadexOptions } from "./helpers/export.js";
+import { fetchComickOptions, fetchMangadexOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
@@ -42,6 +42,7 @@ await page.addInitScript(() => { // runs before loading each site
             autoFetchComick: false,
             logMALOptions: { anime: [], manga: [] },
             fetchMangadexOptions: fetchMangadexOptions, 
+            fetchComickOptions: fetchComickOptions,
             boolDisplayMAL: false,
             boolDisplayMangadex: false,
             toggleStringSearchComick: false,
