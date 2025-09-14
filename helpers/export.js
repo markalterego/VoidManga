@@ -19,9 +19,9 @@ export const expectedFilters = ['includeInMangadexFetch', 'includeInComickFetch'
 export const fetchComickOptions = {
     limit_manga: null, // <-- check if does anything
     limit_chapter: null, // limit response size
-    chapter_trans_lang: null, // default: undefined (filter translated language)
-    chapter_order_direction: null, // default: 0, 0 or 1 (0 = desc, 1 = asc)
-    chapter_number: null // default: undefined (specific chapter num)
+    chapterOrderDirection: null, // default: 0, 0 or 1 (0 = desc, 1 = asc)
+    chapterTranslatedLanguage: null, // default: undefined (filter translated language)
+    chapterNumber: null // default: undefined (specific chapter num)
 };
 /*
     Options for Mangadex's fetchChapters() custom search:
