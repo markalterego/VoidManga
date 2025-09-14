@@ -54,4 +54,4 @@ async function menuFetchFiltersDisplay (lists, key) {
     });
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay };
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, customFetchComickDisplay, menuFetchFiltersDisplay };
