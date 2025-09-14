@@ -1,8 +1,6 @@
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 export const fetchMangadexOptions = { 
-    MAL_list: null, // 0 or 1
-    MAL_status: null, // 0 - 4 
     limit_manga: null, // default: 10, min: 0, max is 100
     limit_chapter: null, // default: 10, min: 0, max is 100 
     mangaOrderType: null, // 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
