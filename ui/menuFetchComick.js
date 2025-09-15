@@ -1,13 +1,15 @@
 import { rl } from '../main.js';
-import { takeUserInput, clearScreen, menuFetchFiltersDisplay } from "../helpers/functions.js";
+import { fetchComickOptions, orderDirections, chapterTranslatedLanguages } from '../helpers/export.js';
+import { takeUserInput, clearScreen, menuFetchFiltersDisplay, customFetchComickDisplay } from "../helpers/functions.js";
 import { fetchComickMangas, fetchComickChapters, logComick } from "../fetch/fetchComick.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 
 async function menuFetchComick (lists, config) {
-    let m = 0, searchStrings = [];
+    const options = !config?.fetchComickOptions ? JSON.parse(JSON.stringify(fetchComickOptions)) : config.fetchComickOptions;
     let toggleStringSearch = config?.toggleStringSearchComick ? config.toggleStringSearchComick : false;
     let useFirstResult = config?.useFirstResultComick ? config.useFirstResultComick : false;
-
+    let m = 0, searchStrings = [];
+    
     // the user can either search with an inputted searchString OR
     // search with MAL titles that have includeInComickFetch set as true
     // 
@@ -33,6 +35,9 @@ async function menuFetchComick (lists, config) {
             });
             if (searchStrings?.length === 0) console.log('|| - No searches found\n||');
         }
+        // displays currently selected options
+        await customFetchComickDisplay(options); 
+
         console.log(`\n||\n|| Custom fetch Comick (Search Type: ${!toggleStringSearch ? 'MAL' : 'String'})\n||`);
         console.log(`|| 0 -> Fetch with options`);
         console.log('|| 1 -> Change options');
@@ -81,7 +86,7 @@ async function menuFetchComick (lists, config) {
                 }
             case 1:
                 // change options used in fetching
-                await changeFetchOption();
+                await changeFetchOptionMenu(options);
                 break;
             case 2:
                 if (!toggleStringSearch) { 
@@ -232,18 +237,144 @@ async function changeSearchStrings (searches) {
     return searches;
 }
 
-async function changeFetchOption() {
+async function changeFetchOptionMenu (options) {
+    const highest_selectable_index = Object.keys(options).length;
     let m = 0;
 
     while (m !== 'e') 
     {
+        await customFetchComickDisplay(options); // displays current selection
+
         console.log('\n||\n|| Select an option:\n||');
-        
+        Object.keys(options).forEach((key, index) => { // log selectable options
+            console.log(`|| ${index} -> ${key}`);
+        });   
         console.log('|| e -> Go back\n||');
 
-        m = await takeUserInput();
+        m = await takeUserInput(); // get user input
 
-        await clearScreen();
+        await clearScreen(); // clears console window
+
+        if (m >= 0 && m < highest_selectable_index) {
+            const key = Object.keys(options)[m]; // selected option
+            await changeOption(key, options); // changing option
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function changeOption (key, options) {
+    let m = 0;
+    if (key === 'limit_manga' || key === 'limit_chapter') {
+        while (m !== 'e') 
+        {   
+            await customFetchComickDisplay(options); // displays current selection
+
+            console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
+            console.log(`|| e -> Go back\n||`);
+
+            m = await takeUserInput(); // get user input
+            
+            await clearScreen(); // clears console window
+
+            // handling user input
+            if (m >= 0 && m <= 100) {
+                options[key] = m;
+            } else if (m > 100 || m < 0) {
+                console.log('\n|| The given value has to be be between 0-100');
+            } else if (m !== 'e') {
+                console.log('\n|| Please input a valid option');
+            }
+        }
+    } else if (key === 'chapterOrderDirection') {
+        while (m !== 'e') 
+        {
+            await customFetchComickDisplay(options); // displays current selection
+
+            // either 'asc' or 'desc'
+            console.log(`\n||\n|| Select option for ${key}\n||`);
+            orderDirections.forEach((direction, direction_index) => {
+                console.log(`|| ${direction_index} -> ${direction}`);
+            });
+            console.log(`|| e -> Go back\n||`);
+
+            m = await takeUserInput(); // get user input
+            
+            await clearScreen(); // clears console window
+
+            // handling user input
+            if (m >= 0 && m < orderDirections.length) {
+                options[key] = orderDirections[m];
+            } else if (m !== 'e') {
+                console.log('\n|| Please input a valid option');
+            }
+        }
+    } else if (key === 'chapterTranslatedLanguage') {
+        while (m !== 'e') 
+        {
+            await customFetchComickDisplay(options); // displays current selection
+            /*
+            When changing the option for chapterTranslatedLanguage the user has two options:
+            
+            1. Select from one of the pre-defined language options by inputting 
+                the corresponding number next to desired option
+
+                e.g. || 0 -> en
+                     || 1 -> pl
+            
+            2. Input a custom language code option in the format: 'en', 'Es', etc.  
+            */
+            console.log(`\n||\n|| Select option for ${key} (optionally input custom code)\n||`);
+            chapterTranslatedLanguages.forEach((value, index) => { 
+                console.log(`|| ${index} -> ${value}`);
+            });
+            console.log(`|| c -> Clear filters`);
+            console.log('|| e -> Go back\n||');
+
+            const userInput = await rl.question('\n|| Input: '); // get user input
+            // regex tests for manually inputted language codes and allows: 'en', 'Es', etc.
+            const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(userInput); // validating language code
+            if (!testResult && !(userInput.toLowerCase() === 'e' || userInput.toLowerCase() === 'c')) m = parseInt(userInput, 10); // convert userinput to int
+            else m = userInput.toLowerCase(); // converts userInput to lowercase
+
+            await clearScreen(); // clears console window   
+
+            // handling menu choice
+            if (m >= 0 && m < chapterTranslatedLanguages.length) { 
+                options[key] = chapterTranslatedLanguages[m]; // add pre-defined language option
+            } else if (m === 'c') {
+                options[key] = null; // clear current option
+            } else if (testResult) { 
+                options[key] = m; // assign custom input e.g. 'en'
+            } else if (m !== 'e') {
+                console.log('\n|| Please input a valid option');
+            }
+        }
+    } else if (key === 'chapterNumber') {
+        while (m !== 'e') 
+        {
+            await customFetchComickDisplay(options); // displays current selection
+
+            console.log(`\n||\n|| Input value for ${key}\n||`);
+            console.log('|| c -> Clear option');
+            console.log(`|| e -> Go back\n||`);
+
+            m = await takeUserInput(); // get user input
+
+            await clearScreen(); // clears console window   
+
+            // handling user input
+            if (typeof m === 'number') {
+                options[key] = m; // setting chapterNumber
+            } else if (m === 'c') {
+                options[key] = null; // re-setting chapterNumber
+            } else if (m !== 'e') {
+                console.log('\n|| Please input a valid option');
+            }
+        }
+    } else {
+        console.log(`\n||\n|| The specified option can't currently be changed\n||`);
     }
 }
 
