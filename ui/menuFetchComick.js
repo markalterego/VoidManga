@@ -111,7 +111,7 @@ async function menuFetchComick (lists, config) {
                 console.log('\n|| Please input a valid option');
         }
     }
-    return [useFirstResult, toggleStringSearch];
+    return [useFirstResult, toggleStringSearch, options];
 }
 
 async function autoFetchComickChapters (lists, useFirstResult) {
