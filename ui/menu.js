@@ -77,7 +77,9 @@ async function rootMenu() {
                 // in case enabled, calls autoFetchComickChapters instead with useFirstResult
                 if (!config?.autoFetchComick) {
                     const returnArr = await menuFetchComick(lists, config); // search and log Comick API
-                    config = { ...config, useFirstResultComick: returnArr[0], toggleStringSearchComick: returnArr[1] }; // save toggleStringSearch to config
+                    config = { ...config, useFirstResultComick: returnArr[0], // save changed preferences to config
+                                          toggleStringSearchComick: returnArr[1], 
+                                          fetchComickOptions: returnArr[2] }; 
                     await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
                 } else {
                     // if useFirstResult is false, the user is still able to select the Manga from the Manga endpoint fetch
