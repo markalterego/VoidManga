@@ -1,9 +1,16 @@
 import { rl } from '../main.js'
 
 async function takeUserInput() {
-    let userInput = await rl.question('\n|| Input: '); // get user input
-    if (userInput.toLowerCase() !== 'e' && userInput.toLowerCase() !== 'c' && userInput.toLowerCase() !== 's') userInput = parseInt(userInput, 10); // convert userinput to int
+    // 1. function takes input from user,
+    // 2. removes leading and trailing whitespaces from input
+    // 3. checks if input includes only numbers
+    // 4.1. if (input had only numbers) return parseInt(input)
+    // 4.2. else return input.toLowerCase()
+    let userInput = (await rl.question('\n|| Input: ')).trim(); // get user input
+    const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
+    if (isNumber) userInput = parseInt(userInput, 10); // convert userinput to int
     else userInput = userInput.toLowerCase(); // convert userinput to lowercase
+    // <-- consider adding clearScreen here and removing it from the rest of the program
     return userInput;
 } 
 
