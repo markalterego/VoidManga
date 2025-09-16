@@ -33,7 +33,11 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                             });
                             data.push(mangaDataFinal); // append search result to data
                             const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
-                            if (timeTaken < 333) await setTimeout(333-timeTaken); // avoiding rate-limit
+                            if (timeTaken < 500) { // avoiding rate-limit
+                                const difference = 500 - timeTaken;
+                                const wait_time = Math.floor(Math.random() * difference); 
+                                await setTimeout(wait_time);
+                            } 
                         }
                     }
                 }
@@ -60,7 +64,11 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                 });
                 data.push(mangaDataFinal); // append search result to data
                 const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
-                if (timeTaken < 333) await setTimeout(333-timeTaken); // avoiding rate-limit
+                if (timeTaken < 500) { // avoiding rate-limit
+                    const difference = 500 - timeTaken;
+                    const wait_time = Math.floor(Math.random() * difference); 
+                    await setTimeout(wait_time);
+                }
             }
         }      
         // returns array consisting found mangas or 
@@ -97,7 +105,11 @@ async function fetchComickChapters (mangas, chapter_number, chapter_order_direct
             }, url); // <-- search inputted here
             data[manga_index++].push(chapterData.chapters); // append chapterData to data
             const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
-            if (timeTaken < 333) await setTimeout(333-timeTaken); // avoiding rate-limit
+            if (timeTaken < 500) { // avoiding rate-limit
+                const difference = 500 - timeTaken;
+                const wait_time = Math.floor(Math.random() * difference); 
+                await setTimeout(wait_time);
+            }
         }
         return data; 
     } catch (error) {
