@@ -33,7 +33,7 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                             });
                             data.push(mangaDataFinal); // append search result to data
                             const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
-                            if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
+                            if (timeTaken < 333) await setTimeout(333-timeTaken); // avoiding rate-limit
                         }
                     }
                 }
@@ -60,7 +60,7 @@ async function fetchComickMangas (stringsOrLists, isStrings) {
                 });
                 data.push(mangaDataFinal); // append search result to data
                 const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
-                if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
+                if (timeTaken < 333) await setTimeout(333-timeTaken); // avoiding rate-limit
             }
         }      
         // returns array consisting found mangas or 
@@ -97,7 +97,7 @@ async function fetchComickChapters (mangas, chapter_number, chapter_order_direct
             }, url); // <-- search inputted here
             data[manga_index++].push(chapterData.chapters); // append chapterData to data
             const timeTaken = Math.round(performance.now()-startTime); // time taken for fetch
-            if (timeTaken < 250) await setTimeout(250-timeTaken); // avoiding rate-limit
+            if (timeTaken < 333) await setTimeout(333-timeTaken); // avoiding rate-limit
         }
         return data; 
     } catch (error) {
@@ -111,7 +111,7 @@ async function fetchComickChapters (mangas, chapter_number, chapter_order_direct
 
 async function avoidCloudFlareBlock() {
     // getting cookies etc. from main page to avoid getting cloudflare blocked later 
-    await page.goto('https://comick.io/'); // go to comick.io
+    await page.goto('https://comick.io/home2'); // go to comick.io
     await page.waitForSelector('#__next', { timeout: 5000 }); // wait for cloudflare checks
 }
 
