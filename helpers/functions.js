@@ -10,7 +10,7 @@ async function takeUserInput() {
     const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
     if (isNumber) userInput = parseInt(userInput, 10); // convert userinput to int
     else userInput = userInput.toLowerCase(); // convert userinput to lowercase
-    // <-- consider adding clearScreen here and removing it from the rest of the program
+    await clearScreen(); // clear console window
     return userInput;
 } 
 
