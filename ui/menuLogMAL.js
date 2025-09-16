@@ -1,4 +1,4 @@
-import { takeUserInput, clearScreen } from '../helpers/functions.js';
+import { takeUserInput } from '../helpers/functions.js';
 import { customLogMAL } from "./customLogMAL.js";
 import { animeStatus, mangaStatus } from '../helpers/export.js';
 
@@ -23,8 +23,6 @@ async function menuLogMAL (lists, config) {
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
-
-        await clearScreen(); // clears console window   
 
         switch (m) 
         {
@@ -54,8 +52,6 @@ async function menuLogMAL (lists, config) {
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
-
-                    await clearScreen(); // clears console window   
 
                     if (m < 5 && m > -1) { // add/remove entry
                         if (!boolRemove) {

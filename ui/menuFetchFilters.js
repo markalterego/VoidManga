@@ -1,4 +1,4 @@
-import { takeUserInput, clearScreen, menuFetchFiltersDisplay } from '../helpers/functions.js';
+import { takeUserInput, menuFetchFiltersDisplay } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters } from '../helpers/export.js';
 
 async function filterEntriesFromFetch (lists, key) { 
@@ -23,8 +23,6 @@ async function filterEntriesFromFetch (lists, key) {
 
             m = await takeUserInput(); // get user input
 
-            await clearScreen(); // clears console window   
-        
             // logging statuses by type
             if (m === 0 || m === 1) {
                 // saving selected type 
@@ -48,8 +46,6 @@ async function filterEntriesFromFetch (lists, key) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window  
-
                     // logging titles by status
                     if ((type === 0 && m < animeStatus.length) || (type === 1 && m < mangaStatus.length)) { 
                         // saving the selected status
@@ -71,8 +67,6 @@ async function filterEntriesFromFetch (lists, key) {
 
                                 m = await takeUserInput(); // get user input
 
-                                await clearScreen(); // clears console window  
-                                
                                 // toggling filter at given option
                                 if (m > -1 && m < lists[type][status].length) {
                                     const item = lists[type][status][m]; // referring to item

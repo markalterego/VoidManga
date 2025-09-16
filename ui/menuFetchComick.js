@@ -1,5 +1,5 @@
 import { fetchComickOptions, orderDirections, chapterTranslatedLanguages } from '../helpers/export.js';
-import { takeUserInput, clearScreen, menuFetchFiltersDisplay, customFetchComickDisplay } from "../helpers/functions.js";
+import { takeUserInput, menuFetchFiltersDisplay, customFetchComickDisplay } from "../helpers/functions.js";
 import { fetchComickMangas, fetchComickChapters, logComick } from "../fetch/fetchComick.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 
@@ -46,8 +46,6 @@ async function menuFetchComick (lists, config) {
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
-
-        await clearScreen(); // clear console window
 
         switch (m) 
         {
@@ -170,8 +168,7 @@ async function selectMangasFromFetchResults (mangaData) {
         console.log(`|| e -> ${selectedMangas.length > 0 ? 'Search chapters' : 'Cancel search' }\n||`);
         
         m = await takeUserInput(); // get user input 
-        await clearScreen(); // clear console window
-
+        
         if (m >= 0 && m <= highest_selectable_index) { 
             // push selected searchResult to selectedMangas[]
             let i = 0;
@@ -216,8 +213,6 @@ async function changeSearchStrings (searches) {
 
         const userInput = await takeUserInput();
 
-        await clearScreen(); // clear console window
-
         // 3 letters or more = added to search
         // c = clears inputs
         // e = exits menu
@@ -252,8 +247,6 @@ async function changeFetchOptionMenu (options) {
 
         m = await takeUserInput(); // get user input
 
-        await clearScreen(); // clears console window
-
         if (m >= 0 && m < highest_selectable_index) {
             const key = Object.keys(options)[m]; // selected option
             await changeOption(key, options); // changing option
@@ -275,8 +268,6 @@ async function changeOption (key, options) {
 
             m = await takeUserInput(); // get user input
             
-            await clearScreen(); // clears console window
-
             // handling user input
             if (m >= 0 && m <= 100) {
                 options[key] = m;
@@ -300,8 +291,6 @@ async function changeOption (key, options) {
 
             m = await takeUserInput(); // get user input
             
-            await clearScreen(); // clears console window
-
             // handling user input
             if (m >= 0 && m < orderDirections.length) {
                 options[key] = orderDirections[m];
@@ -334,9 +323,7 @@ async function changeOption (key, options) {
             m = await takeUserInput(); // get user input
             // regex tests for manually inputted language codes and allows: 'en', 'Es', etc. || 'en-us', 'pl-br', etc.
             const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
-
-            await clearScreen(); // clears console window   
-
+            
             // handling menu choice
             if (m >= 0 && m < chapterTranslatedLanguages.length) { 
                 options[key] = chapterTranslatedLanguages[m]; // add pre-defined language option
@@ -358,8 +345,6 @@ async function changeOption (key, options) {
             console.log(`|| e -> Go back\n||`);
 
             m = await takeUserInput(); // get user input
-
-            await clearScreen(); // clears console window   
 
             // handling user input
             if (typeof m === 'number') {

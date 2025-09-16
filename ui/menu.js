@@ -3,7 +3,7 @@ import { fetchMangadex } from "../fetch/fetchMangadex.js";
 import { customLogMAL } from "./customLogMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
-import { takeUserInput, clearScreen } from "../helpers/functions.js";
+import { takeUserInput } from "../helpers/functions.js";
 import { menuFetchComick, autoFetchComickChapters } from "./menuFetchComick.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMAL } from "./menuLogMAL.js";
@@ -41,8 +41,6 @@ async function rootMenu() {
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
-
-        await clearScreen(); // clears console window  
 
         switch (m) 
         {
@@ -119,8 +117,6 @@ async function settingsMenu() {
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
-
-        await clearScreen(); // clears console window   
 
         switch (m) 
         {

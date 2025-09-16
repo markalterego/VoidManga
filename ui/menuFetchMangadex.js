@@ -1,4 +1,4 @@
-import { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
+import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
@@ -27,8 +27,6 @@ async function menuFetchMangadex (lists, config) {
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
-
-        await clearScreen(); // clears console window   
 
         switch (m)
         {
@@ -88,8 +86,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
         m = await takeUserInput(); // get user input
 
-        await clearScreen(); // clears console window   
-        
         switch (m)
         {
             case 0: // limit_manga
@@ -105,8 +101,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window   
-                    
                     // setting the given option
                     if (m > -1 && m < 101) {
                         options.limit_manga = m;
@@ -131,8 +125,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window   
-                    
                     // setting the given option
                     if (m > -1 && m < 101) {
                         options.limit_chapter = m;
@@ -160,8 +152,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window   
-                    
                     // setting the given option
                     if (m > -1 && m < mangaOrderTypes.length) {
                         options.mangaOrderType = mangaOrderTypes[m];
@@ -187,8 +177,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window   
-                    
                     // setting the given option
                     if (m > -1 && m < chapterOrderTypes.length) {
                         options.chapterOrderType = chapterOrderTypes[m];
@@ -214,8 +202,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window   
-                    
                     // setting the given option
                     if (m > -1 && m < orderDirections.length) {
                         options.mangaOrderDirection = orderDirections[m];
@@ -241,8 +227,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
 
                     m = await takeUserInput(); // get user input
 
-                    await clearScreen(); // clears console window   
-                    
                     // setting the given option
                     if (m > -1 && m < orderDirections.length) {
                         options.chapterOrderDirection = orderDirections[m];
@@ -269,8 +253,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
-
-                    await clearScreen(); // clears console window   
 
                     // setting option / clearing options
                     if (m > -1 && m < contentRatings.length) {
@@ -317,8 +299,6 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     // regex tests for manually inputted language codes and allows:
                     // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
                     const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
-
-                    await clearScreen(); // clears console window   
 
                     // handling menu choice
                     if (m >= 0 && m < chapterTranslatedLanguages.length) { // pre-defined language options
