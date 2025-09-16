@@ -1,4 +1,3 @@
-import { rl } from '../main.js';
 import { fetchComickOptions, orderDirections, chapterTranslatedLanguages } from '../helpers/export.js';
 import { takeUserInput, clearScreen, menuFetchFiltersDisplay, customFetchComickDisplay } from "../helpers/functions.js";
 import { fetchComickMangas, fetchComickChapters, logComick } from "../fetch/fetchComick.js";
@@ -215,7 +214,7 @@ async function changeSearchStrings (searches) {
         console.log(`|| c -> Clear searches`);
         console.log(`|| e -> Exit\n||`);
 
-        let userInput = (await rl.question('\n|| Input: ')).trim(); // get user input and remove leading/trailing whitespaces
+        const userInput = await takeUserInput();
 
         await clearScreen(); // clear console window
 
@@ -323,7 +322,7 @@ async function changeOption (key, options) {
                 e.g. || 0 -> en
                      || 1 -> pl
             
-            2. Input a custom language code option in the format: 'en', 'Es', etc.  
+            2. Input a custom language code option in the format: 'en', 'Es', etc. || 'en-us', 'pl-br', etc.  
             */
             console.log(`\n||\n|| Select option for ${key} (optionally input custom code)\n||`);
             chapterTranslatedLanguages.forEach((value, index) => { 
@@ -332,11 +331,9 @@ async function changeOption (key, options) {
             console.log(`|| c -> Clear filters`);
             console.log('|| e -> Go back\n||');
 
-            const userInput = await rl.question('\n|| Input: '); // get user input
-            // regex tests for manually inputted language codes and allows: 'en', 'Es', etc.
-            const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(userInput); // validating language code
-            if (!testResult && !(userInput.toLowerCase() === 'e' || userInput.toLowerCase() === 'c')) m = parseInt(userInput, 10); // convert userinput to int
-            else m = userInput.toLowerCase(); // converts userInput to lowercase
+            m = await takeUserInput(); // get user input
+            // regex tests for manually inputted language codes and allows: 'en', 'Es', etc. || 'en-us', 'pl-br', etc.
+            const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
 
             await clearScreen(); // clears console window   
 

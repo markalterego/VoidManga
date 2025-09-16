@@ -1,4 +1,3 @@
-import { rl } from '../main.js';
 import { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
@@ -311,27 +310,23 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                     chapterTranslatedLanguages.forEach((value, index) => { 
                         console.log(`|| ${index} -> ${value}`);
                     });
-                    console.log(`|| ${chapterTranslatedLanguages.length} -> Clear filters`);
+                    console.log(`|| c -> Clear filters`);
                     console.log('|| e -> Go back\n||');
 
-                    const userInput = await rl.question('\n|| Input: '); // get user input
+                    m = await takeUserInput(); // get user input
                     // regex tests for manually inputted language codes and allows:
                     // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
-                    const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(userInput); // validating language code
-                    if (!testResult && userInput.toLowerCase() !== 'e') m = parseInt(userInput, 10); // convert userinput to int
-                    else m = userInput.toLowerCase(); // converts userInput to lowercase
+                    const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
 
                     await clearScreen(); // clears console window   
 
                     // handling menu choice
-                    if (m > -1 && m < chapterTranslatedLanguages.length) { 
-                        // options.chapterTranslatedLanguage = options.chapterTranslatedLanguage.filter(Boolean); // filters undefined
+                    if (m >= 0 && m < chapterTranslatedLanguages.length) { // pre-defined language options
                         options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[m]);
                         options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
-                    } else if (m === chapterTranslatedLanguages.length) {
-                        options.chapterTranslatedLanguage = []; // clear current translatedLanguage options 
+                    } else if (m === 'c') { // clear current translatedLanguage options 
+                        options.chapterTranslatedLanguage = []; 
                     } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
-                        // options.chapterTranslatedLanguage = options.chapterTranslatedLanguage.filter(Boolean); // filters undefined
                         options.chapterTranslatedLanguage.push(m);
                         options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
                     } else if (m !== 'e') {
