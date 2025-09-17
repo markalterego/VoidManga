@@ -1,25 +1,21 @@
-import { takeUserInput } from '../helpers/functions.js';
+import { menuLogMALDisplay, takeUserInput } from '../helpers/functions.js';
 import { customLogMAL } from "./customLogMAL.js";
 import { animeStatus, mangaStatus } from '../helpers/export.js';
 
 async function menuLogMAL (lists, config) {
-    let boolDisplay = !config?.boolDisplayMAL ? false : config.boolDisplayMAL;
     let anime = !config?.logMALOptions?.anime ? [] : config.logMALOptions.anime;
     let manga = !config?.logMALOptions?.manga ? [] : config.logMALOptions.manga;
     let m = 0, boolRemove = false, boolManga = false;
 
     while (m !== 'e') 
     {
-        if (boolDisplay) { // show if boolDisplay toggled
-            console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
-            console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
-        }
+        // logs currently selected options
+        await menuLogMALDisplay(anime, manga);
 
         console.log('\n||\n|| Custom log MAL\n||');
         console.log('|| 0 -> Log with options');
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Empty options');
-        console.log('|| 3 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -32,10 +28,8 @@ async function menuLogMAL (lists, config) {
             case 1:
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) { // show if boolDisplay toggled
-                        console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
-                        console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
-                    }
+                    // logs currently selected options
+                    await menuLogMALDisplay(anime, manga);
 
                     console.log(`\n||\n|| Change options (${!boolManga ? 'anime' : 'manga'})\n||`);
                     if (!boolManga) { 
@@ -79,18 +73,13 @@ async function menuLogMAL (lists, config) {
                 anime = [], manga = []; 
                 console.log('\n||\n|| Cleared all selected anime/manga options\n||');
                 break;
-            case 3:
-                // toggling boolDisplay
-                if (!boolDisplay) boolDisplay = true; 
-                else boolDisplay = false; 
-                break;
             case 'e':
                 break;
             default:
                 console.log('\n|| Please input a valid option');
         }
     }
-    return [{anime, manga}, boolDisplay];
+    return [{anime, manga}];
 }
 
 export { menuLogMAL };

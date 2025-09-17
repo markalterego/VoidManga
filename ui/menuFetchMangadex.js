@@ -6,7 +6,6 @@ import { fetchMangadex } from '../fetch/fetchMangadex.js';
 
 async function menuFetchMangadex (lists, config) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
-    let boolDisplay = !config?.boolDisplayMangadex ? false : config.boolDisplayMangadex; 
     let m = 0;
 
     while (m !== 'e') 
@@ -14,16 +13,14 @@ async function menuFetchMangadex (lists, config) {
         // logs currently selected MAL titles to be used in fetch
         await menuFetchFiltersDisplay(lists, 'includeInMangadexFetch');
 
-        if (boolDisplay) { // show if boolDisplay toggled
-            await customFetchMangadexDisplay(options);
-        }
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Custom fetch Mangadex\n||');
         console.log('|| 0 -> Fetch with options');
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Filter MAL titles');
         console.log('|| 3 -> Empty options');
-        console.log('|| 4 -> Toggle display');
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -36,7 +33,7 @@ async function menuFetchMangadex (lists, config) {
                 break;
             case 1:
                 // running menu for changing options
-                await changeMangadexOptionMenu(boolDisplay, options);
+                await changeMangadexOptionMenu(options);
                 break;
             case 2:
                 // filtering items not wanted to be fetched
@@ -50,30 +47,23 @@ async function menuFetchMangadex (lists, config) {
                 }
                 console.log('\n||\n|| Cleared all selected options\n||');
                 break;
-            case 4:
-                // toggle display of options
-                if (!boolDisplay) boolDisplay = true; 
-                else boolDisplay = false; 
-                break;
             case 'e':
                 break;
             default: 
                 console.log('\n|| Please input a valid option');
         }
     }
-
-    return [options, boolDisplay];
+    return [options];
 }
 
-async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
+async function changeMangadexOptionMenu (fetchOptions) {
     const options = fetchOptions;
     let m = 0, i = 0, key = null;
 
     while (m !== 'e') 
     {
-        if (boolDisplay) { // show if boolDisplay toggled
-            await customFetchMangadexDisplay(options);
-        }
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
 
         // lists options that can be changed 
         console.log('\n||\n|| Select an option:\n||');
@@ -92,9 +82,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
                     
                     console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
                     console.log('|| e -> Go back\n||');
@@ -116,9 +105,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
                     
                     console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
                     console.log('|| e -> Go back\n||');
@@ -140,9 +128,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
                     mangaOrderTypes.forEach((value, index) => {
@@ -165,9 +152,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
                     chapterOrderTypes.forEach((value, index) => {
@@ -190,9 +176,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
                     orderDirections.forEach((value, index) => {
@@ -215,9 +200,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
 
                     console.log(`\n||\n|| Select option for ${key}\n||`);
                     orderDirections.forEach((value, index) => {
@@ -240,9 +224,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
 
                     console.log(`\n||\n|| Add option for ${key}\n||`);
                     contentRatings.forEach((value, index) => {
@@ -272,9 +255,8 @@ async function changeMangadexOptionMenu (boolDisplay, fetchOptions) {
                 key = Object.keys(options)[m];
                 while (m !== 'e') 
                 {
-                    if (boolDisplay) {
-                        await customFetchMangadexDisplay(options);
-                    }
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
                     /*
                     When changing the option for chapterTranslatedLanguage the user has two options:
                     
