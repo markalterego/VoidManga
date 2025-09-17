@@ -1,4 +1,5 @@
 import { rl } from '../main.js'
+import { animeStatus, mangaStatus } from './export.js';
 
 async function takeUserInput() {
     // 1. function takes input from user,
@@ -30,6 +31,11 @@ async function customFetchMangadexDisplay (options) {
     console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
+async function menuLogMALDisplay (anime, manga) {
+    console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
+    console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
+}
+
 async function menuFetchFiltersDisplay (lists, key) {
     // display current filters
     let selectionFound = false;
@@ -52,4 +58,4 @@ async function menuFetchFiltersDisplay (lists, key) {
     });
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay };
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay };
