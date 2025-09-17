@@ -53,7 +53,7 @@ async function rootMenu() {
                 break;
             case 3: {
                 const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
-                config = { ...config, logMALOptions: returnArr[0], boolDisplayMAL: returnArr[1] };
+                config = { ...config, logMALOptions: returnArr[0] };
                 await filehandle('config', config); 
                 break; }
             case 4: 
@@ -62,7 +62,7 @@ async function rootMenu() {
                 // to upper menu right after completion
                 if (!config?.autoFetchMangadex) {
                     const returnArr = await menuFetchMangadex(lists, config); // fetch Mangadex by preference
-                    config = { ...config, fetchMangadexOptions: returnArr[0], boolDisplayMangadex: returnArr[1] };
+                    config = { ...config, fetchMangadexOptions: returnArr[0] };
                     await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
                 } else { 
                     await fetchMangadex(lists, config?.fetchMangadexOptions);
