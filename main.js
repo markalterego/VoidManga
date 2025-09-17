@@ -29,8 +29,6 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
             autoFetchMangadex: false, 
             logMALOptions: { anime: [], manga: [] },
             fetchMangadexOptions: fetchMangadexOptions, 
-            boolDisplayMAL: false,
-            boolDisplayMangadex: false,
         }; 
         await filehandle('config', config); // writes config.file
     } else {    
