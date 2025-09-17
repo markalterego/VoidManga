@@ -15,14 +15,7 @@ export const chapterOrderTypes = ['createdAt', 'updatedAt', 'publishAt', 'readab
 export const orderDirections = ['asc', 'desc'];
 export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
-export const expectedFilters = ['includeInMangadexFetch', 'includeInComickFetch']; // expected function parameter values at filterEntriesFromFetch
-export const fetchComickOptions = {
-    limit_manga: null, // <-- check if does anything
-    limit_chapter: null, // limit response size
-    chapterOrderDirection: null, // default: 0, 0 or 1 (0 = desc, 1 = asc)
-    chapterTranslatedLanguage: null, // default: undefined (filter translated language)
-    chapterNumber: null // default: undefined (specific chapter num)
-};
+export const expectedFilters = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
 /*
     Options for Mangadex's fetchChapters() custom search:
         -MAL_list - anime/manga = 0/1

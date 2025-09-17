@@ -4,7 +4,6 @@ import { customLogMAL } from "./customLogMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput } from "../helpers/functions.js";
-import { menuFetchComick, autoFetchComickChapters } from "./menuFetchComick.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMAL } from "./menuLogMAL.js";
 
@@ -35,8 +34,7 @@ async function rootMenu() {
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
         console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log(`|| 5 -> ${config?.autoFetchComick ? (config?.useFirstResultComick ? 'Auto' : 'Semi-Auto') : 'Custom'} fetch Comick`);
-        console.log('|| 6 -> Fetch MAL');
+        console.log('|| 5 -> Fetch MAL');
         console.log('|| s -> Settings');
         console.log('|| e -> Exit\n||');
 
@@ -70,24 +68,7 @@ async function rootMenu() {
                     await fetchMangadex(lists, config?.fetchMangadexOptions);
                 }
                 break;
-            case 5:
-                // if autofetching is disabled, loops through customFetchMenuComick normally (default behavior)
-                // in case enabled, calls autoFetchComickChapters instead with useFirstResult
-                if (!config?.autoFetchComick) {
-                    const returnArr = await menuFetchComick(lists, config); // search and log Comick API
-                    config = { ...config, useFirstResultComick: returnArr[0], // save changed preferences to config
-                                          toggleStringSearchComick: returnArr[1], 
-                                          fetchComickOptions: returnArr[2] }; 
-                    await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
-                } else {
-                    // if useFirstResult is false, the user is still able to select the Manga from the Manga endpoint fetch
-                    // and use said Manga to fetch the chapter endpoint, if useFirstResult is true, autoFetchComickChapters 
-                    // fetches the chapter endpoint by taking the first Manga fetch result per each fetch and calling the
-                    // chapter endpoint with said results
-                    await autoFetchComickChapters(lists, config?.useFirstResultComick);
-                }
-                break;
-            case 6: 
+            case 5: 
                 lists = await fetchMAL(lists); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break; 
@@ -112,8 +93,7 @@ async function settingsMenu() {
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
         console.log(`|| 0 -> Auto-fetch Mangadex [${config?.autoFetchMangadex ? 'x' : ''}]`);
-        console.log(`|| 1 -> Auto-fetch Comick [${config?.autoFetchComick ? 'x' : ''}]`);
-        console.log(`|| 2 -> Fetch ??? (WIP)`);
+        console.log(`|| 1 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -124,11 +104,7 @@ async function settingsMenu() {
                 if (config?.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
                 await filehandle('config', config); // writes config.file
                 break;
-            case 1: // autoFetchComick toggle
-                if (config?.autoFetchComick) config = { ...config, autoFetchComick: false }; else config = { ...config, autoFetchComick: true }; // toggling autofetching on Comick
-                await filehandle('config', config); // writes config.file
-                break;
-            case 2: 
+            case 1: 
                 await testFetching();    
                 break;
             case 'e':

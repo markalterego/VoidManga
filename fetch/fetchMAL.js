@@ -70,8 +70,7 @@ async function sortSeriesByStatus (animelist, mangalist, old_lists) {
                 const entry_title = entry.node.title; // MAL_title
                 const result = await handleFilters(ANIME, entry_title, old_lists); // get filters
                 const entry_final = { ...entry, 
-                                        includeInMangadexFetch: result.includeInMangadexFetch, 
-                                        includeInComickFetch: result.includeInComickFetch };
+                                        includeInMangadexFetch: result.includeInMangadexFetch };
                 animemangalist[ANIME][status_index].push(entry_final);
             }
         })
@@ -83,8 +82,7 @@ async function sortSeriesByStatus (animelist, mangalist, old_lists) {
                 const entry_title = entry.node.title; // MAL_title
                 const result = await handleFilters(MANGA, entry_title, old_lists); // get filters
                 const entry_final = { ...entry, 
-                                        includeInMangadexFetch: result.includeInMangadexFetch, 
-                                        includeInComickFetch: result.includeInComickFetch };
+                                        includeInMangadexFetch: result.includeInMangadexFetch };
                 animemangalist[MANGA][status_index].push(entry_final);
             }
         })
@@ -93,20 +91,19 @@ async function sortSeriesByStatus (animelist, mangalist, old_lists) {
 }
 
 async function handleFilters (animeOrManga, title, old_lists) {
-    // the point of handleFilters is to retain the values of 
-    // includeInMangadexFetch & includeInComickFetch, to avoid
-    // having to re-apply the filters on each fetch
+    // the point of handleFilters is to retain the value of 
+    // includeInMangadexFetch to avoid having to re-apply the
+    // filters on each fetch
     // note: this should work even when you move a title from e.g. reading/dropped 
     //       in a way that it still retains the filter for that title
     // note2: from my understanding, there shouldn't be identical titles at MAL under the
     //        the same type of list (anime/manga) but if there are, this will not work as expected
-    let result = { includeInMangadexFetch: false, includeInComickFetch: false };
+    let result = { includeInMangadexFetch: false };
     if (Array.isArray(old_lists)) {
         for (const status of old_lists[animeOrManga]) { // go through old list
             for (const entry of status) { // entry of old list
                 if (entry.node.title === title) { // if same title is found in old list
                     result.includeInMangadexFetch = entry.includeInMangadexFetch; 
-                    result.includeInComickFetch = entry.includeInComickFetch;
                 }
             }
         }

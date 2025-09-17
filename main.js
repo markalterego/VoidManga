@@ -2,26 +2,14 @@ import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { fetchComickOptions, fetchMangadexOptions } from "./helpers/export.js";
+import { fetchMangadexOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
-import { chromium } from "playwright";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 const rl = readline.createInterface({ input , output }); // enabling input/output
-
-// launching and initializing a browser instance
-const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({ // both viewport and userAgent definitions are essential
-    viewport: { width: 1280, height: 800}, 
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-});
-const page = await context.newPage(); // opening a new page in browser
-await page.addInitScript(() => { // runs before loading each site
-    Object.defineProperty(navigator, 'webdriver', { get: () => false }); // I'm not a bot flag
-});
 
 // main
 (async () => {
@@ -39,14 +27,10 @@ await page.addInitScript(() => { // runs before loading each site
         config = { 
             ...config,  
             autoFetchMangadex: false, 
-            autoFetchComick: false,
             logMALOptions: { anime: [], manga: [] },
             fetchMangadexOptions: fetchMangadexOptions, 
-            fetchComickOptions: fetchComickOptions,
             boolDisplayMAL: false,
             boolDisplayMangadex: false,
-            toggleStringSearchComick: false,
-            useFirstResultComick: false
         }; 
         await filehandle('config', config); // writes config.file
     } else {    
@@ -59,10 +43,9 @@ await page.addInitScript(() => { // runs before loading each site
 
 async function cleanup() {
     rl.close(); // closing readline interface
-    await browser.close(); // closing browser instance
 }
 
-export { rl, page }; // exporting readline
+export { rl }; // exporting readline
 
 /*
 TODO (or not to do...)
@@ -77,7 +60,7 @@ TODO (or not to do...)
 
 - make it so that you can update .env username through e.g. settings menu
 
-- could try to make it so that when you fetch chapters from Comick/Mangadex, you could then, by inputting the index next to the found chapter, automatically open said chapter in the browser on a new tab
+- could try to make it so that when you fetch chapters from Mangadex, you could then, by inputting the index next to the found chapter, automatically open said chapter in the browser on a new tab
 
 - idea for MAL logging... e.g. user presses '0' to log watching from MAL, then can press '0' again and by doing that log the index of some specific entry in list (could also only implement this in customLogMAL) 
 */

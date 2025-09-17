@@ -30,14 +30,6 @@ async function customFetchMangadexDisplay (options) {
     console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
 }
 
-async function customFetchComickDisplay (options) {
-    console.log(`\n||\n|| limit_manga: ${options.limit_manga}`);
-    console.log(`|| limit_chapter: ${options.limit_chapter}`);
-    console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
-    console.log(`|| chapterTranslatedLanguage: ${options.chapterTranslatedLanguage}`);
-    console.log(`|| chapterNumber: ${options.chapterNumber}\n||`);
-}
-
 async function menuFetchFiltersDisplay (lists, key) {
     // display current filters
     let selectionFound = false;
@@ -60,4 +52,4 @@ async function menuFetchFiltersDisplay (lists, key) {
     });
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, customFetchComickDisplay, menuFetchFiltersDisplay };
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuFetchFiltersDisplay };
