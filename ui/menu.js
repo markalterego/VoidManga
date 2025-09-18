@@ -1,5 +1,5 @@
 import { fetchMAL } from "../fetch/fetchMAL.js";
-import { fetchMangadex } from "../fetch/fetchMangadex.js";
+// import { fetchMangadex } from "../fetch/fetchMangadex.js";
 import { customLogMAL } from "./customLogMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
@@ -65,7 +65,7 @@ async function rootMenu() {
                     config = { ...config, fetchMangadexOptions: returnArr[0] };
                     await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
                 } else { 
-                    await fetchMangadex(lists, config?.fetchMangadexOptions);
+                    // await fetchMangadex(lists, config?.fetchMangadexOptions);
                 }
                 break;
             case 5: 
