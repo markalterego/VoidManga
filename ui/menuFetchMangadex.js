@@ -2,7 +2,7 @@ import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } fr
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
-import { fetchMangadex } from '../fetch/fetchMangadex.js';
+import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
 
 async function menuFetchMangadex (lists, config) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
@@ -29,7 +29,9 @@ async function menuFetchMangadex (lists, config) {
         {
             case 0:
                 // fetching with given options
-                await fetchMangadex(lists, options);
+                const mangaData = await fetchMangadexMangas(lists, options);
+                await selectMangasFromFetchResults(mangaData);
+                
                 break;
             case 1:
                 // running menu for changing options
@@ -303,6 +305,67 @@ async function changeMangadexOptionMenu (fetchOptions) {
                 console.log('\n|| Please input a valid option');
         }
     }
+}
+
+async function selectMangasFromFetchResults (mangaSearches) {
+    let m = 0, index = 0, highestSelectableIndex = 0, selectedMangas = [];
+
+    while (m !== 's' && m !== 'e') 
+    {
+        // log search results
+        mangaSearches.forEach((mangaSearch, mangaSearchIndex) => {
+            if (mangaSearchIndex === 0) { // header
+                console.log('\n||\n|| Add titles to chapter search:\n||');
+            }
+            console.log(`|| ${mangaSearch.search}:\n||`); // MAL title
+            const searchResults = mangaSearch.searchResults; // results for title
+            if (!searchResults.length) {
+                console.log(`|| - No results for search`);
+            } else {
+                searchResults.forEach((searchResult) => {
+                    const attributes = searchResult.attributes;
+                    const title = attributes.title.en;
+                    console.log(`|| ${index++}: ${title}`);
+                });
+            }
+            console.log('||');
+        });
+        // set highest selectable + reset index
+        highestSelectableIndex = index - 1; index = 0; 
+        // log selected
+        console.log('\n||\n|| Currently selected titles:\n||');
+        if (selectedMangas.length === 0) {
+            console.log('|| - No titles selected\n||');
+        } else {
+            // logging selected titles
+            selectedMangas.forEach((selectedManga) => { 
+                const attributes = selectedManga.attributes;
+                console.log(`|| - ${attributes.title}`); 
+            });
+            console.log('||');
+        }
+        // log e -> exit, s -> search etc...
+        console.log('\n||\n|| s -> Search chapters');
+        console.log('|| c -> Clear selection');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+        
+        // handle user choice
+        if (m >= 0 && m <= highestSelectableIndex) { // adding to search
+            
+        } else if (m === 's') { 
+            if (selectedMangas.length === 0) {
+                console.log('\n||\n|| Select at least one title to perform a search\n||');
+                m = 0;
+            }
+        } else if (m === 'c') { // clear current selection
+            selectedMangas = [];
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+    return selectedMangas;
 }
 
 export { menuFetchMangadex };
