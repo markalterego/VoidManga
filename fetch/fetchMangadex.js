@@ -46,14 +46,16 @@ async function fetchMangadexChapters (selectedMangas, options) {
             const startTimeChapter = performance.now(); // timing chapter fetch start
             const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching chapters of manga
                 params: {
-                    manga: selectedManga.id, // id taken from prior manga endpoint fetch
+                    manga: selectedManga.manga.id, // id taken from prior manga endpoint fetch
                     limit: options.limit_chapter, // preferred fetch length 
                     [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
                     translatedLanguage: options.chapterTranslatedLanguage // filter by preferred translation
                 }
             });
             const finalChapterResponseData = chapterResponse.data.data; // keep only relevant info from results
-            mangaAndChapterInfo.push([selectedManga, finalChapterResponseData]); // push combined manga and chapter info to array 
+            mangaAndChapterInfo.push({ search: selectedManga.search, 
+                                       manga: selectedManga.manga, 
+                                       chapters: finalChapterResponseData }); // push combined manga and chapter info to array 
             const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
             if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit
         }
@@ -72,16 +74,26 @@ async function fetchMangadexChapters (selectedMangas, options) {
 
 async function logMangadex (fetchResults) {
     // <-- log fetched info...
+    // console.dir(fetchResults, {depth: 4});
+
+    fetchResults.forEach((info, infoIndex) => {
+        const manga = info.manga;
+        const chapters = info.chapters;
+        if (infoIndex === 0) console.log();
+        console.log(`||\n|| ${manga.attributes.title.en}:\n||`);
+        chapters.forEach((chapter) => {
+            const title = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
+            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : 'No Chapter Number'; // chapter number
+            const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
+            const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
+            // <-- logic for '{( Unread! )}' here when I got the time
+            console.log(`|| ${chNum} - ${transLang} - ${title} - ${link}`);
+        });
+        if (chapters.length === 0) {
+            console.log('|| - No chapters found');
+        }
+        if (infoIndex === fetchResults.length - 1) console.log('||');
+    }); 
 }
 
-// const chapter = chapterResponse.data.data[i]; // chapter info
-// const transLang = chapter.attributes?.translatedLanguage ? chapter.attributes.translatedLanguage + ' - ' : ''; // chapter translation language
-// const title = chapter.attributes?.title ? chapter.attributes.title + ' - ' : 'No title - '; // chapter title
-// const number = chapter.attributes?.chapter; // chapter number
-// const numberAsText = number !== undefined ? number + ' - ' : 'No chapter number - '; // chapter number as string
-// const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
-// const newChapter = parseInt(number, 10) > entry.list_status?.num_chapters_read ? ' {( Unread! )}' : ''; // appends 'unread' when chapter is unread
-// console.log(`> ${title}${numberAsText}${transLang}${link}${newChapter}`);
-// countFoundChapter++;
-
-export { fetchMangadexMangas, fetchMangadexChapters };
+export { fetchMangadexMangas, fetchMangadexChapters, logMangadex };
