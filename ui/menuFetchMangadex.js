@@ -2,7 +2,7 @@ import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } fr
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
-import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
+import { fetchMangadexMangas, fetchMangadexChapters, logMangadex } from '../fetch/fetchMangadex.js';
 
 async function menuFetchMangadex (lists, config) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
@@ -30,8 +30,17 @@ async function menuFetchMangadex (lists, config) {
             case 0:
                 // fetching with given options
                 const mangaData = await fetchMangadexMangas(lists, options);
-                await selectMangasFromFetchResults(mangaData);
-                
+                const selectedMangas = await selectMangasFromFetchResults(mangaData);
+                if (selectedMangas.length === 0) {
+                    console.log('\n||\n|| No mangas were selected\n||');
+                } else {
+                    const combinedData = await fetchMangadexChapters(selectedMangas, options);
+                    if (combinedData.length === 0) {
+                        console.log('\n||\n|| No chapters were found\n||');
+                    } else {
+                        await logMangadex(combinedData); // logging fetched data
+                    }
+                }
                 break;
             case 1:
                 // running menu for changing options
