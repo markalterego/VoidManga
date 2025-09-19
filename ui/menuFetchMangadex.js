@@ -339,8 +339,8 @@ async function selectMangasFromFetchResults (mangaSearches) {
         } else {
             // logging selected titles
             selectedMangas.forEach((selectedManga) => { 
-                const attributes = selectedManga.attributes;
-                console.log(`|| - ${attributes.title}`); 
+                const attributes = selectedManga.manga.attributes;
+                console.log(`|| - ${attributes.title.en}`); 
             });
             console.log('||');
         }
@@ -353,15 +353,28 @@ async function selectMangasFromFetchResults (mangaSearches) {
         
         // handle user choice
         if (m >= 0 && m <= highestSelectableIndex) { // adding to search
-            
+            mangaSearches.forEach((mangaSearch) => { // manga search
+                const search = mangaSearch.search;
+                const searchResults = mangaSearch.searchResults;
+                searchResults.forEach((searchResult) => { // results for search
+                    if (index === m) { // index matches user given choice
+                        const isDuplicate = selectedMangas.find((selected) => selected.manga.id === searchResult.id);
+                        if (!isDuplicate) {
+                            selectedMangas.push({manga: searchResult, search: search}); // pushing selected to selected
+                        }
+                    }
+                    index++;
+                }); 
+            });
+            index = 0;
         } else if (m === 's') { 
             if (selectedMangas.length === 0) {
                 console.log('\n||\n|| Select at least one title to perform a search\n||');
                 m = 0;
             }
-        } else if (m === 'c') { // clear current selection
+        } else if (m === 'c' || m === 'e') { // clear current selection
             selectedMangas = [];
-        } else if (m !== 'e') {
+        } else {
             console.log('\n|| Please input a valid option');
         }
     }
