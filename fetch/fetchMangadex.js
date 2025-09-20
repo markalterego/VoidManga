@@ -18,7 +18,13 @@ async function fetchMangadexMangas (lists, options) {
                                 contentRating: options.contentRating // includes preferred contentRatings
                             }
                         });
-                        const finalMangaResponseData = { searchResults: mangaResponse.data.data, search: entry.node.title }; // searchResults + search
+                        const finalMangaResponseData = { searchResults: mangaResponse.data.data, // searchResults 
+                                                         search: { // relevant MAL info
+                                                            title: entry.node.title, // title used for search
+                                                            id: entry.node.id, // MAL id
+                                                            type: type === 0 ? 'anime' : 'manga', // list type
+                                                            progress: type === 0 ? entry.list_status.num_episodes_watched : entry.list_status.num_chapters_read // episodes watched/chapers read
+                                                        }}; 
                         searchResults.push(finalMangaResponseData); // appending search results to array
                         const mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for fetch
                         if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
@@ -76,18 +82,30 @@ async function logMangadex (fetchResults) {
     // <-- log fetched info...
     // console.dir(fetchResults, {depth: 4});
 
+    // TODO:
+    // - make it possible to open links by inputting the index next to said link
+    //   through the ui
+    // - consider formatting stuff earlier in code e.g. separate formatting function
+    //   for taking first mangatitle's etc.etc.....
+
     fetchResults.forEach((info, infoIndex) => {
         const manga = info.manga;
+        const mangaTitle = Object.values(manga.attributes.title)[0]; // first title of titles
         const chapters = info.chapters;
+        const search = info.search;
         if (infoIndex === 0) console.log();
-        console.log(`||\n|| ${manga.attributes.title.en}:\n||`);
+        console.log(`||\n|| ${mangaTitle}:\n||`);
         chapters.forEach((chapter) => {
             const title = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
-            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : 'No Chapter Number'; // chapter number
+            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
+            const chNumString = chNum >= 0 ? chNum : 'No Chapter Number'; // chapter number as string
             const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
             const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
-            // <-- logic for '{( Unread! )}' here when I got the time
-            console.log(`|| ${chNum} - ${transLang} - ${title} - ${link}`);
+            const unreadTag = search.type === 1 && // is manga
+                              search.id === manga.attributes.links.mal && // is same id 
+                              search.progress < chNum ? // progress < chNum
+                              '- {( Unread! )}' : ''; 
+            console.log(`|| ${chNumString} - ${transLang} - ${title} - ${link} ${unreadTag}`);
         });
         if (chapters.length === 0) {
             console.log('|| - No chapters found');
