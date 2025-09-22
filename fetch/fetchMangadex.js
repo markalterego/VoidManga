@@ -1,5 +1,7 @@
 import axios from 'axios';
+import open from 'open';
 import { setTimeout } from "timers/promises";
+import { takeUserInput } from '../helpers/functions.js';
 // import { toZonedTime, format } from 'date-fns-tz'; 
 
 async function fetchMangadexMangas (lists, options) {
@@ -19,7 +21,7 @@ async function fetchMangadexMangas (lists, options) {
                             }
                         });
                         const finalMangaResponseData = { searchResults: mangaResponse.data.data, // searchResults 
-                                                         search: { // relevant MAL info
+                                                         query: { // relevant MAL info
                                                             title: entry.node.title, // title used for search
                                                             id: entry.node.id, // MAL id
                                                             type: type === 0 ? 'anime' : 'manga', // list type
@@ -58,8 +60,12 @@ async function fetchMangadexChapters (selectedMangas, options) {
                     translatedLanguage: options.chapterTranslatedLanguage // filter by preferred translation
                 }
             });
-            const finalChapterResponseData = chapterResponse.data.data; // keep only relevant info from results
-            mangaAndChapterInfo.push({ search: selectedManga.search, 
+            const finalChapterResponseData = (() => { // keep only relevant info from results
+                return chapterResponse.data.data.map((chapter) => {
+                    return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
+                }); 
+            })();
+            mangaAndChapterInfo.push({ query: selectedManga.query, 
                                        manga: selectedManga.manga, 
                                        chapters: finalChapterResponseData }); // push combined manga and chapter info to array 
             const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
@@ -79,6 +85,7 @@ async function fetchMangadexChapters (selectedMangas, options) {
 }
 
 async function logMangadex (fetchResults) {
+    let m = null, selectableIndex = 0;
     // <-- log fetched info...
     // console.dir(fetchResults, {depth: 4});
 
@@ -87,31 +94,48 @@ async function logMangadex (fetchResults) {
     //   through the ui
     // - consider formatting stuff earlier in code e.g. separate formatting function
     //   for taking first mangatitle's etc.etc.....
-
-    fetchResults.forEach((info, infoIndex) => {
-        const manga = info.manga;
-        const mangaTitle = Object.values(manga.attributes.title)[0]; // first title of titles
-        const chapters = info.chapters;
-        const search = info.search;
-        if (infoIndex === 0) console.log();
-        console.log(`||\n|| ${mangaTitle}:\n||`);
-        chapters.forEach((chapter) => {
-            const title = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
-            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
-            const chNumString = chNum >= 0 ? chNum : 'No Chapter Number'; // chapter number as string
-            const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-            const link = 'https://mangadex.org/chapter/' + chapter.id; // link to chapter
-            const unreadTag = search.type === 1 && // is manga
-                              search.id === manga.attributes.links.mal && // is same id 
-                              search.progress < chNum ? // progress < chNum
-                              '- {( Unread! )}' : ''; 
-            console.log(`|| ${chNumString} - ${transLang} - ${title} - ${link} ${unreadTag}`);
-        });
-        if (chapters.length === 0) {
-            console.log('|| - No chapters found');
+    while (m !== 'e') {   
+        let infoIndex = 0;
+        for (const search of fetchResults) {
+            const manga = search.manga;
+            const mangaTitle = Object.values(manga.attributes.title)[0]; // first title of titles
+            const query = search.query;
+            if (infoIndex === 0) console.log();
+            console.log(`||\n|| ${mangaTitle}:\n||`);
+            for (const chapter of search.chapters) {
+                const title = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
+                const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
+                const chNumString = chNum >= 0 ? chNum : 'No Chapter Number'; // chapter number as string
+                const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
+                const unreadTag = query.type === 1 && // is manga
+                                  query.id === manga.attributes.links.mal && // is same id 
+                                  query.progress < chNum ? // progress < chNum
+                                  '- {( Unread! )}' : ''; 
+                console.log(`|| ${selectableIndex++}: ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${title} (${transLang}) ${unreadTag}`);
+            }
+            if (search.chapters.length === 0) {
+                console.log('|| - No chapters found');
+            }
+            if (infoIndex === fetchResults.length - 1) console.log('||');
         }
-        if (infoIndex === fetchResults.length - 1) console.log('||');
-    }); 
+        
+        m = await takeUserInput();
+
+        if (m >= 0 && m <= selectableIndex - 1) {
+            let i = 0; 
+            for (const search of fetchResults) {
+                for (const chapter of search.chapters) {
+                    if (i === m) { // highest selectable index
+                        await open(chapter.link) // open chapter in browser
+                    }
+                    i++;
+                }
+            }
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }    
+        selectableIndex = 0;
+    }
 }
 
 export { fetchMangadexMangas, fetchMangadexChapters, logMangadex };
