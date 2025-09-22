@@ -16,7 +16,8 @@
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
     "date-fns-tz": "^3.2.0",
-    "dotenv": "^16.4.7"
+    "dotenv": "^16.4.7",
+    "open": "^10.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
