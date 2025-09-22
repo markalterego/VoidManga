@@ -330,7 +330,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
             if (mangaSearchIndex === 0) { // header
                 console.log('\n||\n|| Add titles to chapter search:\n||');
             }
-            console.log(`|| ${mangaSearch.search.title}:\n||`); // MAL title
+            console.log(`|| ${mangaSearch.query.title}:\n||`); // MAL title
             const searchResults = mangaSearch.searchResults; // results for title
             if (!searchResults.length) {
                 console.log(`|| - No results for search`);
@@ -338,9 +338,9 @@ async function selectMangasFromFetchResults (mangaSearches) {
                 searchResults.forEach((searchResult) => {
                     const attributes = searchResult.attributes;
                     const title = Object.values(attributes.title)[0]; // title
-                    const malId = mangaSearch.search.id; // MAL id
+                    const malId = mangaSearch.query.id; // MAL id
                     const linkId = parseInt(searchResult.attributes.links?.mal, 10); // Mangadex manga data sometimes has e.g. '85173' from 'https://myanimelist.net/manga/85173'
-                    const sameIdTag = mangaSearch.search.type === 'manga' ? (malId === linkId ? '<-- Perfect Match!!!' : '') : ''; // exact same id and type
+                    const sameIdTag = mangaSearch.query.type === 'manga' ? (malId === linkId ? '<-- Perfect Match!!!' : '') : ''; // exact same id and type
                     console.log(`|| ${index++}: ${title} ${sameIdTag}`);
                 });
             }
@@ -370,13 +370,13 @@ async function selectMangasFromFetchResults (mangaSearches) {
         // handle user choice
         if (m >= 0 && m <= highestSelectableIndex) { // adding to search
             mangaSearches.forEach((mangaSearch) => { // manga search
-                const search = mangaSearch.search;
+                const search = mangaSearch.query;
                 const searchResults = mangaSearch.searchResults;
                 searchResults.forEach((searchResult) => { // results for search
                     if (index === m) { // index matches user given choice
                         const isDuplicate = selectedMangas.find((selected) => selected.manga.id === searchResult.id);
                         if (!isDuplicate) {
-                            selectedMangas.push({manga: searchResult, search: search}); // pushing selected to selected
+                            selectedMangas.push({manga: searchResult, query: search}); // pushing selected to selected
                         }
                     }
                     index++;
