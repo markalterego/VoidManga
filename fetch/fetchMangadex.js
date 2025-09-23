@@ -84,31 +84,29 @@ async function fetchMangadexChapters (selectedMangas, options) {
     }
 }
 
-async function logMangadex (fetchResults) {
-    let m = null, selectableIndex = 0;
-    // <-- log fetched info...
-    // console.dir(fetchResults, {depth: 4});
+async function openMangadexChaptersInBrowser (fetchResults) {
+    let m = null;
+    // console.dir(fetchResults, {depth: null});
 
     // TODO:
-    // - make it possible to open links by inputting the index next to said link
-    //   through the ui
     // - consider formatting stuff earlier in code e.g. separate formatting function
     //   for taking first mangatitle's etc.etc.....
+    // - consider moving this function to menuFetchMangadex.js instead
+
     while (m !== 'e') {   
-        let infoIndex = 0;
+        console.log('\n||\n|| Open chapter in browser:');
+        let searchIndex = 0, selectableIndex = 0; // used for formatting
         for (const search of fetchResults) {
             const manga = search.manga;
             const mangaTitle = Object.values(manga.attributes.title)[0]; // first title of titles
             const query = search.query;
-            if (infoIndex === 0) console.log();
             console.log(`||\n|| ${mangaTitle}:\n||`);
             for (const chapter of search.chapters) {
                 const title = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
                 const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
-                const chNumString = chNum >= 0 ? chNum : 'No Chapter Number'; // chapter number as string
                 const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-                const unreadTag = query.type === 1 && // is manga
-                                  query.id === manga.attributes.links.mal && // is same id 
+                const unreadTag = query.type === 'manga' && // is manga
+                                  query.id === parseInt(manga.attributes.links?.mal, 10) && // is same id 
                                   query.progress < chNum ? // progress < chNum
                                   '- {( Unread! )}' : ''; 
                 console.log(`|| ${selectableIndex++}: ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${title} (${transLang}) ${unreadTag}`);
@@ -116,15 +114,18 @@ async function logMangadex (fetchResults) {
             if (search.chapters.length === 0) {
                 console.log('|| - No chapters found');
             }
-            if (infoIndex === fetchResults.length - 1) console.log('||');
+            if (searchIndex === fetchResults.length - 1) console.log('||');
+            searchIndex++; 
         }
+        console.log('\n||\n|| e -> Go back\n||');
         
-        m = await takeUserInput();
+        m = await takeUserInput(); // get user input
 
+        // handle user input
         if (m >= 0 && m <= selectableIndex - 1) {
             let i = 0; 
-            for (const search of fetchResults) {
-                for (const chapter of search.chapters) {
+            for (const search of fetchResults) { // searches
+                for (const chapter of search.chapters) { // chapters
                     if (i === m) { // highest selectable index
                         await open(chapter.link) // open chapter in browser
                     }
@@ -138,4 +139,115 @@ async function logMangadex (fetchResults) {
     }
 }
 
-export { fetchMangadexMangas, fetchMangadexChapters, logMangadex };
+export { fetchMangadexMangas, fetchMangadexChapters, openMangadexChaptersInBrowser };
+
+/*
+    fetchResults complete layout (2025/09/23):
+    [   
+        {
+            query: {
+                title: string,
+                id: num,
+                type: string, (anime/manga)
+                progress: num
+            },
+            manga: {
+                id: string,
+                type: string,
+                attributes: {
+                    title: {
+                        ?: string, (language code)
+                        etc...                    
+                    },
+                    altTitles: [
+                        ?: string, (language code)
+                        etc...
+                    ],
+                    description: {
+                        ?: string, (language code)
+                        etc...
+                    },
+                    isLocked: boolean,
+                    links: {
+                        ?: string, (e.g. mal)
+                        etc...
+                    },
+                    originalLanguage: string,
+                    lastVolume: string,
+                    lastChapter: string,
+                    publicationDemographic: string, (e.g. shounen)
+                    status: string, (e.g. completed)
+                    year: num,
+                    contentRating: string, (e.g. suggestive)
+                    tags: [
+                        {
+                            id: string
+                            type: string
+                            attributes: {
+                                name: {
+                                    ?: string (e.g. action)
+                                },
+                                description: {
+                                    ?: string
+                                },
+                                group: string,
+                                version: num
+                            },       
+                            relationships: [
+                                ?: ?
+                            ]
+                        },
+                        etc...
+                    ],
+                    state: string, (e.g. published)
+                    chapterNumbersResetOnNewVolume: boolean,
+                    createdAt: string,
+                    updatedAt: string,
+                    version: num,
+                    availableTranslatedLanguages: [
+                        ?: string, (e.g. en)
+                        etc...
+                    ],
+                    latestUploadedChapter: string, (id of latest uploaded chapter)
+                }, // attributes end
+                relationships: [
+                    {
+                        id: string,
+                        type: string (e.g. author)
+                    },
+                    etc...
+                ]
+            }, // manga end
+            chapters: [
+                {
+                    id: string,
+                    type: string,
+                    attributes: {
+                        volume: string,
+                        chapter: string,
+                        title: string,
+                        translatedLanguage: string,
+                        externalUrl: ???,
+                        isUnavailable: boolean,
+                        publishAt: string,
+                        readableAt: string,
+                        createdAt: string,
+                        updatedAt: string,
+                        pages: num,
+                        version: num
+                    },
+                    relationships: [
+                        {
+                            id: string,
+                            type: string
+                        },
+                        etc...
+                    ],
+                    link: string
+                },
+                etc...
+            ] 
+        }, // fetchResult end
+        etc...
+    ]
+*/
