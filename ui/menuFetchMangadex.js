@@ -2,7 +2,7 @@ import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } fr
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
-import { fetchMangadexMangas, fetchMangadexChapters, logMangadex } from '../fetch/fetchMangadex.js';
+import { fetchMangadexMangas, fetchMangadexChapters, openMangadexChaptersInBrowser } from '../fetch/fetchMangadex.js';
 
 async function menuFetchMangadex (lists, config) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
@@ -31,14 +31,15 @@ async function menuFetchMangadex (lists, config) {
                 // fetching with given options
                 const mangaData = await fetchMangadexMangas(lists, options);
                 const selectedMangas = await selectMangasFromFetchResults(mangaData);
-                if (selectedMangas.length === 0) {
+                if (selectedMangas.length === 0) { // no mangas selected
                     console.log('\n||\n|| No mangas were selected\n||');
                 } else {
                     const combinedData = await fetchMangadexChapters(selectedMangas, options);
-                    if (combinedData.length === 0) {
+                    const hasChapters = combinedData.some(search => search.chapters.length > 0); 
+                    if (!hasChapters) { // no chapters found
                         console.log('\n||\n|| No chapters were found\n||');
                     } else {
-                        await logMangadex(combinedData); // logging fetched data
+                        await openMangadexChaptersInBrowser(combinedData); // logging fetched data
                     }
                 }
                 break;
