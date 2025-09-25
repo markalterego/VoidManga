@@ -4,7 +4,7 @@ import { setTimeout } from "timers/promises";
 
 async function fetchMangadexMangas (lists, options) {
     try {
-        let searchResults = [];
+        let mangaEndpointFetchResults = [];
         for (const type of lists) { // anime/manga
             for (const status of type) { // status
                 for (const entry of status) { // entry
@@ -25,14 +25,14 @@ async function fetchMangadexMangas (lists, options) {
                                                             type: type === 0 ? 'anime' : 'manga', // list type
                                                             progress: type === 0 ? entry.list_status.num_episodes_watched : entry.list_status.num_chapters_read // episodes watched/chapers read
                                                         }}; 
-                        searchResults.push(finalMangaResponseData); // appending search results to array
+                        mangaEndpointFetchResults.push(finalMangaResponseData); // appending search results to array
                         const mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for fetch
                         if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
                     }
                 }
             }
         }
-        return searchResults; // return searchResults for all manga searches
+        return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
         if (error.response) {
             console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
@@ -83,3 +83,39 @@ async function fetchMangadexChapters (selectedMangas, options) {
 }
 
 export { fetchMangadexMangas, fetchMangadexChapters };
+
+/* 
+fetchMangadexMangas:
+
+parameters: 
+    - lists -- essentially an array [animelist, mangalist] (extended format explanation found at the bottom of /ui/menu.js) 
+    - options -- an object currently consisting of 8 properties (baseline definition of the object found at /helpers/export.js)
+
+purpose:
+    - fetch Mangadex endpoint for Mangadex mangas (https://api.mangadex.org/manga)
+
+logic:
+    - every lists entry -- anime- or mangalist -- is in the format of an object: 
+    { 
+        node, (object)
+        list_status, (object)
+        includeInMangadexFetch (boolean)
+    } 
+    - the function checks includeInMangadexFetch for each entry in lists and in case includeInMangadexFetch
+      is set to true, uses the title of the entry (entry.node.title) to fetch the manga endpoint
+    - if neither parameter is defined, the function will return an empty array
+    - each result returned by the manga endpoint will be formatted and then pushed into mangaEndpointFetchResults:
+    - after lists is iterated and checked through completely, mangaEndpointFetchResults is returned by the function
+      in the format of  
+    [
+        {
+            searchResults, (array)
+            query: {
+                title, (string) -- MAL title used in search
+                id, (num)
+                type, (string) -- anime/manga
+            }
+        },
+        etc...
+    ] 
+*/
