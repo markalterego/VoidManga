@@ -84,8 +84,7 @@ async function fetchMangadexChapters (selectedMangas, options) {
 
 export { fetchMangadexMangas, fetchMangadexChapters };
 
-/* 
-fetchMangadexMangas:
+/* fetchMangadexMangas:
 
 parameters: 
     - lists -- essentially an array [animelist, mangalist] (extended format explanation found at the bottom of /ui/menu.js) 
@@ -107,12 +106,12 @@ logic:
       uses specifically the properties: limit_manga, mangaOrderType, mangaOrderDirection and contentRating 
 
     - if neither parameter is defined, the function will return an empty array
-    - each result returned by the manga endpoint will be formatted and then pushed into mangaEndpointFetchResults:
+    - each result returned by the manga endpoint will be formatted and then pushed into mangaEndpointFetchResults
     - after lists is iterated and checked through completely, mangaEndpointFetchResults is returned by the function
-      in the format of  
+      in the format of:
     [
         {
-            searchResults, (array)
+            searchResults, (array) -- found mangas
             query: {
                 title, (string) -- MAL title used in search
                 id, (num)
@@ -121,4 +120,40 @@ logic:
         },
         etc...
     ] 
+*/
+
+/* fetchMangadexChapters:
+
+parameters:
+    - selectedMangas -- an array in format [ {manga, query}, etc... ] (constructed at ./menuFetchMangadex.js -- selectMangasFromFetchResults)
+    - options -- an object currently consisting of 8 properties (more info at /helpers/export.js)
+
+purpose:
+    - fetch Mangadex endpoint for Mangadex chapters (https://api.mangadex.org/chapter)
+
+logic:
+    - fetchMangadexChapters goes through parameter selectedMangas in the format:   
+    [
+        {
+            manga, (obj) -- consist of info about user selected manga
+            query (obj) -- the same query appended to each search at fetchMangadexMangas
+        },
+        etc..
+    ]
+    - for each object stored inside the array, the function will perform one fetch of endpoint
+    - for the fetch itself, the function uses specifically manga.id to perform the search itself
+    - for the server-side formatting of the results returned by the endpoint, the function will use a few properties of the options
+      parameter, specifically: limit_chapter, chapterOrderType, chapterOrderDirection and chapterTranslatedLanguage 
+
+    - each result returned by the manga endpoint will be formatted and then pushed into mangaAndChapterInfo
+    - after the parameter selectedMangas is looped through entirely, the function will return mangaAndChapterInfo 
+      in the format of:
+    [
+        {
+            query, (obj) -- info that was used to fetch the manga and chapter endpoints
+            manga, (obj) -- info about the manga the chapters were fetched of
+            chapters (array) -- found chapters for the given parameters
+        },
+        etc...
+    ]
 */
