@@ -89,7 +89,7 @@ fetchMangadexMangas:
 
 parameters: 
     - lists -- essentially an array [animelist, mangalist] (extended format explanation found at the bottom of /ui/menu.js) 
-    - options -- an object currently consisting of 8 properties (baseline definition of the object found at /helpers/export.js)
+    - options -- an object currently consisting of 8 properties (more info at /helpers/export.js)
 
 purpose:
     - fetch Mangadex endpoint for Mangadex mangas (https://api.mangadex.org/manga)
@@ -103,6 +103,9 @@ logic:
     } 
     - the function checks includeInMangadexFetch for each entry in lists and in case includeInMangadexFetch
       is set to true, uses the title of the entry (entry.node.title) to fetch the manga endpoint
+    - the options parameter affects what type of data is returned by the endpoint and in this context, the function
+      uses specifically the properties: limit_manga, mangaOrderType, mangaOrderDirection and contentRating 
+
     - if neither parameter is defined, the function will return an empty array
     - each result returned by the manga endpoint will be formatted and then pushed into mangaEndpointFetchResults:
     - after lists is iterated and checked through completely, mangaEndpointFetchResults is returned by the function
