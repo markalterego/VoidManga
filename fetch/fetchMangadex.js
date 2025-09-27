@@ -47,6 +47,10 @@ async function fetchMangadexMangas (lists, options) {
 
 async function fetchMangadexChapters (selectedMangas, options) {
     try {
+        // TODO: 
+        // - use ids[] params of /chapter endpoint to reduce the 
+        //   number of fetches made to the endpoint 
+
         let mangaAndChapterInfo = [];
         for (const selectedManga of selectedMangas) {
             const startTimeChapter = performance.now(); // timing chapter fetch start
