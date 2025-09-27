@@ -77,7 +77,7 @@ async function menuFetchMangadex (lists, config) {
 
 async function changeMangadexOptionMenu (fetchOptions) {
     const options = fetchOptions;
-    let m = 0, i = 0, key = null;
+    let m = 0, i = 0;
 
     while (m !== 'e') 
     {
@@ -94,11 +94,11 @@ async function changeMangadexOptionMenu (fetchOptions) {
         i = 0; // resetting index
 
         m = await takeUserInput(); // get user input
+        const key = Object.keys(options)[m]; // selected key of options
 
-        switch (m)
+        switch (key)
         {
-            case 0: // limit_manga
-                key = Object.keys(options)[m];
+            case 'limit_manga':
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -111,17 +111,15 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // setting the given option
                     if (m > -1 && m < 101) {
-                        options.limit_manga = m;
+                        options[key] = m;
                     } else if (m > 100 || m < 0) {
                         console.log('\n|| The given value has to be be between 0-100');
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 1: // limit_chapter
-                key = Object.keys(options)[m];
+            case 'limit_chapter': 
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -134,17 +132,40 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // setting the given option
                     if (m > -1 && m < 101) {
-                        options.limit_chapter = m;
+                        options[key] = m;
                     } else if (m > 100 || m < 0) {
                         console.log('\n|| The given value has to be be between 0-100');
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }    
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 2: // mangaOrderType
-                key = Object.keys(options)[m];
+            case 'offset_chapter':
+                while (m !== 'e') 
+                {
+                    // logs currently selected options
+                    await customFetchMangadexDisplay(options);
+                    
+                    // offset is counted to request length and the maximum allowed request size is 10000, 
+                    // therefore maxOffset can be at maximum the difference of 10000 and limit_chapter 
+                    const maxOffset = 10000 - options.limit_chapter; 
+
+                    console.log(`\n||\n|| Input a value between 0-${maxOffset} (${key})\n||`);
+                    console.log('|| e -> Go back\n||');
+
+                    m = await takeUserInput(); // get user input
+
+                    // setting the given option
+                    if (m >= 0 && m <= maxOffset) {
+                        options[key] = m;
+                    } else if (m < 0 || m > maxOffset) {
+                        console.log(`\n|| The given value has to be between 0 and ${maxOffset}`);
+                    } else if (m !== 'e') {
+                        console.log('\n|| Please input a valid option');
+                    }
+                }    
+                break;
+            case 'mangaOrderType':
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -160,15 +181,13 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // setting the given option
                     if (m > -1 && m < mangaOrderTypes.length) {
-                        options.mangaOrderType = mangaOrderTypes[m];
+                        options[key] = mangaOrderTypes[m];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 3: // chapterOrderType
-                key = Object.keys(options)[m];
+            case 'chapterOrderType':
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -184,15 +203,13 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // setting the given option
                     if (m > -1 && m < chapterOrderTypes.length) {
-                        options.chapterOrderType = chapterOrderTypes[m];
+                        options[key] = chapterOrderTypes[m];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 4: // mangaOrderDirection
-                key = Object.keys(options)[m];
+            case 'mangaOrderDirection':
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -208,15 +225,13 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // setting the given option
                     if (m > -1 && m < orderDirections.length) {
-                        options.mangaOrderDirection = orderDirections[m];
+                        options[key] = orderDirections[m];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 5: // chapterOrderDirection
-                key = Object.keys(options)[m];
+            case 'chapterOrderDirection':
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -232,15 +247,13 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // setting the given option
                     if (m > -1 && m < orderDirections.length) {
-                        options.chapterOrderDirection = orderDirections[m];
+                        options[key] = orderDirections[m];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 6: // contentRating
-                key = Object.keys(options)[m];
+            case 'contentRating':
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -251,27 +264,25 @@ async function changeMangadexOptionMenu (fetchOptions) {
                         console.log(`|| ${index} -> ${value}`);
                     });
                     console.log(`|| ${contentRatings.length} -> Select all`);
-                    console.log(`|| ${contentRatings.length+1} -> Clear ratings`);
+                    console.log(`|| c -> Clear ratings`);
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
 
                     // setting option / clearing options
                     if (m > -1 && m < contentRatings.length) {
-                        options.contentRating.push(contentRatings[m]); 
-                        options.contentRating = [...new Set(options.contentRating)]; // get rid of duplicate values
+                        options[key].push(contentRatings[m]); 
+                        options[key] = [...new Set(options[key])]; // get rid of duplicate values
                     } else if (m === contentRatings.length) {
-                        options.contentRating = [...contentRatings];
-                    } else if (m === contentRatings.length+1) {
-                        options.contentRating = [];
+                        options[key] = [...contentRatings];
+                    } else if (m === 'c') {
+                        options[key] = [];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 7: // chapterTranslatedLanguage
-                key = Object.keys(options)[m];
+            case 'chapterTranslatedLanguage': 
                 while (m !== 'e') 
                 {
                     // logs currently selected options
@@ -303,24 +314,21 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                     // handling menu choice
                     if (m >= 0 && m < chapterTranslatedLanguages.length) { // pre-defined language options
-                        options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[m]);
-                        options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
+                        options[key].push(chapterTranslatedLanguages[m]);
+                        options[key] = [...new Set(options[key])]; // filter duplicates
                     } else if (m === 'c') { // clear current translatedLanguage options 
-                        options.chapterTranslatedLanguage = []; 
+                        options[key] = []; 
                     } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
-                        options.chapterTranslatedLanguage.push(m);
-                        options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
+                        options[key].push(m);
+                        options[key] = [...new Set(options[key])]; // filter duplicates
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
                 }
-                m = null; // ensuring upper menu doesn't exit
                 break;
-            case 'e':
-                break;
-            default: 
-                console.log('\n|| Please input a valid option');
         }
+        if (key) m = null; // ensuring upper menu doesn't exit
+        else if (m !== 'e') console.log('\n|| Please input a valid option'); // invalid input
     }
 }
 
