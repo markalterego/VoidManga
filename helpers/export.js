@@ -1,12 +1,13 @@
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 export const fetchMangadexOptions = { 
-    limit_manga: null, // default: 10, min: 0, max is 100
-    limit_chapter: null, // default: 10, min: 0, max is 100 
-    mangaOrderType: null, // 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
-    chapterOrderType: null, // 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
-    mangaOrderDirection: null, // 'asc', 'desc'
-    chapterOrderDirection: null, // 'asc', 'desc'
+    limit_manga: 10, // default: 10, min: 0, max is 100
+    limit_chapter: 10, // default: 10, min: 0, max is 100 
+    offset_chapter: 0, // default: 0, min: 0, max is ???
+    mangaOrderType: 'relevance', // 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
+    chapterOrderType: 'chapter', // 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
+    mangaOrderDirection: 'desc', // 'asc', 'desc'
+    chapterOrderDirection: 'desc', // 'asc', 'desc'
     contentRating: [], // ['safe','etc...'], undefined for default behavior
     chapterTranslatedLanguage: [], // ['en','es','etc...'], undefined for all languages
 };
