@@ -23,6 +23,7 @@ async function clearScreen() {
 async function customFetchMangadexDisplay (options) {
     console.log(`\n||\n|| limit_manga: ${options.limit_manga}`);
     console.log(`|| limit_chapter: ${options.limit_chapter}`);
+    console.log(`|| offset_chapter: ${options.offset_chapter}`);
     console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
     console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
     console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
