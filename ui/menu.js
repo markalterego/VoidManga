@@ -117,8 +117,7 @@ async function settingsMenu() {
 
 export { menu };
 
-/*
-Understanding the layout of lists:
+/* Understanding the layout of lists:
 
 lists[0]... = animelist 
     ...[0] = watching 
