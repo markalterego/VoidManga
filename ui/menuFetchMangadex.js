@@ -27,7 +27,7 @@ async function menuFetchMangadex (lists, config) {
         console.log('|| 0 -> Fetch with options');
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Filter MAL titles');
-        console.log('|| 3 -> Empty options');
+        console.log('|| 3 -> Reset default options');
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -64,12 +64,12 @@ async function menuFetchMangadex (lists, config) {
                 await filterEntriesFromFetch(lists, 'includeInMangadexFetch');
                 break;
             case 3:
-                // emptying / nullifying all options
-                for (const key in options) {
-                    if (!Array.isArray(options[key])) options[key] = null;
-                    else options[key] = [];
-                }
-                console.log('\n||\n|| Cleared all selected options\n||');
+                // re-assigning default options from fetchMangadexOptions to options
+                Object.keys(options).forEach((key) => {
+                    const value = fetchMangadexOptions[key];
+                    options[key] = Array.isArray(options[key]) ? [...value] : value;
+                });
+                console.log('\n||\n|| Options reset to default\n||');
                 break;
             case 'e':
                 break;
