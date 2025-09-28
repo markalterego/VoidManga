@@ -37,16 +37,21 @@ async function menuFetchMangadex (lists, config) {
             case 0:
                 // fetching with given options
                 const mangaData = await fetchMangadexMangas(lists, options);
-                const selectedMangas = await selectMangasFromFetchResults(mangaData);
-                if (selectedMangas.length === 0) { // no mangas selected
-                    console.log('\n||\n|| No mangas were selected\n||');
+                const foundManga = mangaData.some(mangaSearch => mangaSearch.searchResults?.length > 0); // mangas found for at least one search
+                if (!foundManga) {
+                    console.log('\n||\n|| No mangas were found\n||');
                 } else {
-                    const combinedData = await fetchMangadexChapters(selectedMangas, options);
-                    const hasChapters = combinedData.some(search => search.chapters.length > 0); 
-                    if (!hasChapters) { // no chapters found
-                        console.log('\n||\n|| No chapters were found\n||');
+                    const selectedMangas = await selectMangasFromFetchResults(mangaData);
+                    if (selectedMangas.length === 0) { // no mangas selected
+                        console.log('\n||\n|| No mangas were selected\n||');
                     } else {
-                        await openChaptersInBrowserMenu(combinedData); // logging fetched data
+                        const combinedData = await fetchMangadexChapters(selectedMangas, options);
+                        const hasChapters = combinedData.some(search => search.chapters.length > 0); 
+                        if (!hasChapters) { // no chapters found
+                            console.log('\n||\n|| No chapters were found\n||');
+                        } else {
+                            await openChaptersInBrowserMenu(combinedData); // logging fetched data
+                        }
                     }
                 }
                 break;
@@ -438,7 +443,7 @@ async function openChaptersInBrowserMenu (fetchResults) {
                                   query.id === parseInt(manga.attributes.links?.mal, 10) && // is same id 
                                   query.progress < chNum ? // progress < chNum
                                   '- {( Unread! )}' : ''; 
-                console.log(`|| ${selectableIndex++}: ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${title} (${transLang}) ${unreadTag}`);
+                console.log(`|| ${selectableIndex++} -> ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${title} (${transLang}) ${unreadTag}`);
             }
             if (search.chapters.length === 0) {
                 console.log('|| - No chapters found');
