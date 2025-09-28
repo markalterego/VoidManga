@@ -48,9 +48,9 @@ async function fetchMangadexMangas (lists, options) {
 async function fetchMangadexChapters (selectedMangas, options) {
     try {
         // TODO: 
-        // - use ids[] params of /chapter endpoint to reduce the 
-        //   number of fetches made to the endpoint 
-
+        // - use groups[] or some other param to make it so that only one single instance
+        //   of a chapter per chapter number is returned by the endpoint, hence allowing
+        //   searching chapters easily on a range, e.g. english chapters from chapter 1-10 etc.etc.  
         let mangaAndChapterInfo = [];
         for (const selectedManga of selectedMangas) {
             const startTimeChapter = performance.now(); // timing chapter fetch start
