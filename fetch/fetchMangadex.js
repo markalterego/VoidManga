@@ -47,16 +47,11 @@ async function fetchMangadexMangas (lists, options) {
 
 async function fetchMangadexChapters (selectedMangas, options) {
     try {
-        // TODO: 
-        // - use groups[] or some other param to make it so that only one single instance
-        //   of a chapter per chapter number is returned by the endpoint, hence allowing
-        //   searching chapters easily on a range, e.g. english chapters from chapter 1-10 etc.etc.  
         let mangaAndChapterInfo = [];
         for (const selectedManga of selectedMangas) {
             const startTimeChapter = performance.now(); // timing chapter fetch start
-            const chapterResponse = await axios.get('https://api.mangadex.org/chapter', { // fetching chapters of manga
+            const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
                 params: {
-                    manga: selectedManga.manga.id, // id taken from prior manga endpoint fetch
                     limit: options.limit_chapter, // preferred fetch length 
                     offset: options.offset_chapter, // e.g. if offset 5, orders by given options and then moves index by 5
                     [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
