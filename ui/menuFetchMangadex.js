@@ -435,7 +435,6 @@ async function openChaptersInBrowserMenu (fetchResults) {
     // TODO:
     // - consider formatting stuff earlier in code e.g. separate formatting function
     //   for taking first mangatitle's etc.etc.....
-    // - consider moving this function to menuFetchMangadex.js instead
 
     while (m !== 'e') {   
         console.log('\n||\n|| Open chapter in browser:');
