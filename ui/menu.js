@@ -61,9 +61,11 @@ async function rootMenu() {
                 // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
                 // to upper menu right after completion
                 if (!config?.autoFetchMangadex) {
-                    const returnArr = await menuFetchMangadex(lists, config); // fetch Mangadex by preference
-                    config = { ...config, fetchMangadexOptions: returnArr[0] };
-                    await filehandle('config', config); await filehandle('mal', lists); // save config and lists to file
+                    const fetchMangadexData = await menuFetchMangadex(lists, config); // fetch Mangadex by preference
+                    config = { ...config, fetchMangadexOptions: fetchMangadexData.options }; // append options to config
+                    await filehandle('config', config); // save config file
+                    await filehandle('mal', lists); // save lists to file
+                    await filehandle('mangadex', fetchMangadexData.data); // save data to file
                 } else { 
                     // await fetchMangadex(lists, config?.fetchMangadexOptions);
                 }
