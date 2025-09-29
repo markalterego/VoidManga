@@ -7,7 +7,7 @@ import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangad
 
 async function menuFetchMangadex (lists, config) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
-    let m = 0;
+    let m = 0, data = [];
 
     // TODO:
     // - make it possible to fetch chapters from range by manipulating the 
@@ -51,6 +51,7 @@ async function menuFetchMangadex (lists, config) {
                             console.log('\n||\n|| No chapters were found\n||');
                         } else {
                             await openChaptersInBrowserMenu(combinedData); // logging fetched data
+                            data.push(combinedData);
                         }
                     }
                 }
@@ -77,7 +78,7 @@ async function menuFetchMangadex (lists, config) {
                 console.log('\n|| Please input a valid option');
         }
     }
-    return [options];
+    return {options: options, data: data};
 }
 
 async function changeMangadexOptionMenu (fetchOptions) {
