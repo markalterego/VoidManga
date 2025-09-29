@@ -7,25 +7,16 @@ async function filehandle (fileIdentifier, input) {
         const folderDestination = path.resolve(import.meta.dirname, '../data'); // refers to data folder
         if (!existsSync(folderDestination)) mkdirSync(folderDestination); // creates data folder if it doesn't exist
         const destination = path.resolve(folderDestination, `${fileIdentifier}.file`); // file creation 
-        if (fileIdentifier==='mal') {
-            if (!input) { // read mal.file
+        if ((typeof fileIdentifier)==='string') {
+            if (!input) { // read file
                 const data = await readFile(destination, 'utf8');
                 return JSON.parse(data);
-            } else { // write mal.file
+            } else { // write file
                 await writeFile(destination, JSON.stringify(input, null, 2), 'utf8');
             }
-        } else if (fileIdentifier==='config') {
-            if (!input) { // read config.file
-                const data = await readFile(destination, 'utf8');
-                return JSON.parse(data);
-            } else { // write config.file
-                await writeFile(destination, JSON.stringify(input, null, 2), 'utf8');
-            }
-        } else if ((typeof fileIdentifier)!=='string') {
-            console.log(`\n||\n|| The given fileIdentifier has to be of type string\n||`);
         } else {
-            console.log(`\n||\n|| The given fileIdentifier \'${fileIdentifier}\' doesn\'t exist\n||`);
-        }
+            console.log(`\n||\n|| The given fileIdentifier has to be of type string\n||`);
+        } 
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
