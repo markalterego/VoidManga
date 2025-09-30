@@ -21,6 +21,14 @@ async function clearScreen() {
 }
 
 async function customFetchMangadexDisplay (options) {
+    
+    // TODO: 
+    // - change display to show information in a more user-friendly way
+    //   currently, even for me, the way the display shows each option is 
+    //   a bit overwhelming and doesn't seem too efficient to follow
+    // e.g. consider combining orderType & -Direction together as one in a 
+    //      more meaningful way: 'Chapters ordered by least to most relevant' etc...
+
     console.log(`\n||\n|| limit_manga: ${options.limit_manga}`);
     console.log(`|| limit_chapter: ${options.limit_chapter}`);
     console.log(`|| offset_chapter: ${options.offset_chapter}`);
