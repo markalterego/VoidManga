@@ -9,11 +9,12 @@ import { menuLogMAL } from "./menuLogMAL.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
+let mangadexData = null; // holds mangas and chapters fetched from Mangadex
 let refresh = true; // loops through menu while set to true
 
-async function menu (l, c) {
+async function menu (l, c, m) {
     try {
-        lists = l, config = c; // assigning lists and config
+        lists = l, config = c, mangadexData = m; // assigning lists, config and mangadexData
         while (refresh) {
             refresh = await rootMenu(); // displays rootMenu
         }
@@ -61,11 +62,11 @@ async function rootMenu() {
                 // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
                 // to upper menu right after completion
                 if (!config?.autoFetchMangadex) {
-                    const fetchMangadexData = await menuFetchMangadex(lists, config); // fetch Mangadex by preference
+                    const fetchMangadexData = await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
                     config = { ...config, fetchMangadexOptions: fetchMangadexData.options }; // append options to config
                     await filehandle('config', config); // save config file
                     await filehandle('mal', lists); // save lists to file
-                    await filehandle('mangadex', fetchMangadexData.data); // save data to file
+                    await filehandle('mangadex', mangadexData); // save data to file
                 } else { 
                     // await fetchMangadex(lists, config?.fetchMangadexOptions);
                 }
