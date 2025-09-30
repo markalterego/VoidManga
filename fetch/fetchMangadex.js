@@ -23,7 +23,6 @@ async function fetchMangadexMangas (lists, options) {
                                                             title: entry.node.title, // title used for search
                                                             id: entry.node.id, // MAL id
                                                             type: type === 0 ? 'anime' : 'manga', // list type
-                                                            progress: type === 0 ? entry.list_status.num_episodes_watched : entry.list_status.num_chapters_read // episodes watched/chapers read
                                                         }}; 
                         mangaEndpointFetchResults.push(finalMangaResponseData); // appending search results to array
                         const mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for fetch
@@ -63,8 +62,7 @@ async function fetchMangadexChapters (selectedMangas, options) {
                     return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
                 }); 
             })();
-            mangaAndChapterInfo.push({ query: selectedManga.query, 
-                                       manga: selectedManga.manga, 
+            mangaAndChapterInfo.push({ manga: selectedManga.manga, 
                                        chapters: finalChapterResponseData }); // push combined manga and chapter info to array 
             const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
             if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit
@@ -125,18 +123,17 @@ logic:
 /* fetchMangadexChapters:
 
 parameters:
-    - selectedMangas -- an array in format [ {manga, query}, etc... ] (constructed at ./menuFetchMangadex.js -- selectMangasFromFetchResults)
+    - selectedMangas -- an array in format [ {manga}, etc... ] (constructed at ./menuFetchMangadex.js -- selectMangasFromFetchResults)
     - options -- an object currently consisting of 8 properties (more info at /helpers/export.js)
 
 purpose:
-    - fetch Mangadex endpoint for Mangadex chapters (https://api.mangadex.org/chapter)
+    - fetch Mangadex endpoint for Mangadex chapters (https://api.mangadex.org/manga/{id}/feed)
 
 logic:
     - fetchMangadexChapters goes through parameter selectedMangas in the format:   
     [
         {
             manga, (obj) -- consist of info about user selected manga
-            query (obj) -- the same query appended to each search at fetchMangadexMangas
         },
         etc..
     ]
@@ -150,7 +147,6 @@ logic:
       in the format of:
     [
         {
-            query, (obj) -- info that was used to fetch the manga and chapter endpoints
             manga, (obj) -- info about the manga the chapters were fetched of
             chapters (array) -- found chapters for the given parameters
         },
