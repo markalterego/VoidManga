@@ -54,7 +54,8 @@ async function fetchMangadexChapters (selectedMangas, options) {
                     limit: options.limit_chapter, // preferred fetch length 
                     offset: options.offset_chapter, // e.g. if offset 5, orders by given options and then moves index by 5
                     [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
-                    translatedLanguage: options.chapterTranslatedLanguage // filter by preferred translation
+                    translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
+                    contentRating: options.contentRating // includes preferred contentRatings
                 }
             });
             const finalChapterResponseData = (() => { // keep only relevant info from results
