@@ -1,19 +1,12 @@
-import open from 'open';
 import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
 
-async function menuFetchMangadex (lists, config) {
+async function menuFetchMangadex (lists, config, mangadexData) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
-    let m = 0, data = [];
-
-    // TODO:
-    // - make it possible to fetch chapters from range by manipulating the 
-    //   offset parameter when fetching chapters---make sure the user only 
-    //   has to provide a lower and upper limit and everything else is handled
-    //   automatically 
+    let m = 0;
 
     while (m !== 'e') 
     {
@@ -37,7 +30,7 @@ async function menuFetchMangadex (lists, config) {
             case 0:
                 // fetching with given options
                 const mangaData = await fetchMangadexMangas(lists, options);
-                const foundManga = mangaData.some(mangaSearch => mangaSearch.searchResults?.length > 0); // mangas found for at least one search
+                const foundManga = mangaData?.some(mangaSearch => mangaSearch.searchResults?.length > 0); // mangas found for at least one search
                 if (!foundManga) {
                     console.log('\n||\n|| No mangas were found\n||');
                 } else {
@@ -50,8 +43,25 @@ async function menuFetchMangadex (lists, config) {
                         if (!hasChapters) { // no chapters found
                             console.log('\n||\n|| No chapters were found\n||');
                         } else {
-                            await openChaptersInBrowserMenu(combinedData); // logging fetched data
-                            data.push(combinedData);
+                            // append combinedData into mangadexData
+                            combinedData.forEach((search) => { // search per title
+                                const foundKey = Object.keys(mangadexData).find(key => mangadexData[key].manga.id === search.manga.id);
+                                if (foundKey) { // manga found in existing data
+                                    let reference = mangadexData[foundKey].chapters;
+                                    // filter reference to contain only unique chapter ids
+                                    const fetchedChapters = search.chapters;
+                                    fetchedChapters.forEach((chapter) => {
+                                        const isDuplicate = reference.some(existingChapter => existingChapter.id === chapter.id);
+                                        if (!isDuplicate) {
+                                            reference.push(chapter); // append unique chapters to mangadexData
+                                        }
+                                    });
+                                } else {
+                                    // appending new info to existing info
+                                    mangadexData.push({ manga: search.manga, chapters: search.chapters});
+                                } 
+                            });
+                            console.log('\n||\n|| Mangedex fetch was successful\n||');
                         }
                     }
                 }
@@ -78,7 +88,7 @@ async function menuFetchMangadex (lists, config) {
                 console.log('\n|| Please input a valid option');
         }
     }
-    return {options: options, data: data};
+    return {options: options};
 }
 
 async function changeMangadexOptionMenu (fetchOptions) {
@@ -402,13 +412,12 @@ async function selectMangasFromFetchResults (mangaSearches) {
         // handle user choice
         if (m >= 0 && m <= highestSelectableIndex) { // adding to search
             mangaSearches.forEach((mangaSearch) => { // manga search
-                const search = mangaSearch.query;
                 const searchResults = mangaSearch.searchResults;
                 searchResults.forEach((searchResult) => { // results for search
                     if (index === m) { // index matches user given choice
                         const isDuplicate = selectedMangas.find((selected) => selected.manga.id === searchResult.id);
                         if (!isDuplicate) {
-                            selectedMangas.push({manga: searchResult, query: search}); // pushing selected to selected
+                            selectedMangas.push({manga: searchResult}); // pushing selected to selected
                         }
                     }
                     index++;
@@ -429,74 +438,12 @@ async function selectMangasFromFetchResults (mangaSearches) {
     return selectedMangas;
 }
 
-async function openChaptersInBrowserMenu (fetchResults) {
-    let m = null;
-    // console.dir(fetchResults, {depth: null});
-
-    // TODO:
-    // - consider formatting stuff earlier in code e.g. separate formatting function
-    //   for taking first mangatitle's etc.etc.....
-
-    while (m !== 'e') {   
-        console.log('\n||\n|| Open chapter in browser:');
-        let searchIndex = 0, selectableIndex = 0; // used for formatting
-        for (const search of fetchResults) {
-            const manga = search.manga;
-            const mangaTitle = Object.values(manga.attributes.title)[0]; // first title of titles
-            const query = search.query;
-            console.log(`||\n|| ${mangaTitle}:\n||`);
-            for (const chapter of search.chapters) {
-                const title = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
-                const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
-                const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-                const unreadTag = query.type === 'manga' && // is manga
-                                  query.id === parseInt(manga.attributes.links?.mal, 10) && // is same id 
-                                  query.progress < chNum ? // progress < chNum
-                                  '- {( Unread! )}' : ''; 
-                console.log(`|| ${selectableIndex++} -> ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${title} (${transLang}) ${unreadTag}`);
-            }
-            if (search.chapters.length === 0) {
-                console.log('|| - No chapters found');
-            }
-            if (searchIndex === fetchResults.length - 1) console.log('||');
-            searchIndex++; 
-        }
-        console.log('\n||\n|| e -> Go back\n||');
-        
-        m = await takeUserInput(); // get user input
-
-        // handle user input
-        if (m >= 0 && m <= selectableIndex - 1) {
-            let i = 0; 
-            for (const search of fetchResults) { // searches
-                for (const chapter of search.chapters) { // chapters
-                    if (i === m) { // highest selectable index
-                        await open(chapter.link) // open chapter in browser
-                    }
-                    i++;
-                }
-            }
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
-        }    
-        selectableIndex = 0;
-    }
-
-}
-
 export { menuFetchMangadex };
 
-
 /*
-    fetchResults complete layout (2025/09/23):
+    fetchResults complete layout (2025/09/30):
     [   
         {
-            query: {
-                title: string,
-                id: num,
-                type: string, (anime/manga)
-                progress: num
-            },
             manga: {
                 id: string,
                 type: string,
