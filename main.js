@@ -9,6 +9,7 @@ import readline from 'readline/promises';
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
+let mangadexData = null; // holds mangas and chapters fetched from Mangadex
 const rl = readline.createInterface({ input , output }); // enabling input/output
 
 // main
@@ -35,7 +36,14 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
         config = await filehandle('config'); // reads config.file
     }
 
-    await menu(lists, config); // menu ui
+    if (!existsSync('./data/mangadex.file')) {
+        // initializing mangadexData with an empty array
+        mangadexData = [];
+    } else {
+        mangadexData = await filehandle('mangadex'); // reads mangadex.file
+    }
+
+    await menu(lists, config, mangadexData); // menu ui
     await cleanup(); // clears interfaces etc...
 })();
 
