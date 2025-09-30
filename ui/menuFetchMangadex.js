@@ -1,6 +1,6 @@
 import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
-         mangaOrderTypes, orderDirections, fetchMangadexOptions } from "../helpers/export.js";
+         mangaOrderTypes, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
 
@@ -197,17 +197,20 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // logs currently selected options
                     await customFetchMangadexDisplay(options);
 
+                    // mangaOrderTypes keys: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
+                    const orderTypes = Object.keys(mangaOrderTypes);
+
                     console.log(`\n||\n|| Select option for ${key}\n||`);
-                    mangaOrderTypes.forEach((value, index) => {
-                        console.log(`|| ${index} -> ${value}`);
+                    orderTypes.forEach((orderType, index) => {
+                        console.log(`|| ${index} -> ${orderType}`);
                     });
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
 
                     // setting the given option
-                    if (m > -1 && m < mangaOrderTypes.length) {
-                        options[key] = mangaOrderTypes[m];
+                    if (m > -1 && m < orderTypes.length) {
+                        options[key] = orderTypes[m];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
@@ -219,17 +222,20 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // logs currently selected options
                     await customFetchMangadexDisplay(options);
 
+                    // chapterOrderTypes keys: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
+                    const orderTypes = Object.keys(chapterOrderTypes);
+
                     console.log(`\n||\n|| Select option for ${key}\n||`);
-                    chapterOrderTypes.forEach((value, index) => {
-                        console.log(`|| ${index} -> ${value}`);
+                    orderTypes.forEach((orderType, index) => {
+                        console.log(`|| ${index} -> ${orderType}`);
                     });
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
 
                     // setting the given option
-                    if (m > -1 && m < chapterOrderTypes.length) {
-                        options[key] = chapterOrderTypes[m];
+                    if (m >= 0 && m < orderTypes.length) {
+                        options[key] = orderTypes[m];
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
@@ -241,17 +247,22 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // logs currently selected options
                     await customFetchMangadexDisplay(options);
 
+                    // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
+                    // Each orderType is an object that holds keys asc, desc. These are objects that hold orderType specific explanation
+                    // of what the order direction does when ordering this specific orderType by ascending
+                    const orderDirections = mangaOrderTypes[options.mangaOrderType]; 
+
                     console.log(`\n||\n|| Select option for ${key}\n||`);
-                    orderDirections.forEach((value, index) => {
-                        console.log(`|| ${index} -> ${value}`);
+                    Object.values(orderDirections).forEach((explanation, index) => { 
+                        console.log(`|| ${index} -> ${explanation}`);
                     });
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
 
                     // setting the given option
-                    if (m > -1 && m < orderDirections.length) {
-                        options[key] = orderDirections[m];
+                    if (m >= 0 && m < Object.keys(orderDirections).length) {
+                        options[key] = Object.keys(orderDirections)[m]; // asc/desc
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
@@ -263,17 +274,22 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // logs currently selected options
                     await customFetchMangadexDisplay(options);
 
+                    // chapterOrderTypes: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
+                    // Each orderType is an object that holds keys asc, desc. These are objects that hold orderType specific explanation
+                    // of what the order direction does when ordering this specific orderType by ascending
+                    const orderDirections = chapterOrderTypes[options.chapterOrderType]; 
+
                     console.log(`\n||\n|| Select option for ${key}\n||`);
-                    orderDirections.forEach((value, index) => {
-                        console.log(`|| ${index} -> ${value}`);
+                    Object.values(orderDirections).forEach((explanation, index) => {
+                        console.log(`|| ${index} -> ${explanation}`);
                     });
                     console.log('|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
 
                     // setting the given option
-                    if (m > -1 && m < orderDirections.length) {
-                        options[key] = orderDirections[m];
+                    if (m >= 0 && m < Object.keys(orderDirections).length) {
+                        options[key] = Object.keys(orderDirections)[m]; // asc/desc
                     } else if (m !== 'e') {
                         console.log('\n|| Please input a valid option');
                     }
