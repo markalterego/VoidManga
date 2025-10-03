@@ -387,8 +387,8 @@ async function selectMangasFromFetchResults (mangaSearches) {
                     const attributes = searchResult.attributes;
                     const title = Object.values(attributes.title)[0]; // title
                     const malId = mangaSearch.query.id; // MAL id
-                    const linkId = parseInt(searchResult.attributes.links?.mal, 10); // Mangadex manga data sometimes has e.g. '85173' from 'https://myanimelist.net/manga/85173'
-                    const sameIdTag = mangaSearch.query.type === 'manga' ? (malId === linkId ? '<-- Perfect Match!!!' : '') : ''; // exact same id and type
+                    const searchId = parseInt(searchResult.attributes.links?.mal, 10); // Mangadex manga data sometimes has e.g. '85173' from 'https://myanimelist.net/manga/85173'
+                    const sameIdTag = mangaSearch.query.type === 'manga' ? (malId === searchId ? '<-- Perfect Match!!!' : '') : ''; // exact same id and type
                     console.log(`|| ${index++}: ${title} ${sameIdTag}`);
                 });
             }
@@ -410,6 +410,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
         }
         // log e -> exit, s -> search etc...
         console.log('\n||\n|| s -> Search chapters');
+        console.log('|| p -> Select perfect matches');
         console.log('|| c -> Clear selection');
         console.log('|| e -> Go back\n||');
 
@@ -421,10 +422,8 @@ async function selectMangasFromFetchResults (mangaSearches) {
                 const searchResults = mangaSearch.searchResults;
                 searchResults.forEach((searchResult) => { // results for search
                     if (index === m) { // index matches user given choice
-                        const isDuplicate = selectedMangas.find((selected) => selected.manga.id === searchResult.id);
-                        if (!isDuplicate) {
-                            selectedMangas.push({manga: searchResult}); // pushing selected to selected
-                        }
+                        const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
+                        if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
                     }
                     index++;
                 }); 
@@ -435,6 +434,19 @@ async function selectMangasFromFetchResults (mangaSearches) {
                 console.log('\n||\n|| Select at least one title to perform a search\n||');
                 m = 0;
             }
+        } else if (m === 'p') { // select all perfect matches
+            mangaSearches.forEach((mangaSearch) => {
+                const searchResults = mangaSearch.searchResults;
+                searchResults.forEach((searchResult) => {
+                    const type = mangaSearch.query.type; // 'anime' or 'manga'
+                    const malId = mangaSearch.query.id; // MAL id
+                    const searchId = parseInt(searchResult.attributes.links?.mal, 10); // Mangadex manga data sometimes has e.g. '85173' from 'https://myanimelist.net/manga/85173'
+                    if (type === 'manga' && malId === searchId) { // perfect match found
+                        const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
+                        if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
+                    }
+                });
+            }); 
         } else if (m === 'c' || m === 'e') { // clear current selection
             selectedMangas = [];
         } else {
