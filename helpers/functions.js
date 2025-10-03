@@ -1,5 +1,5 @@
 import { rl } from '../main.js'
-import { animeStatus, mangaStatus } from './export.js';
+import { animeStatus, mangaStatus, mangaOrderTypes, chapterOrderTypes } from './export.js';
 
 async function takeUserInput() {
     // 1. function takes input from user,
@@ -21,23 +21,13 @@ async function clearScreen() {
 }
 
 async function customFetchMangadexDisplay (options) {
-    
-    // TODO: 
-    // - change display to show information in a more user-friendly way
-    //   currently, even for me, the way the display shows each option is 
-    //   a bit overwhelming and doesn't seem too efficient to follow
-    // e.g. consider combining orderType & -Direction together as one in a 
-    //      more meaningful way: 'Chapters ordered by least to most relevant' etc...
-
-    console.log(`\n||\n|| limit_manga: ${options.limit_manga}`);
-    console.log(`|| limit_chapter: ${options.limit_chapter}`);
-    console.log(`|| offset_chapter: ${options.offset_chapter}`);
-    console.log(`|| mangaOrderType: ${options.mangaOrderType}`);
-    console.log(`|| chapterOrderType: ${options.chapterOrderType}`);
-    console.log(`|| mangaOrderDirection: ${options.mangaOrderDirection}`);
-    console.log(`|| chapterOrderDirection: ${options.chapterOrderDirection}`);
-    console.log(`|| contentRating: [${options.contentRating[0] === undefined ? 'default' : options.contentRating}]`);
-    console.log(`|| chapterTranslatedLanguage: [${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}]\n||`);
+    console.log(`\n||\n|| Manga fetch size: ${options.limit_manga}`);
+    console.log(`|| Chapter fetch size: ${options.limit_chapter}`);
+    console.log(`|| Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
+    console.log(`|| Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
+    console.log(`|| Chapter offset: ${options.offset_chapter}`);
+    console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}`);
+    console.log(`|| Chapter languages: ${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}\n||`);
 }
 
 async function menuLogMALDisplay (anime, manga) {
