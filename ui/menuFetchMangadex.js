@@ -98,7 +98,6 @@ async function changeMangadexOptionMenu (fetchOptions) {
     // TODO:
     // - Separate each option changing into more user-friendly parts
     //   e.g. 'change manga order options' or 'change length of returned results etc...
-    // - make it so that most-least is Most-least and for all others as well
 
     while (m !== 'e') 
     {
