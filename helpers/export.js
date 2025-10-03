@@ -14,59 +14,59 @@ export const fetchMangadexOptions = {
 // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
 export const mangaOrderTypes = {
     title: {
-        asc: 'Sort by title from a-z',
-        desc: 'Sort by title from z-a'
+        asc: 'a to z',
+        desc: 'z to a'
     },
     year: {
-        asc: 'Sort by year in ascending order',
-        desc: 'Sort by year in descending order'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     createdAt: {
-        asc: 'Sort by created at from oldest-newest',
-        desc: 'Sort by created at from newest-oldest'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     updatedAt: {
-        asc: 'Sort by updated at from oldest-newest',
-        desc: 'Sort by updated at from newest-oldest'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     latestUploadedChapter: {
-        asc: 'Sort by manga with the oldest update',
-        desc: 'Sort by manga with the newest update'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     followedCount: {
-        asc: 'Sort by least to most followed',
-        desc: 'Sort by most to least followed'
+        asc: 'least to most',
+        desc: 'most to least'
     },
     relevance: {
-        asc: 'Sort by least to most relevant',
-        desc: 'Sort by most to least relevant'
+        asc: 'least to most',
+        desc: 'most to least'
     }
 };
 // chapterOrderTypes: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
 export const chapterOrderTypes = {
     createdAt: {
-        asc: 'Sort by created at from oldest-newest',
-        desc: 'Sort by created at from newest-oldest'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     }, 
     updatedAt: {
-        asc: 'Sort by updated at from oldest-newest',
-        desc: 'Sort by updated at from newest-oldest'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     publishAt: {
-        asc: 'Sort by published at from oldest-newest',
-        desc: 'Sort by published at from newest-oldest'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     readableAt: {
-        asc: 'Sort by readable at from oldest-newest',
-        desc: 'Sort by readable at from newest-oldest'
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
     },
     volume: {
-        asc: 'Sort by volume in ascending order',
-        desc: 'Sort by volume in descending order'
+        asc: 'lowest to highest',
+        desc: 'highest to lowest'
     },
     chapter: {
-        asc: 'Sort by chapter in ascending order',
-        desc: 'Sort by chapter in descending order'
+        asc: 'lowest to highest',
+        desc: 'highest to lowest'
     }
 };
 export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
@@ -74,8 +74,6 @@ export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de'];
 export const expectedFilters = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
 /*
     Options for Mangadex's fetchChapters() custom search:
-        -MAL_list - anime/manga = 0/1
-        -MAL_status - watching/reading, completed, on-hold, dropped, plan-to-watch/plan-to-read = 0/1/2/3/4
         -limit_manga: 0-100, undefined for default behavior (10)
         -limit_chapter: 0-100, undefined for default behavior (10)
         -mangaOrderType: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
