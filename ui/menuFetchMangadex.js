@@ -368,7 +368,6 @@ async function selectMangasFromFetchResults (mangaSearches) {
     let m = 0, index = 0, highestSelectableIndex = 0, selectedMangas = [];
 
     // TODO:
-    // - make it possible to select perfect options with the press of a button
     // - make it possible to autosearch Mangadex by matching only perfect matches
 
     while (m !== 's' && m !== 'e') 
