@@ -95,16 +95,6 @@ async function changeMangadexOptionMenu (fetchOptions) {
     const options = fetchOptions;
     let m = 0, i = 0;
 
-    // TODO:
-    // - refine logging option changes to the user to make understanding what changing each option does 
-    //   less incoherent, e.g. when mangaOrderType=relevance, then changing mangaOrderDirection would show
-    //   something like: 
-    //   0 -> most relevant to least relevant
-    //   1 -> least relevant to most relevant
-    //   instead of:
-    //   0 -> asc
-    //   1 -> desc
-
     while (m !== 'e') 
     {
         // logs currently selected options
