@@ -98,6 +98,7 @@ async function changeMangadexOptionMenu (fetchOptions) {
     // TODO:
     // - Separate each option changing into more user-friendly parts
     //   e.g. 'change manga order options' or 'change length of returned results etc...
+    // - make it so that most-least is Most-least and for all others as well
 
     while (m !== 'e') 
     {
@@ -246,9 +247,9 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // of what the order direction does when ordering this specific orderType by ascending
                     const orderDirections = mangaOrderTypes[options.mangaOrderType]; 
 
-                    console.log(`\n||\n|| Select option for ${key}\n||`);
+                    console.log(`\n||\n|| Order manga by ${options.mangaOrderType}\n||`);
                     Object.values(orderDirections).forEach((explanation, index) => { 
-                        console.log(`|| ${index} -> ${explanation}`);
+                        console.log(`|| ${index} -> ${explanation.charAt(0).toUpperCase() + explanation.slice(1)}`); // format first letter of explanation to upper case
                     });
                     console.log('|| e -> Go back\n||');
 
@@ -273,9 +274,9 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // of what the order direction does when ordering this specific orderType by ascending
                     const orderDirections = chapterOrderTypes[options.chapterOrderType]; 
 
-                    console.log(`\n||\n|| Select option for ${key}\n||`);
+                    console.log(`\n||\n|| Order chapters by ${options.chapterOrderType}\n||`);
                     Object.values(orderDirections).forEach((explanation, index) => {
-                        console.log(`|| ${index} -> ${explanation}`);
+                        console.log(`|| ${index} -> ${explanation.charAt(0).toUpperCase() + explanation.slice(1)}`); // format first letter of explanation to upper case
                     });
                     console.log('|| e -> Go back\n||');
 
@@ -295,7 +296,7 @@ async function changeMangadexOptionMenu (fetchOptions) {
                     // logs currently selected options
                     await customFetchMangadexDisplay(options);
 
-                    console.log(`\n||\n|| Add option for ${key}\n||`);
+                    console.log(`\n||\n|| Choose content ratings\n||`);
                     contentRatings.forEach((value, index) => {
                         console.log(`|| ${index} -> ${value}`);
                     });
@@ -336,7 +337,7 @@ async function changeMangadexOptionMenu (fetchOptions) {
 
                         'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
                     */
-                    console.log(`\n||\n|| Add option for ${key} (optionally input custom code)\n||`);
+                    console.log(`\n||\n|| Select chapter languages (or enter custom code)\n||`);
                     chapterTranslatedLanguages.forEach((value, index) => { 
                         console.log(`|| ${index} -> ${value}`);
                     });
