@@ -14,7 +14,7 @@ export const fetchMangadexOptions = {
 // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
 export const mangaOrderTypes = {
     title: {
-        asc: 'Ssort by title from a-z',
+        asc: 'Sort by title from a-z',
         desc: 'Sort by title from z-a'
     },
     year: {
