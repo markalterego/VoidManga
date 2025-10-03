@@ -95,6 +95,10 @@ async function changeMangadexOptionMenu (fetchOptions) {
     const options = fetchOptions;
     let m = 0, i = 0;
 
+    // TODO:
+    // - Separate each option changing into more user-friendly parts
+    //   e.g. 'change manga order options' or 'change length of returned results etc...
+
     while (m !== 'e') 
     {
         // logs currently selected options
