@@ -8,6 +8,9 @@ async function menuFetchMangadex (lists, config, mangadexData) {
     const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
     let m = 0;
 
+    // TODO: 
+    // - log to user how much stuff was fetched etc... after a succesful fetch
+
     while (m !== 'e') 
     {
         // logs currently selected MAL titles to be used in fetch
@@ -27,8 +30,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
 
         switch (m)
         {
-            case 0:
-                // fetching with given options
+            case 0: // fetching with given options
                 const mangaData = await fetchMangadexMangas(lists, options);
                 const foundManga = mangaData?.some(mangaSearch => mangaSearch.searchResults?.length > 0); // mangas found for at least one search
                 if (!foundManga) {
@@ -66,16 +68,13 @@ async function menuFetchMangadex (lists, config, mangadexData) {
                     }
                 }
                 break;
-            case 1:
-                // running menu for changing options
-                await changeMangadexOptionMenu(options);
+            case 1: // running menu for changing options
+                await fetchOptionsMenu(options);
                 break;
-            case 2:
-                // filtering items not wanted to be fetched
+            case 2: // filtering items not wanted to be fetched
                 await filterEntriesFromFetch(lists, 'includeInMangadexFetch');
                 break;
-            case 3:
-                // re-assigning default options from fetchMangadexOptions to options
+            case 3: // re-assigning default options from fetchMangadexOptions to options
                 Object.keys(options).forEach((key) => {
                     const value = fetchMangadexOptions[key];
                     options[key] = Array.isArray(options[key]) ? [...value] : value;
@@ -91,13 +90,9 @@ async function menuFetchMangadex (lists, config, mangadexData) {
     return {options: options};
 }
 
-async function changeMangadexOptionMenu (fetchOptions) {
-    const options = fetchOptions;
-    let m = 0, i = 0;
-
-    // TODO:
-    // - Separate each option changing into more user-friendly parts
-    //   e.g. 'change manga order options' or 'change length of returned results etc...
+async function fetchOptionsMenu (options) {
+    const MANGAFETCH = 0, CHAPTERFETCH = 1, CHANGECONTENTRATING = 2;
+    let m = 0;
 
     while (m !== 'e') 
     {
@@ -105,266 +100,310 @@ async function changeMangadexOptionMenu (fetchOptions) {
         await customFetchMangadexDisplay(options);
 
         // lists options that can be changed 
-        console.log('\n||\n|| Select an option:\n||');
-        for (const key in options) { 
-            console.log(`|| ${i} -> ${key}`);
-            i++; 
-        }
+        console.log('\n||\n|| Change fetch options:\n||');
+        console.log('|| 0 -> Manga options');
+        console.log(`|| 1 -> Chapter options`);
+        console.log('|| 2 -> Content ratings');
         console.log('|| e -> Go back\n||');
-        i = 0; // resetting index
 
         m = await takeUserInput(); // get user input
-        const key = Object.keys(options)[m]; // selected key of options
-
-        switch (key)
-        {
-            case 'limit_manga':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-                    
-                    console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m > -1 && m < 101) {
-                        options[key] = m;
-                    } else if (m > 100 || m < 0) {
-                        console.log('\n|| The given value has to be be between 0-100');
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
-            case 'limit_chapter': 
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-                    
-                    console.log(`\n||\n|| Input a value between 0-100 (${key})\n||`);
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m > -1 && m < 101) {
-                        options[key] = m;
-                    } else if (m > 100 || m < 0) {
-                        console.log('\n|| The given value has to be be between 0-100');
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }    
-                break;
-            case 'offset_chapter':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-                    
-                    // offset is counted to request length and the maximum allowed request size is 10000, 
-                    // therefore maxOffset can be at maximum the difference of 10000 and limit_chapter 
-                    const maxOffset = 10000 - options.limit_chapter; 
-
-                    console.log(`\n||\n|| Input a value between 0-${maxOffset} (${key})\n||`);
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m >= 0 && m <= maxOffset) {
-                        options[key] = m;
-                    } else if (m < 0 || m > maxOffset) {
-                        console.log(`\n|| The given value has to be between 0 and ${maxOffset}`);
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }    
-                break;
-            case 'mangaOrderType':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-
-                    // mangaOrderTypes keys: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
-                    const orderTypes = Object.keys(mangaOrderTypes);
-
-                    console.log(`\n||\n|| Select option for ${key}\n||`);
-                    orderTypes.forEach((orderType, index) => {
-                        console.log(`|| ${index} -> ${orderType}`);
-                    });
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m > -1 && m < orderTypes.length) {
-                        options[key] = orderTypes[m];
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
-            case 'chapterOrderType':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-
-                    // chapterOrderTypes keys: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
-                    const orderTypes = Object.keys(chapterOrderTypes);
-
-                    console.log(`\n||\n|| Select option for ${key}\n||`);
-                    orderTypes.forEach((orderType, index) => {
-                        console.log(`|| ${index} -> ${orderType}`);
-                    });
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m >= 0 && m < orderTypes.length) {
-                        options[key] = orderTypes[m];
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
-            case 'mangaOrderDirection':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-
-                    // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
-                    // Each orderType is an object that holds keys asc, desc. These are objects that hold orderType specific explanation
-                    // of what the order direction does when ordering this specific orderType by ascending
-                    const orderDirections = mangaOrderTypes[options.mangaOrderType]; 
-
-                    console.log(`\n||\n|| Order manga by ${options.mangaOrderType}\n||`);
-                    Object.values(orderDirections).forEach((explanation, index) => { 
-                        console.log(`|| ${index} -> ${explanation.charAt(0).toUpperCase() + explanation.slice(1)}`); // format first letter of explanation to upper case
-                    });
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m >= 0 && m < Object.keys(orderDirections).length) {
-                        options[key] = Object.keys(orderDirections)[m]; // asc/desc
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
-            case 'chapterOrderDirection':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-
-                    // chapterOrderTypes: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
-                    // Each orderType is an object that holds keys asc, desc. These are objects that hold orderType specific explanation
-                    // of what the order direction does when ordering this specific orderType by ascending
-                    const orderDirections = chapterOrderTypes[options.chapterOrderType]; 
-
-                    console.log(`\n||\n|| Order chapters by ${options.chapterOrderType}\n||`);
-                    Object.values(orderDirections).forEach((explanation, index) => {
-                        console.log(`|| ${index} -> ${explanation.charAt(0).toUpperCase() + explanation.slice(1)}`); // format first letter of explanation to upper case
-                    });
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting the given option
-                    if (m >= 0 && m < Object.keys(orderDirections).length) {
-                        options[key] = Object.keys(orderDirections)[m]; // asc/desc
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
-            case 'contentRating':
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-
-                    console.log(`\n||\n|| Choose content ratings\n||`);
-                    contentRatings.forEach((value, index) => {
-                        console.log(`|| ${index} -> ${value}`);
-                    });
-                    console.log(`|| ${contentRatings.length} -> Select all`);
-                    console.log(`|| c -> Clear ratings`);
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-
-                    // setting option / clearing options
-                    if (m > -1 && m < contentRatings.length) {
-                        options[key].push(contentRatings[m]); 
-                        options[key] = [...new Set(options[key])]; // get rid of duplicate values
-                    } else if (m === contentRatings.length) {
-                        options[key] = [...contentRatings];
-                    } else if (m === 'c') {
-                        options[key] = [];
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
-            case 'chapterTranslatedLanguage': 
-                while (m !== 'e') 
-                {
-                    // logs currently selected options
-                    await customFetchMangadexDisplay(options);
-                    /*
-                    When changing the option for chapterTranslatedLanguage the user has two options:
-                    
-                    1. Select from one of the pre-defined language options by inputting 
-                       the corresponding number next to desired option
-
-                        e.g. || 0 -> en
-                             || 1 -> pl
-                    
-                    2. Input a custom language code option in one of two formats
-
-                        'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
-                    */
-                    console.log(`\n||\n|| Select chapter languages (or enter custom code)\n||`);
-                    chapterTranslatedLanguages.forEach((value, index) => { 
-                        console.log(`|| ${index} -> ${value}`);
-                    });
-                    console.log(`|| c -> Clear filters`);
-                    console.log('|| e -> Go back\n||');
-
-                    m = await takeUserInput(); // get user input
-                    // regex tests for manually inputted language codes and allows:
-                    // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
-                    const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
-
-                    // handling menu choice
-                    if (m >= 0 && m < chapterTranslatedLanguages.length) { // pre-defined language options
-                        options[key].push(chapterTranslatedLanguages[m]);
-                        options[key] = [...new Set(options[key])]; // filter duplicates
-                    } else if (m === 'c') { // clear current translatedLanguage options 
-                        options[key] = []; 
-                    } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
-                        options[key].push(m);
-                        options[key] = [...new Set(options[key])]; // filter duplicates
-                    } else if (m !== 'e') {
-                        console.log('\n|| Please input a valid option');
-                    }
-                }
-                break;
+        
+        if (m === MANGAFETCH) { // manga fetch options
+            await mangaOptionsMenu(options);
+        } else if (m === CHAPTERFETCH) { // chapter fetch options
+            await chapterOptionsMenu(options);
+        } else if (m === CHANGECONTENTRATING) { // change content ratings (manga && chapter both use the same content rating option)
+            await optionContentRatings(options);
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option'); // invalid input
         }
-        if (key) m = null; // ensuring upper menu doesn't exit
-        else if (m !== 'e') console.log('\n|| Please input a valid option'); // invalid input
+    }
+}
+
+async function mangaOptionsMenu (options) {
+    const MANGAFETCHSIZE = 0, MANGAORDER = 1;
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+
+        console.log('\n||\n|| Manga options:\n||');
+        console.log('|| 0 -> Manga fetch size');
+        console.log('|| 1 -> Manga order');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+        
+        if (m === MANGAFETCHSIZE) { // limit_manga
+            await optionMangaLimit(options);
+        } else if (m === MANGAORDER) { // mangaOrderType && mangaOrderDirection
+            await optionMangaOrder(options);
+        } else if (m !== 'e') { // invalid input
+            console.log('\n|| Please input a valid option')
+        }
+    }
+}
+
+async function optionMangaLimit (options) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+        
+        console.log(`\n||\n|| Manga fetch size:\n||`);
+        console.log('|| ? -> Input a value between 0-100');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        // setting the given option
+        if (m >= 0 && m <= 100) {
+            options.limit_manga = m;
+        } else if (m > 100 || m < 0) {
+            console.log('\n|| The given value has to be be between 0-100');
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function optionMangaOrder (options) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // order types: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
+        // order directions: 'asc', 'desc'
+        let index = 0; 
+
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+
+        console.log('\n||\n|| Manga order:\n||');
+        // go through all types
+        Object.keys(mangaOrderTypes).forEach((orderType) => {
+            console.log(`|| ${index++} -> ${orderType.at(0).toUpperCase() + orderType.slice(1)}`); // first letter to uppercase
+        });
+        console.log(`|| ${index} -> Toggle direction`); 
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input 
+
+        // handle user choice
+        if (m >= 0 && m <= index - 1) { // selected type option
+            options.mangaOrderType = Object.keys(mangaOrderTypes)[m];
+        } else if (m === index) { // toggle order direction -- highest selectable index
+            if (options.mangaOrderDirection === 'asc') options.mangaOrderDirection = 'desc';
+            else options.mangaOrderDirection = 'asc';
+        } else if (m !== 'e') { // invalid input
+            console.log('\n|| Please input a valid option'); // invalid input
+        }
+    }
+}
+
+async function chapterOptionsMenu (options) {
+    const CHAPTERFETCHSIZE = 0, CHAPTERORDER = 1, CHAPTEROFFSET = 2, CHAPTERLANGUAGES = 3;
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+
+        console.log('\n||\n|| Chapter options:\n||');
+        console.log('|| 0 -> Chapter fetch size');
+        console.log('|| 1 -> Chapter order');
+        console.log('|| 2 -> Chapter offset');
+        console.log('|| 3 -> Chapter languages');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        if (m === CHAPTERFETCHSIZE) { // limit_chapter
+            await optionChapterLimit(options);
+        } else if (m === CHAPTERORDER) { // chapterOrderType && chapterOrderDirection
+            await optionChapterOrder(options);
+        } else if (m === CHAPTEROFFSET) { // offset_chapter
+            await optionChapterOffset(options);
+        } else if (m === CHAPTERLANGUAGES) { // chapterTranslatedLanguage
+            await optionChapterLanguages(options);
+        } else if (m !== 'e') { // invalid input
+            console.log('\n|| Please input a valid option')
+        }
+    }
+}
+
+async function optionChapterLimit (options) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+        
+        console.log(`\n||\n|| Chapter fetch size:\n||`);
+        console.log('|| ? -> Input a value between 0-100');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        // setting the given option
+        if (m >= 0 && m <= 100) {
+            options.limit_chapter = m;
+        } else if (m > 100 || m < 0) {
+            console.log('\n|| The given value has to be be between 0-100');
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function optionChapterOrder (options) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // order types: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
+        // order directions: 'asc', 'desc'
+        let index = 0; 
+
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+
+        console.log('\n||\n|| Chapter order:\n||');
+        // go through all types
+        Object.keys(chapterOrderTypes).forEach((orderType) => {
+            console.log(`|| ${index++} -> ${orderType.at(0).toUpperCase() + orderType.slice(1)}`); // first letter to uppercase
+        });
+        console.log(`|| ${index} -> Toggle direction`); 
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input 
+
+        // handle user choice
+        if (m >= 0 && m <= index - 1) { // selected type option
+            options.chapterOrderType = Object.keys(chapterOrderTypes)[m];
+        } else if (m === index) { // toggle order direction -- highest selectable index
+            if (options.chapterOrderDirection === 'asc') options.chapterOrderDirection = 'desc';
+            else options.chapterOrderDirection = 'asc';
+        } else if (m !== 'e') { // invalid input
+            console.log('\n|| Please input a valid option'); // invalid input
+        }
+    }
+}
+
+async function optionChapterOffset (options) {
+    let m = 0;
+
+    // TODO:
+    // - make possible to add the current fetch size to offset by inputting e.g. 0/1
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+        
+        // offset is counted to request length and the maximum allowed request size is 10000, 
+        // therefore maxOffset can be at maximum the difference of 10000 and limit_chapter 
+        const maxOffset = 10000 - options.limit_chapter; 
+
+        console.log(`\n||\n|| Chapter offset:\n||`);
+        console.log(`|| ? -> Input a value between 0-${maxOffset}`);
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        // setting the given option
+        if (m >= 0 && m <= maxOffset) {
+            options.offset_chapter = m;
+        } else if (m < 0 || m > maxOffset) {
+            console.log(`\n|| The given value has to be between 0 and ${maxOffset}`);
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    } 
+}
+
+async function optionChapterLanguages (options) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+        /*
+        When changing the option for chapterTranslatedLanguage the user has two options:
+        
+        1. Select from one of the pre-defined language options by inputting 
+            the corresponding number next to desired option
+
+            e.g. || 0 -> en
+                    || 1 -> pl
+        
+        2. Input a custom language code option in one of two formats
+
+            'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
+        */
+        console.log(`\n||\n|| Select chapter languages (or enter custom code)\n||`);
+        chapterTranslatedLanguages.forEach((language, index) => { 
+            console.log(`|| ${index} -> ${language.at(0).toUpperCase() + language.slice(1)}`); // first letter to uppercase
+        });
+        console.log(`|| c -> Clear filters`);
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+        // regex tests for manually inputted language codes and allows:
+        // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
+        const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
+
+        // handling menu choice
+        if (m >= 0 && m < chapterTranslatedLanguages.length) { // pre-defined language options
+            options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[m]);
+            options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
+        } else if (m === 'c') { // clear current translatedLanguage options 
+            options.chapterTranslatedLanguage = []; 
+        } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
+            options.chapterTranslatedLanguage.push(m);
+            options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function optionContentRatings (options) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        await customFetchMangadexDisplay(options);
+
+        console.log(`\n||\n|| Choose content ratings\n||`);
+        contentRatings.forEach((contentRating, index) => {
+            console.log(`|| ${index} -> ${contentRating.at(0).toUpperCase() + contentRating.slice(1)}`); // first letter to uppercase
+        });
+        console.log(`|| ${contentRatings.length} -> Select all`);
+        console.log(`|| c -> Clear ratings`);
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        // setting option / clearing options
+        if (m > -1 && m < contentRatings.length) {
+            options.contentRating.push(contentRatings[m]); 
+            options.contentRating = [...new Set(options.contentRating)]; // get rid of duplicate values
+        } else if (m === contentRatings.length) {
+            options.contentRating = [...contentRatings];
+        } else if (m === 'c') {
+            options.contentRating = [];
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
     }
 }
 
