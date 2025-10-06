@@ -9,36 +9,8 @@ import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
 let lists = null; // MAL lists
 
 async function menuLogMangadex (mangadexData, l) {
-    const SELECTMANGA = 0, OPENCHAPTERS = 1;
-    let m = 0;
+    let m = 0; lists = l; // referring to MAL lists
     
-    lists = l; // referring to MAL lists
-
-    while (m !== 'e') 
-    {
-        // display selected manga
-        await menuLogMangadexDisplay(mangadexData);
-
-        console.log('\n||\n|| Log Mangadex:\n||');
-        console.log('|| 0 -> Traverse Mangas');
-        console.log('|| 1 -> Open chapters in browser');
-        console.log('|| e -> Go back\n||');
-
-        m = await takeUserInput(); // get user input
-
-        if (m === SELECTMANGA) {
-            await traverseMangas(mangadexData);
-        } else if (m === OPENCHAPTERS) { // open chapters in in browser
-            await openChaptersInBrowserMenu(mangadexData);
-        } else if (m !== 'e') { 
-            console.log('\n|| Please input a valid option');
-        }   
-    }    
-}
-
-async function traverseMangas (mangadexData) { 
-    let m = 0;
-
     while (m !== 'e') 
     {
         // display selected manga
@@ -53,7 +25,7 @@ async function traverseMangas (mangadexData) {
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
-    }
+    }    
 }
 
 async function mangaOptionsMenu (selectedManga) {

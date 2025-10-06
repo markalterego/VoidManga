@@ -36,7 +36,7 @@ async function menuLogMALDisplay (anime, manga) {
 }
 
 async function menuLogMangadexDisplay (mangadexData, indexedList) {
-    console.log('\n||\n|| Fetched mangas:\n||');
+    console.log('\n||\n|| Select manga:\n||');
     if (!mangadexData.length) {
         console.log('|| - No selected manga\n||');
     } else {
