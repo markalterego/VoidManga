@@ -57,7 +57,7 @@ async function traverseMangas (mangadexData) {
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const LOGDATA = 0, TRAVERSECHAPTERS = 1, MALPROGRESS = 2;
+    const LOGDATA = 0, MALPROGRESS = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
     let m = 0;
 
     while (m !== 'e') 
@@ -66,18 +66,21 @@ async function mangaOptionsMenu (selectedManga) {
         const title = Object.values(selectedManga.manga.attributes.title)[0]; // first title of titles
         console.log(`\n||\n|| Select an option for ${title}\n||`);
         console.log('|| 0 -> Log manga data');
-        console.log('|| 1 -> Traverse chapters');
-        console.log('|| 2 -> Log MAL progress');
+        console.log('|| 1 -> Log MAL progress');
+        console.log('|| 2 -> Traverse chapters');
+        console.log('|| 3 -> Search for chapter');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
             await logMangaData(selectedManga.manga);
-        } else if (m === TRAVERSECHAPTERS) { 
-            await traverseChapters(title, selectedManga.chapters); 
         } else if (m === MALPROGRESS) { 
             await logSeriesProgress(selectedManga.manga);
+        } else if (m === TRAVERSECHAPTERS) { 
+            await traverseChapters(title, selectedManga.chapters); 
+        } else if (m === FINDCHAPTEROFMANGA) { 
+            await findChapterOfManga(title, selectedManga);
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
@@ -131,6 +134,53 @@ async function logSeriesProgress (manga) {
     }
 }
 
+async function findChapterOfManga (title, selectedManga) {
+    const NEXTUNREADCHAPTER = 0, SPECIFICCHAPTER = 1, LOWESTCHAPTER = 2, HIGHESTCHAPTER = 3; 
+    let m = 0; 
+
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Search ${title}\n||`);
+        console.log('|| 0 -> Next un-read chapter');
+        console.log('|| 1 -> Specific chapter number');
+        console.log('|| 2 -> Lowest chapter number');
+        console.log('|| 3 -> Highest chapter number');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput();
+        
+        if (m === NEXTUNREADCHAPTER) {
+            const foundChapter = await findNextUnreadChapter(selectedManga);
+            if (foundChapter) await chapterOptionsMenu(foundChapter);
+        } else if (m === SPECIFICCHAPTER) {
+
+        } else if (m === LOWESTCHAPTER) {
+            
+        } else if (m === HIGHESTCHAPTER) {
+            
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function findNextUnreadChapter (selectedManga) {
+    const mangaEntry = lists[1]
+                       .flatMap(status => status) // flatten all manga statuses to one arr
+                       .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // try to find matching id
+    if (!mangaEntry) {
+        console.log('\n||\n|| Given manga was not found\n||');
+    } else {
+        const nextUnreadChapterNumber = mangaEntry.list_status.num_chapters_read + 1; // num_chapters_read + 1
+        const foundChapter = selectedManga.chapters.find(chapter => parseInt(chapter.attributes.chapter) === nextUnreadChapterNumber); // trying to find chapter
+        if (!foundChapter) {
+            console.log('\n||\n|| Given chapter was not found\n||');
+        } else {
+            return foundChapter;
+        }
+    }
+}
+
 async function chapterOptionsMenu (selectedChapter) {
     const LOGDATA = 0, OPENINBROWSER = 1;
     let m = 0;
@@ -143,7 +193,6 @@ async function chapterOptionsMenu (selectedChapter) {
         console.log(`\n||\n|| ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang}):\n||`);
         console.log('|| 0 -> Log chapter data');
         console.log('|| 1 -> Open chapter in browser');
-        console.log('|| 2 -> Sort by asc/desc chapter number ');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
