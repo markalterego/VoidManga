@@ -1,13 +1,87 @@
 import open from 'open';
-import { takeUserInput } from '../helpers/functions.js';
+import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
 
 // TODO:
-// - make it possible to fetch chapters from range by manipulating the 
-//   offset parameter when fetching chapters---make sure the user only 
+// - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
 
-async function menuLogMangadex () {
+async function menuLogMangadex (mangadexData, lists) {
+    const SELECTMANGA = 0, OPENCHAPTERS = 1;
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // display selected manga
+        await menuLogMangadexDisplay(mangadexData);
+
+        console.log('\n||\n|| Log Mangadex:\n||');
+        console.log('|| 0 -> Traverse Mangas');
+        console.log('|| 1 -> Open chapters in browser');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        if (m === SELECTMANGA) {
+            await traverseMangas(mangadexData);
+        } else if (m === OPENCHAPTERS) { // open chapters in in browser
+            await openChaptersInBrowserMenu(mangadexData);
+        } else if (m !== 'e') { 
+            console.log('\n|| Please input a valid option');
+        }   
+    }    
+}
+
+async function traverseMangas (mangadexData) { 
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // display selected manga
+        await menuLogMangadexDisplay(mangadexData, true); // true for indexed list
+
+        console.log('\n||\n|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        if (m >= 0 && m < mangadexData.length) {
+            await mangaOptionsMenu(mangadexData[m]); // input selected manga
+        } else if (m !== 'e') { 
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function mangaOptionsMenu (selectedManga) {
+    const LOGDATA = 0, TRAVERSECHAPTERS = 1;
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        // console.log(`${selectedManga}`);
+        const title = Object.values(selectedManga.manga.attributes.title)[0]; // first title of titles
+        console.log(`\n||\n|| Select an option for ${title}\n||`);
+        console.log('|| 0 -> Log manga data');
+        console.log('|| 1 -> Traverse chapters');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        if (m === LOGDATA) {
+            // <-- log manga data
+        } else if (m === TRAVERSECHAPTERS) { 
+            await traverseChapters(selectedManga); 
+        } else if (m !== 'e') { 
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function traverseChapters (selectedManga) {
+
+}
+
+async function chapterOptionsMenu (selectedChapter) {
 
 }
 
