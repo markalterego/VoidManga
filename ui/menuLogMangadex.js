@@ -13,7 +13,7 @@ async function menuLogMangadex (mangadexData, lists) {
     while (m !== 'e') 
     {
         // display selected manga
-        await menuLogMangadexDisplay(mangadexData);
+        // await menuLogMangadexDisplay(mangadexData);
 
         console.log('\n||\n|| Log Mangadex:\n||');
         console.log('|| 0 -> Traverse Mangas');
@@ -68,21 +68,83 @@ async function mangaOptionsMenu (selectedManga) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            // <-- log manga data
+            await logMangaData(selectedManga.manga);
         } else if (m === TRAVERSECHAPTERS) { 
-            await traverseChapters(selectedManga); 
+            await traverseChapters(title, selectedManga.chapters); 
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
-async function traverseChapters (selectedManga) {
+async function logMangaData (manga) {
+    // <-- either do a menu here from which you can choose
+    //     what data to log from selectedManga or simply
+    //     log data that the user might be interested in 
+    //     in regards to the manga
+    console.log(); console.dir(manga, { depth: null });
+}
 
+async function traverseChapters (mangaTitle, chapters) {
+    let m = 0, index = 0;
+
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| ${mangaTitle}:\n||`);
+        for (const chapter of chapters) {
+            const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
+            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
+            const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
+            console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang})`);
+            if (index === chapters.length) console.log('||');
+        }
+        const highestSelectableIndex = index - 1; index = 0; 
+        console.log('\n||\n|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input 
+
+        // handle user input
+        if (m >= 0 && m <= highestSelectableIndex) { 
+            await chapterOptionsMenu(chapters[m]); 
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
 }
 
 async function chapterOptionsMenu (selectedChapter) {
+    const LOGDATA = 0, OPENINBROWSER = 1;
+    let m = 0;
 
+    while (m !== 'e') 
+    {
+        const chapterTitle = selectedChapter.attributes.title ? selectedChapter.attributes.title : 'No Title'; // title
+        const chNum = selectedChapter.attributes.chapter !== null ? selectedChapter.attributes.chapter : -1; // chapter number
+        const transLang = selectedChapter.attributes.translatedLanguage ? selectedChapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
+        console.log(`\n||\n|| ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang}):\n||`);
+        console.log('|| 0 -> Log chapter data');
+        console.log('|| 1 -> Open chapter in browser');
+        console.log('|| 2 -> Sort by asc/desc chapter number ');
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(); // get user input
+
+        if (m === LOGDATA) {
+            await logChapterData(selectedChapter);
+        } else if (m === OPENINBROWSER) {
+            await open(selectedChapter.link); 
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function logChapterData (chapter) {
+    // <-- either do a menu here from which you can choose
+    //     what data to log from chapter or simply
+    //     log data that the user might be interested in 
+    //     in regards to the chapter
+    console.log(); console.dir(chapter, { depth: null });
 }
 
 async function openChaptersInBrowserMenu (fetchResults) {
