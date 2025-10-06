@@ -1,11 +1,11 @@
 import { fetchMAL } from "../fetch/fetchMAL.js";
-// import { fetchMangadex } from "../fetch/fetchMangadex.js";
 import { customLogMAL } from "./customLogMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput } from "../helpers/functions.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMAL } from "./menuLogMAL.js";
+import { menuLogMangadex } from "./menuLogMangadex.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
@@ -34,8 +34,9 @@ async function rootMenu() {
         console.log('|| 1 -> Reading manga');
         console.log('|| 2 -> Full list');
         console.log('|| 3 -> Custom log MAL');
-        console.log(`|| 4 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 5 -> Fetch MAL');
+        console.log('|| 4 -> Custom log Mangadex');
+        console.log(`|| 5 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
+        console.log('|| 6 -> Fetch MAL');
         console.log('|| s -> Settings');
         console.log('|| e -> Exit\n||');
 
@@ -58,6 +59,9 @@ async function rootMenu() {
                 await filehandle('config', config); 
                 break; }
             case 4: 
+                await menuLogMangadex(mangadexData, lists); // <-- log mangadex
+                break; 
+            case 5: 
                 // if autofetching is disabled, loops through customFetchMenuMangadex normally (default behavior)
                 // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
                 // to upper menu right after completion
@@ -71,7 +75,7 @@ async function rootMenu() {
                     // await fetchMangadex(lists, config?.fetchMangadexOptions);
                 }
                 break;
-            case 5: 
+            case 6: 
                 lists = await fetchMAL(lists); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break; 
@@ -92,6 +96,9 @@ async function rootMenu() {
 async function settingsMenu() {
     let m = 0;
     
+    // TODO: 
+    // - make an option for clearing all MAL/Mangadex data
+
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
