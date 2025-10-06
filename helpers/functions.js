@@ -35,16 +35,18 @@ async function menuLogMALDisplay (anime, manga) {
     console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
 }
 
-async function menuLogMangadexDisplay (selectedManga) {
+async function menuLogMangadexDisplay (mangadexData, indexedList) {
     console.log('\n||\n|| Fetched mangas:\n||');
-    if (!selectedManga.length) {
+    if (!mangadexData.length) {
         console.log('|| - No selected manga\n||');
     } else {
-        selectedManga.forEach((MC, MCIndex) => {
+        mangadexData.forEach((MC, MCIndex) => {
             const manga = MC.manga; // manga data
             const title = Object.values(manga.attributes.title)[0]; // first title
-            console.log(`|| - ${title}`);
-            if (MCIndex === selectedManga.length - 1) console.log('||');
+            const chapterCount = MC.chapters.length;
+            if (indexedList) console.log(`|| ${MCIndex}: ${title} (${chapterCount})`);
+            else console.log(`|| - ${title} (${chapterCount})`);
+            if (MCIndex === mangadexData.length - 1) console.log('||');
         });
     }
 }
