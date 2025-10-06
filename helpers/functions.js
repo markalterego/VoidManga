@@ -1,7 +1,7 @@
 import { rl } from '../main.js'
 import { animeStatus, mangaStatus, mangaOrderTypes, chapterOrderTypes } from './export.js';
 
-async function takeUserInput() {
+async function takeUserInput (skipClear) {
     // 1. function takes input from user,
     // 2. removes leading and trailing whitespaces from input
     // 3. checks if input includes only numbers
@@ -11,7 +11,7 @@ async function takeUserInput() {
     const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
     if (isNumber) userInput = parseInt(userInput, 10); // convert userinput to int
     else userInput = userInput.toLowerCase(); // convert userinput to lowercase
-    await clearScreen(); // clear console window
+    if (!skipClear) await clearScreen(); // clear console window
     return userInput;
 } 
 
@@ -36,7 +36,7 @@ async function menuLogMALDisplay (anime, manga) {
 }
 
 async function menuLogMangadexDisplay (selectedManga) {
-    console.log('\n||\n|| Current selection:\n||');
+    console.log('\n||\n|| Fetched mangas:\n||');
     if (!selectedManga.length) {
         console.log('|| - No selected manga\n||');
     } else {
