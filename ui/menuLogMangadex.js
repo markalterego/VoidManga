@@ -153,9 +153,11 @@ async function findChapterOfManga (title, selectedManga) {
             const foundChapter = await findNextUnreadChapter(selectedManga);
             if (foundChapter) await chapterOptionsMenu(foundChapter);
         } else if (m === LOWESTCHAPTER) {
-            
+            const foundChapter = await findLowestChapterNumber(selectedManga.chapters);
+            if (foundChapter) await chapterOptionsMenu(foundChapter);
         } else if (m === HIGHESTCHAPTER) {
-            
+            const foundChapter = await findHighestChapterNumber(selectedManga.chapters);
+            if (foundChapter) await chapterOptionsMenu(foundChapter);
         } else if (m === SPECIFICCHAPTER) {
             await findChapterByChapterNumber(selectedManga.chapters);
         } else if (m !== 'e') {
@@ -181,6 +183,18 @@ async function findNextUnreadChapter (selectedManga) {
     }
 }
 
+async function findLowestChapterNumber (chapters) {
+    const lowestChapterNumber = Math.min(...chapters.map(chapter => parseInt(chapter.attributes.chapter)));
+    const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === lowestChapterNumber);
+    return foundChapter;
+}
+
+async function findHighestChapterNumber (chapters) {
+    const highestChapterNumber = Math.max(...chapters.map(chapter => parseInt(chapter.attributes.chapter)));
+    const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === highestChapterNumber);
+    return foundChapter;
+}
+
 async function findChapterByChapterNumber (chapters) {
     let m = 0;
 
@@ -203,8 +217,6 @@ async function findChapterByChapterNumber (chapters) {
         }
     }
 }
-
-
 
 async function chapterOptionsMenu (selectedChapter) {
     const LOGDATA = 0, OPENINBROWSER = 1;
