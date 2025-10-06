@@ -186,13 +186,21 @@ async function findNextUnreadChapter (selectedManga) {
 async function findLowestChapterNumber (chapters) {
     const lowestChapterNumber = Math.min(...chapters.map(chapter => parseInt(chapter.attributes.chapter)));
     const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === lowestChapterNumber);
-    return foundChapter;
+    if (!foundChapter) {
+        console.log('\n||\n|| Given chapter was not found\n||')
+    } else {
+        return foundChapter;
+    }   
 }
 
 async function findHighestChapterNumber (chapters) {
     const highestChapterNumber = Math.max(...chapters.map(chapter => parseInt(chapter.attributes.chapter)));
     const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === highestChapterNumber);
-    return foundChapter;
+    if (!foundChapter) {
+        console.log('\n||\n|| Given chapter was not found\n||')
+    } else {
+        return foundChapter;
+    }
 }
 
 async function findChapterByChapterNumber (chapters) {
