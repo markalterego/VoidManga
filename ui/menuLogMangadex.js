@@ -6,14 +6,18 @@ import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
 
-async function menuLogMangadex (mangadexData, lists) {
+let lists = null; // MAL lists
+
+async function menuLogMangadex (mangadexData, l) {
     const SELECTMANGA = 0, OPENCHAPTERS = 1;
     let m = 0;
+    
+    lists = l; // referring to MAL lists
 
     while (m !== 'e') 
     {
         // display selected manga
-        // await menuLogMangadexDisplay(mangadexData);
+        await menuLogMangadexDisplay(mangadexData);
 
         console.log('\n||\n|| Log Mangadex:\n||');
         console.log('|| 0 -> Traverse Mangas');
@@ -53,7 +57,7 @@ async function traverseMangas (mangadexData) {
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const LOGDATA = 0, TRAVERSECHAPTERS = 1;
+    const LOGDATA = 0, TRAVERSECHAPTERS = 1, MALPROGRESS = 2;
     let m = 0;
 
     while (m !== 'e') 
@@ -63,6 +67,7 @@ async function mangaOptionsMenu (selectedManga) {
         console.log(`\n||\n|| Select an option for ${title}\n||`);
         console.log('|| 0 -> Log manga data');
         console.log('|| 1 -> Traverse chapters');
+        console.log('|| 2 -> Log MAL progress');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
@@ -71,6 +76,8 @@ async function mangaOptionsMenu (selectedManga) {
             await logMangaData(selectedManga.manga);
         } else if (m === TRAVERSECHAPTERS) { 
             await traverseChapters(title, selectedManga.chapters); 
+        } else if (m === MALPROGRESS) { 
+            await logSeriesProgress(selectedManga.manga);
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
@@ -90,6 +97,7 @@ async function traverseChapters (mangaTitle, chapters) {
 
     while (m !== 'e') 
     {
+        // attributes.links.mal
         console.log(`\n||\n|| ${mangaTitle}:\n||`);
         for (const chapter of chapters) {
             const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
@@ -109,6 +117,17 @@ async function traverseChapters (mangaTitle, chapters) {
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
+    }
+}
+
+async function logSeriesProgress (manga) {
+    const foundManga = lists[1] // manga list
+                       .flatMap(status => status) // combines all entries from all statuses to one arr
+                       .find(entry => entry.node.id === parseInt(manga.attributes.links?.mal)); // return first entry where id is the same
+    if (!foundManga) {
+        console.log('\n||\n|| Given manga was not found\n||');
+    } else {
+        console.log(`\n||\n|| Chapters read: ${foundManga.list_status.num_chapters_read} / ${foundManga.node.num_chapters}\n||`);
     }
 }
 
