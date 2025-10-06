@@ -135,16 +135,16 @@ async function logSeriesProgress (manga) {
 }
 
 async function findChapterOfManga (title, selectedManga) {
-    const NEXTUNREADCHAPTER = 0, SPECIFICCHAPTER = 1, LOWESTCHAPTER = 2, HIGHESTCHAPTER = 3; 
+    const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3; 
     let m = 0; 
 
     while (m !== 'e') 
     {
         console.log(`\n||\n|| Search ${title}\n||`);
         console.log('|| 0 -> Next un-read chapter');
-        console.log('|| 1 -> Specific chapter number');
-        console.log('|| 2 -> Lowest chapter number');
-        console.log('|| 3 -> Highest chapter number');
+        console.log('|| 1 -> Lowest chapter number');
+        console.log('|| 2 -> Highest chapter number');
+        console.log('|| 3 -> Specific chapter number');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput();
@@ -152,12 +152,12 @@ async function findChapterOfManga (title, selectedManga) {
         if (m === NEXTUNREADCHAPTER) {
             const foundChapter = await findNextUnreadChapter(selectedManga);
             if (foundChapter) await chapterOptionsMenu(foundChapter);
-        } else if (m === SPECIFICCHAPTER) {
-
         } else if (m === LOWESTCHAPTER) {
             
         } else if (m === HIGHESTCHAPTER) {
             
+        } else if (m === SPECIFICCHAPTER) {
+            await findChapterByChapterNumber(selectedManga.chapters);
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
@@ -180,6 +180,31 @@ async function findNextUnreadChapter (selectedManga) {
         }
     }
 }
+
+async function findChapterByChapterNumber (chapters) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Input a chapter number:\n||`);
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput();
+        
+        if (m >= 0) {
+            const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === m); // trying to find given chapter number
+            if (!foundChapter) {
+                console.log('\n||\n|| Given chapter was not found\n||');
+            } else {
+                await chapterOptionsMenu(foundChapter);
+            }
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+
 
 async function chapterOptionsMenu (selectedChapter) {
     const LOGDATA = 0, OPENINBROWSER = 1;
