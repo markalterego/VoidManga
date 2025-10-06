@@ -35,6 +35,20 @@ async function menuLogMALDisplay (anime, manga) {
     console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
 }
 
+async function menuLogMangadexDisplay (selectedManga) {
+    console.log('\n||\n|| Current selection:\n||');
+    if (!selectedManga.length) {
+        console.log('|| - No selected manga\n||');
+    } else {
+        selectedManga.forEach((MC, MCIndex) => {
+            const manga = MC.manga; // manga data
+            const title = Object.values(manga.attributes.title)[0]; // first title
+            console.log(`|| - ${title}`);
+            if (MCIndex === selectedManga.length - 1) console.log('||');
+        });
+    }
+}
+
 async function menuFetchFiltersDisplay (lists, key) {
     // display current filters
     let selectionFound = false;
@@ -57,4 +71,4 @@ async function menuFetchFiltersDisplay (lists, key) {
     });
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay };
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay, menuLogMangadexDisplay };
