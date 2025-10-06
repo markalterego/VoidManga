@@ -46,6 +46,11 @@ async function fetchMangadexMangas (lists, options) {
 
 async function fetchMangadexChapters (selectedMangas, options) {
     try {
+        
+        // TODO: 
+        // - make it so limit_chapter > 100 is allowed in a way that fetches are split
+        //   into multiple 100 sized or smaller fetches 
+
         let mangaAndChapterInfo = [];
         for (const selectedManga of selectedMangas) {
             const startTimeChapter = performance.now(); // timing chapter fetch start
