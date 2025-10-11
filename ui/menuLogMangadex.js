@@ -6,22 +6,32 @@ import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
 
+const ASCENDING = 0, DESCENDING = 1;
 let lists = null; // MAL lists
 
 async function menuLogMangadex (mangadexData, l) {
-    let m = 0; lists = l; // referring to MAL lists
+    let m = 0, SORTDIRECTION = ASCENDING; lists = l;
     
     while (m !== 'e') 
     {
         // display selected manga
         await menuLogMangadexDisplay(mangadexData, true); // true for indexed list
 
-        console.log('\n||\n|| e -> Go back\n||');
+        console.log(`\n||\n|| s -> Sort ${SORTDIRECTION ? 'ascending' : 'descending'}`);
+        console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
         if (m >= 0 && m < mangadexData.length) {
             await mangaOptionsMenu(mangadexData[m]); // input selected manga
+        } else if (m === 's') { // toggle ascending/descending
+            if (SORTDIRECTION === ASCENDING) { 
+                mangadexData.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
+                SORTDIRECTION = DESCENDING;
+            } else if (SORTDIRECTION === DESCENDING) {
+                mangadexData.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
+                SORTDIRECTION = ASCENDING;
+            }
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
@@ -68,8 +78,8 @@ async function logMangaData (manga) {
 }
 
 async function traverseChapters (mangaTitle, selectedManga) {
-    const ASCENDING = 0, DESCENDING = 1, chapters = selectedManga.chapters;
-    let m = 0, index = 0, SORTDIRECTION = 0, sortedChapters = null;
+    const chapters = selectedManga.chapters;
+    let m = 0, index = 0, SORTDIRECTION = ASCENDING, sortedChapters = null;
     const foundManga = lists[1] // manga list
                        .flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
