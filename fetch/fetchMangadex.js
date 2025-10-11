@@ -44,7 +44,7 @@ async function fetchMangadexMangas (lists, options) {
     }
 }
 
-async function fetchMangadexChapters (selectedMangas, options, fetchAllChapters) {
+async function fetchMangadexChapters (selectedMangas, options) {
     try {
         
         // TODO: 
@@ -55,7 +55,7 @@ async function fetchMangadexChapters (selectedMangas, options, fetchAllChapters)
         //   total fetch time taken (when fetching all chapters)
 
         let mangaAndChapterInfo = [];
-        if (!fetchAllChapters) {
+        if (!options.fetchAllChapters) {
             for (const selectedManga of selectedMangas) {
                 const startTimeChapter = performance.now(); // timing chapter fetch start
                 const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
