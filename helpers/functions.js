@@ -23,9 +23,12 @@ async function clearScreen() {
 async function customFetchMangadexDisplay (options) {
     console.log(`\n||\n|| Manga fetch size: ${options.limit_manga}`);
     console.log(`|| Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
-    console.log(`|| Chapter fetch size: ${options.limit_chapter}`); 
-    console.log(`|| Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
-    console.log(`|| Chapter offset: ${options.offset_chapter}`);
+    console.log(`|| Fetch all chapters: ${options.fetchAllChapters ? 'enabled' : 'disabled'}`);
+    if (!options.fetchAllChapters) {
+        console.log(`|| Chapter fetch size: ${options.limit_chapter}`); 
+        console.log(`|| Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
+        console.log(`|| Chapter offset: ${options.offset_chapter}`);
+    }
     console.log(`|| Chapter languages: ${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}`);
     console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n||`);
 }
