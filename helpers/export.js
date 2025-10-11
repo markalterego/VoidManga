@@ -10,6 +10,7 @@ export const fetchMangadexOptions = {
     chapterOrderDirection: 'desc', // 'asc', 'desc'
     contentRating: [], // ['safe','etc...'], undefined for default behavior
     chapterTranslatedLanguage: [], // ['en','es','etc...'], undefined for all languages
+    fetchAllChapters: false // when enabled, fetches all chapters corresponding to other options
 };
 // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
 export const mangaOrderTypes = {
