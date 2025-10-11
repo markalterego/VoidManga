@@ -24,6 +24,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Filter MAL titles');
         console.log('|| 3 -> Reset default options');
+        console.log('|| 4 -> Toggle chapter fetch type');
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -31,42 +32,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         switch (m)
         {
             case 0: // fetching with given options
-                const mangaData = await fetchMangadexMangas(lists, options);
-                const foundManga = mangaData?.some(mangaSearch => mangaSearch.searchResults?.length > 0); // mangas found for at least one search
-                if (!foundManga) {
-                    console.log('\n||\n|| No mangas were found\n||');
-                } else {
-                    const selectedMangas = await selectMangasFromFetchResults(mangaData);
-                    if (selectedMangas.length === 0) { // no mangas selected
-                        console.log('\n||\n|| No mangas were selected\n||');
-                    } else {
-                        const combinedData = await fetchMangadexChapters(selectedMangas, options);
-                        const hasChapters = combinedData.some(search => search.chapters.length > 0); 
-                        if (!hasChapters) { // no chapters found
-                            console.log('\n||\n|| No chapters were found\n||');
-                        } else {
-                            // append combinedData into mangadexData
-                            combinedData.forEach((search) => { // search per title
-                                const foundKey = Object.keys(mangadexData).find(key => mangadexData[key].manga.id === search.manga.id);
-                                if (foundKey) { // manga found in existing data
-                                    let reference = mangadexData[foundKey].chapters;
-                                    // filter reference to contain only unique chapter ids
-                                    const fetchedChapters = search.chapters;
-                                    fetchedChapters.forEach((chapter) => {
-                                        const isDuplicate = reference.some(existingChapter => existingChapter.id === chapter.id);
-                                        if (!isDuplicate) {
-                                            reference.push(chapter); // append unique chapters to mangadexData
-                                        }
-                                    });
-                                } else {
-                                    // appending new info to existing info
-                                    mangadexData.push({ manga: search.manga, chapters: search.chapters});
-                                } 
-                            });
-                            console.log('\n||\n|| Mangedex fetch was successful\n||');
-                        }
-                    }
-                }
+                await fetchWithOptions(lists, options, mangadexData);
                 break;
             case 1: // running menu for changing options
                 await fetchOptionsMenu(options);
@@ -81,6 +47,10 @@ async function menuFetchMangadex (lists, config, mangadexData) {
                 });
                 console.log('\n||\n|| Options reset to default\n||');
                 break;
+            case 4: // toggle fetchAllChapters
+                if (options.fetchAllChapters) options.fetchAllChapters = false;
+                else options.fetchAllChapters = true;
+                break;
             case 'e':
                 break;
             default: 
@@ -88,6 +58,45 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         }
     }
     return {options: options};
+}
+
+async function fetchWithOptions (lists, options, mangadexData) {
+    const mangaData = await fetchMangadexMangas(lists, options);
+    const foundManga = mangaData?.some(mangaSearch => mangaSearch?.searchResults?.length > 0); // mangas found for at least one search
+    if (!foundManga) {
+        console.log('\n||\n|| No mangas were found\n||');
+    } else {
+        const selectedMangas = await selectMangasFromFetchResults(mangaData);
+        if (selectedMangas.length === 0) { // no mangas selected
+            console.log('\n||\n|| No mangas were selected\n||');
+        } else {
+            const combinedData = await fetchMangadexChapters(selectedMangas, options);
+            const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
+            if (!hasChapters) { // no chapters found
+                console.log('\n||\n|| No chapters were found\n||');
+            } else {
+                // append combinedData into mangadexData
+                combinedData.forEach((search) => { // search per title
+                    const foundKey = Object.keys(mangadexData).find(key => mangadexData[key].manga.id === search.manga.id);
+                    if (foundKey) { // manga found in existing data
+                        let reference = mangadexData[foundKey].chapters;
+                        // filter reference to contain only unique chapter ids
+                        const fetchedChapters = search.chapters;
+                        fetchedChapters.forEach((chapter) => {
+                            const isDuplicate = reference.some(existingChapter => existingChapter.id === chapter.id);
+                            if (!isDuplicate) {
+                                reference.push(chapter); // append unique chapters to mangadexData
+                            }
+                        });
+                    } else {
+                        // appending new info to existing info
+                        mangadexData.push({ manga: search.manga, chapters: search.chapters});
+                    } 
+                });
+                console.log('\n||\n|| Mangedex fetch was successful\n||');
+            }
+        }
+    }
 }
 
 async function fetchOptionsMenu (options) {

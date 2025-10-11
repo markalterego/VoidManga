@@ -23,7 +23,7 @@ async function clearScreen() {
 async function customFetchMangadexDisplay (options) {
     console.log(`\n||\n|| Manga fetch size: ${options.limit_manga}`);
     console.log(`|| Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
-    console.log(`|| Fetch all chapters: ${options.fetchAllChapters ? 'enabled' : 'disabled'}`);
+    console.log(`|| Chapter fetch type: ${options.fetchAllChapters ? 'all' : 'custom'}`);
     if (!options.fetchAllChapters) {
         console.log(`|| Chapter fetch size: ${options.limit_chapter}`); 
         console.log(`|| Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
