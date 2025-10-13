@@ -11,16 +11,16 @@ async function takeUserInput (skipClear) {
     const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
     if (isNumber) userInput = parseInt(userInput, 10); // convert userinput to int
     else userInput = userInput.toLowerCase(); // convert userinput to lowercase
-    if (!skipClear) await clearScreen(); // clear console window
+    if (!skipClear) clearScreen(); // clear console window
     return userInput;
 } 
 
-async function clearScreen() {
+function clearScreen() {
     // ANSI for full terminal reset (using in place of cls [this actually works])
     process.stdout.write('\x1Bc'); 
 }
 
-async function customFetchMangadexDisplay (options) {
+function customFetchMangadexDisplay (options) {
     console.log(`\n||\n|| Manga fetch size: ${options.limit_manga}`);
     console.log(`|| Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
     console.log(`|| Chapter fetch type: ${options.fetchAllChapters ? 'all' : 'custom'}`);
@@ -33,12 +33,12 @@ async function customFetchMangadexDisplay (options) {
     console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n||`);
 }
 
-async function menuLogMALDisplay (anime, manga) {
+function menuLogMALDisplay (anime, manga) {
     console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
     console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
 }
 
-async function menuLogMangadexDisplay (mangadexData, indexedList) {
+function menuLogMangadexDisplay (mangadexData, indexedList) {
     console.log('\n||\n|| Select manga:\n||');
     if (!mangadexData.length) {
         console.log('|| - No selected manga\n||');
@@ -54,7 +54,7 @@ async function menuLogMangadexDisplay (mangadexData, indexedList) {
     }
 }
 
-async function menuFetchFiltersDisplay (lists, key) {
+function menuFetchFiltersDisplay (lists, key) {
     // display current filters
     let selectionFound = false;
     lists.forEach((type, type_index) => { // anime/manga
@@ -76,4 +76,8 @@ async function menuFetchFiltersDisplay (lists, key) {
     });
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay, menuLogMangadexDisplay };
+function capitalFirstLetterString (string) {
+    return string.at(0).toUpperCase() + string.slice(1);
+}
+
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay, menuLogMangadexDisplay, capitalFirstLetterString };
