@@ -5,9 +5,6 @@ const ANIME = 0, MANGA = 1;
 let lists = null;
 let key = null;
 
-// TODO:
-// - make possible to include/exclude per type/status/entry
-
 async function filterEntriesFromFetch (l, k) {      
     lists = l; key = k; // referring lists and key accordingly
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
