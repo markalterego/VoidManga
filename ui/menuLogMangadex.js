@@ -15,7 +15,7 @@ async function menuLogMangadex (mangadexData, l) {
     while (m !== 'e') 
     {
         // display selected manga
-        await menuLogMangadexDisplay(mangadexData, true); // true for indexed list
+        menuLogMangadexDisplay(mangadexData, true); // true for indexed list
 
         console.log(`\n||\n|| s -> Sort ${SORTDIRECTION ? 'ascending' : 'descending'}`);
         console.log('|| e -> Go back\n||');

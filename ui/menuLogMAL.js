@@ -10,7 +10,7 @@ async function menuLogMAL (lists, config) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await menuLogMALDisplay(anime, manga);
+        menuLogMALDisplay(anime, manga);
 
         console.log('\n||\n|| Custom log MAL\n||');
         console.log('|| 0 -> Log with options');
@@ -29,7 +29,7 @@ async function menuLogMAL (lists, config) {
                 while (m !== 'e') 
                 {
                     // logs currently selected options
-                    await menuLogMALDisplay(anime, manga);
+                    menuLogMALDisplay(anime, manga);
 
                     console.log(`\n||\n|| Change options (${!boolManga ? 'anime' : 'manga'})\n||`);
                     if (!boolManga) { 

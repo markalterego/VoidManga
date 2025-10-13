@@ -14,10 +14,10 @@ async function menuFetchMangadex (lists, config, mangadexData) {
     while (m !== 'e') 
     {
         // logs currently selected MAL titles to be used in fetch
-        await menuFetchFiltersDisplay(lists, 'includeInMangadexFetch');
+        menuFetchFiltersDisplay(lists, 'includeInMangadexFetch');
 
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Custom fetch Mangadex\n||');
         console.log('|| 0 -> Fetch with options');
@@ -106,7 +106,7 @@ async function fetchOptionsMenu (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         // lists options that can be changed 
         console.log('\n||\n|| Change fetch options:\n||');
@@ -136,7 +136,7 @@ async function mangaOptionsMenu (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Manga options:\n||');
         console.log('|| 0 -> Manga fetch size');
@@ -161,7 +161,7 @@ async function optionMangaLimit (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
         
         console.log(`\n||\n|| Manga fetch size:\n||`);
         console.log('|| ? -> Input a value between 0-100');
@@ -190,7 +190,7 @@ async function optionMangaOrder (options) {
         let index = 0; 
 
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Manga order:\n||');
         // go through all types
@@ -221,7 +221,7 @@ async function chapterOptionsMenu (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Chapter options:\n||');
         console.log('|| 0 -> Chapter fetch size');
@@ -252,7 +252,7 @@ async function optionChapterLimit (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
         
         console.log(`\n||\n|| Chapter fetch size:\n||`);
         console.log('|| ? -> Input a value between 0-100');
@@ -281,7 +281,7 @@ async function optionChapterOrder (options) {
         let index = 0; 
 
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Chapter order:\n||');
         // go through all types
@@ -314,7 +314,7 @@ async function optionChapterOffset (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
         
         // offset is counted to request length and the maximum allowed request size is 10000, 
         // therefore maxOffset can be at maximum the difference of 10000 and limit_chapter 
@@ -343,7 +343,7 @@ async function optionChapterLanguages (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
         /*
         When changing the option for chapterTranslatedLanguage the user has two options:
         
@@ -390,7 +390,7 @@ async function optionContentRatings (options) {
     while (m !== 'e') 
     {
         // logs currently selected options
-        await customFetchMangadexDisplay(options);
+        customFetchMangadexDisplay(options);
 
         console.log(`\n||\n|| Choose content ratings\n||`);
         contentRatings.forEach((contentRating, index) => {
