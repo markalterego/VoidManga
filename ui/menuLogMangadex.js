@@ -184,8 +184,8 @@ async function findNextUnreadChapter (selectedManga) {
 }
 
 async function findLowestChapterNumber (chapters) {
-    const lowestChapterNumber = Math.min(...chapters.map(chapter => parseInt(chapter.attributes.chapter)));
-    const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === lowestChapterNumber);
+    const lowestChapterNumber = Math.min(...chapters.map(chapter => Number(chapter.attributes.chapter)));
+    const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === lowestChapterNumber);
     if (!foundChapter) {
         console.log('\n||\n|| Given chapter was not found\n||')
     } else {
@@ -194,8 +194,8 @@ async function findLowestChapterNumber (chapters) {
 }
 
 async function findHighestChapterNumber (chapters) {
-    const highestChapterNumber = Math.max(...chapters.map(chapter => parseInt(chapter.attributes.chapter)));
-    const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === highestChapterNumber);
+    const highestChapterNumber = Math.max(...chapters.map(chapter => Number(chapter.attributes.chapter)));
+    const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === highestChapterNumber);
     if (!foundChapter) {
         console.log('\n||\n|| Given chapter was not found\n||')
     } else {
@@ -214,7 +214,7 @@ async function findChapterByChapterNumber (chapters) {
         m = await takeUserInput();
         
         if (m >= 0) {
-            const foundChapter = chapters.find(chapter => parseInt(chapter.attributes.chapter) === m); // trying to find given chapter number
+            const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === m); // trying to find given chapter number
             if (!foundChapter) {
                 console.log('\n||\n|| Given chapter was not found\n||');
             } else {
