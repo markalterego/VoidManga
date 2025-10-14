@@ -1,16 +1,24 @@
 import { rl } from '../main.js'
 import { animeStatus, mangaStatus, mangaOrderTypes, chapterOrderTypes } from './export.js';
 
-async function takeUserInput (skipClear) {
+async function takeUserInput (useWhole, skipClear) {
     // 1. function takes input from user,
     // 2. removes leading and trailing whitespaces from input
     // 3. checks if input includes only numbers
-    // 4.1. if (input had only numbers) return Number(input)
+    // 4.1. if (input had only numbers) return Number(input) || return parseInt(input)
     // 4.2. else return input.toLowerCase()
     let userInput = (await rl.question('\n|| Input: ')).trim(); // get user input
     const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
-    if (isNumber && userInput.length > 0) userInput = Number(userInput); // convert userinput to int
-    else userInput = userInput.toLowerCase(); // convert userinput to lowercase
+    if (isNumber && userInput.length > 0) { // convert userinput to num
+        userInput = Number(userInput);
+        if (useWhole) { // whole numbers
+            if (userInput % 1 === 0) userInput = parseInt(userInput);
+            else userInput = undefined;
+        } 
+    } else {
+        if (userInput.length > 0) userInput = userInput.toLowerCase(); // convert userinput to lowercase
+        else userInput = undefined;
+    }
     if (!skipClear) clearScreen(); // clear console window
     return userInput;
 } 
