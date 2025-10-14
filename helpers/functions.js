@@ -9,7 +9,7 @@ async function takeUserInput (skipClear) {
     // 4.2. else return input.toLowerCase()
     let userInput = (await rl.question('\n|| Input: ')).trim(); // get user input
     const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
-    if (isNumber) userInput = Number(userInput, 10); // convert userinput to int
+    if (isNumber && userInput.length > 0) userInput = Number(userInput); // convert userinput to int
     else userInput = userInput.toLowerCase(); // convert userinput to lowercase
     if (!skipClear) clearScreen(); // clear console window
     return userInput;
