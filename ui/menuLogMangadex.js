@@ -5,33 +5,45 @@ import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
 // - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
+// - make it possible to hide zero length mangas from the displayed list
 
 const ASCENDING = 0, DESCENDING = 1;
 let lists = null; // MAL lists
 
 async function menuLogMangadex (mangadexData, l) {
-    let m = 0, SORTDIRECTION = ASCENDING; lists = l;
-    
+    let m = 0, SORTDIRECTION = ASCENDING, showZeroLength = true, filteredMangadexData = JSON.parse(JSON.stringify(mangadexData)); 
+    lists = l; 
+
     while (m !== 'e') 
     {
+        if (SORTDIRECTION === ASCENDING) { 
+            filteredMangadexData.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
+        } else if (SORTDIRECTION === DESCENDING) {
+            filteredMangadexData.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
+        }
+
         // display selected manga
-        menuLogMangadexDisplay(mangadexData, true); // true for indexed list
+        menuLogMangadexDisplay(filteredMangadexData, true); // true for indexed list
 
         console.log(`\n||\n|| s -> Sort ${SORTDIRECTION ? 'ascending' : 'descending'}`);
+        console.log(`|| h -> ${showZeroLength ? 'Hide' : 'Show'} manga with no chapters`);
         console.log('|| e -> Go back\n||');
 
-        m = await takeUserInput(); // get user input
-
+        m = await takeUserInput(true); // get user input - true for whole numbers
+        
         if (m >= 0 && m < mangadexData.length) {
             await mangaOptionsMenu(mangadexData[m]); // input selected manga
-        } else if (m === 's') { // toggle ascending/descending
-            if (SORTDIRECTION === ASCENDING) { 
-                mangadexData.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
-                SORTDIRECTION = DESCENDING;
-            } else if (SORTDIRECTION === DESCENDING) {
-                mangadexData.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
-                SORTDIRECTION = ASCENDING;
+        } else if (m === 'h') { // toggle hide/show zero length manga
+            if (showZeroLength) {
+                filteredMangadexData = filteredMangadexData.filter(obj => obj.chapters.length > 0);
+                showZeroLength = false;
+            } else {
+                filteredMangadexData = JSON.parse(JSON.stringify(mangadexData));
+                showZeroLength = true;
             }
+        } else if (m === 's') { // toggle ascending/descending
+            if (SORTDIRECTION === ASCENDING) SORTDIRECTION = DESCENDING;
+            else SORTDIRECTION = ASCENDING;
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
@@ -109,7 +121,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
         console.log(`\n||\n|| s -> Sort ${SORTDIRECTION === ASCENDING ? 'descending' : 'ascending'}`);
         console.log('|| e -> Go back\n||');
         
-        m = await takeUserInput(); // get user input 
+        m = await takeUserInput(true); // get user input 
 
         // handle user input
         if (m >= 0 && m <= highestSelectableIndex) { 
