@@ -5,7 +5,6 @@ import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
 // - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
-// - make it possible to hide zero length mangas from the displayed list
 
 const ASCENDING = 0, DESCENDING = 1;
 let lists = null; // MAL lists
@@ -97,7 +96,6 @@ async function traverseChapters (mangaTitle, selectedManga) {
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
     // TODO:
     // - filter chapters by language/show only unread
-    // - add unread tag for unread chapters if manga found
     // - add paging so that results are easier to read
 
     while (m !== 'e') 
