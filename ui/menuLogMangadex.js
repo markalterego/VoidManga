@@ -1,31 +1,38 @@
 import open from 'open';
 import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
+import { logMangadexOptions } from '../helpers/export.js';
 
 // TODO:
 // - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
 
-const ASCENDING = 0, DESCENDING = 1;
 let lists = null; // MAL lists
+let options = null; // config.logMangadexOptions
 
-async function menuLogMangadex (mangadexData, l) {
-    let m = 0, SORTDIRECTION = ASCENDING, showZeroLength = true, filteredMangadexData = JSON.parse(JSON.stringify(mangadexData)); 
-    lists = l; 
+async function menuLogMangadex (mangadexData, l, config) {
+    let m = 0, filteredMangadexData = JSON.parse(JSON.stringify(mangadexData)); 
+    options = !config?.logMangadexOptions ? JSON.parse(JSON.stringify(logMangadexOptions)) : config.logMangadexOptions;
+    lists = l;
 
     while (m !== 'e') 
     {
-        if (SORTDIRECTION === ASCENDING) { 
-            filteredMangadexData.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
-        } else if (SORTDIRECTION === DESCENDING) {
+        if (options.hideZeroLengthManga) { // filter mangas with no chapters
+            filteredMangadexData = filteredMangadexData.filter(obj => obj.chapters.length > 0);
+        } else { // unfiltered mangas
+            filteredMangadexData = JSON.parse(JSON.stringify(mangadexData));
+        }
+        if (options.logMangaDirection === 'asc') { // chapters amount 0-999
             filteredMangadexData.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
+        } else { // chapters amount 999-0
+            filteredMangadexData.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
         }
 
         // display selected manga
         menuLogMangadexDisplay(filteredMangadexData, true); // true for indexed list
 
-        console.log(`\n||\n|| s -> Sort ${SORTDIRECTION ? 'ascending' : 'descending'}`);
-        console.log(`|| h -> ${showZeroLength ? 'Hide' : 'Show'} manga with no chapters`);
+        console.log(`\n||\n|| s -> Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`);
+        console.log(`|| h -> Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`);
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(true); // get user input - true for whole numbers
@@ -33,20 +40,16 @@ async function menuLogMangadex (mangadexData, l) {
         if (m >= 0 && m < mangadexData.length) {
             await mangaOptionsMenu(mangadexData[m]); // input selected manga
         } else if (m === 'h') { // toggle hide/show zero length manga
-            if (showZeroLength) {
-                filteredMangadexData = filteredMangadexData.filter(obj => obj.chapters.length > 0);
-                showZeroLength = false;
-            } else {
-                filteredMangadexData = JSON.parse(JSON.stringify(mangadexData));
-                showZeroLength = true;
-            }
+            if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
+            else options.hideZeroLengthManga = true;
         } else if (m === 's') { // toggle ascending/descending
-            if (SORTDIRECTION === ASCENDING) SORTDIRECTION = DESCENDING;
-            else SORTDIRECTION = ASCENDING;
+            if (options.logMangaDirection === 'asc') options.logMangaDirection = 'desc';
+            else options.logMangaDirection = 'asc';
         } else if (m !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
     }    
+    return options;
 }
 
 async function mangaOptionsMenu (selectedManga) {
