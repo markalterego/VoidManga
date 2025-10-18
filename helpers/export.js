@@ -73,6 +73,12 @@ export const chapterOrderTypes = {
 export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
 export const expectedFilters = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
+export const logMangadexOptions = {
+    logMangaDirection: 'asc', // 'asc', 'desc'
+    hideZeroLengthManga: false, // true, false
+    logChapterDirection: 'asc', // 'asc', 'desc'
+    hideReadChapters: false, // true, false
+};
 /*
     Options for Mangadex's fetchChapters() custom search:
         -limit_manga: 0-100, undefined for default behavior (10)
