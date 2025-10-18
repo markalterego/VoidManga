@@ -58,9 +58,11 @@ async function rootMenu() {
                 config = { ...config, logMALOptions: returnArr[0] };
                 await filehandle('config', config); 
                 break; }
-            case 4: 
-                await menuLogMangadex(mangadexData, lists); // <-- log mangadex
-                break; 
+            case 4: {
+                const options = await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
+                config = { ...config, logMangadexOptions: options };
+                await filehandle('config', config);
+                break; } 
             case 5: 
                 // if autofetching is disabled, loops through customFetchMenuMangadex normally (default behavior)
                 // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
