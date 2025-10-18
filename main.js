@@ -2,7 +2,7 @@ import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { fetchMangadexOptions } from "./helpers/export.js";
+import { fetchMangadexOptions, logMangadexOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
@@ -14,7 +14,7 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
 
 // main
 (async () => {
-    await clearScreen(); // starting app on a fresh screen
+    clearScreen(); // starting app on a fresh screen
 
     if (!existsSync('./data/mal.file')) {
         lists = await fetchMAL(); // searches and returns MAL lists
@@ -29,7 +29,8 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
             ...config,  
             autoFetchMangadex: false, 
             logMALOptions: { anime: [], manga: [] },
-            fetchMangadexOptions: fetchMangadexOptions, 
+            fetchMangadexOptions: fetchMangadexOptions,
+            logMangadexOptions: logMangadexOptions 
         }; 
         await filehandle('config', config); // writes config.file
     } else {    
