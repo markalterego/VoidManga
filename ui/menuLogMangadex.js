@@ -93,7 +93,7 @@ async function logMangaData (manga) {
 
 async function traverseChapters (mangaTitle, selectedManga) {
     const chapters = selectedManga.chapters;
-    let m = 0, index = 0, SORTDIRECTION = ASCENDING, sortedChapters = null;
+    let m = 0, index = 0, sortedChapters = JSON.parse(JSON.stringify(chapters));
     const foundManga = lists[1] // manga list
                        .flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
@@ -103,23 +103,33 @@ async function traverseChapters (mangaTitle, selectedManga) {
 
     while (m !== 'e') 
     {
-        if (SORTDIRECTION === ASCENDING) { // sort ch num ascending e.g. 1-999
-            sortedChapters = Object.values(chapters).sort((a, b) => Number(a.attributes.chapter) - Number(b.attributes.chapter));
-        } else if (SORTDIRECTION === DESCENDING) { // sort ch num descending e.g. 999-1
-            sortedChapters = Object.values(chapters).sort((a, b) => Number(b.attributes.chapter) - Number(a.attributes.chapter));
+        if (options.hideReadChapters) { // hide read chapters
+            sortedChapters = Object.values(sortedChapters).filter(chapter => chapter.attributes.chapter > parseInt(foundManga?.list_status.num_chapters_read)); 
+        } else { // sortedChapters <- copy of chapters
+            sortedChapters = JSON.parse(JSON.stringify(chapters)); 
+        }
+        if (options.logChapterDirection === 'asc') { // sort ch num ascending e.g. 1-999
+            sortedChapters = Object.values(sortedChapters).sort((a, b) => Number(a.attributes.chapter) - Number(b.attributes.chapter));
+        } else { // sort ch num descending e.g. 999-1
+            sortedChapters = Object.values(sortedChapters).sort((a, b) => Number(b.attributes.chapter) - Number(a.attributes.chapter));
         } 
         
         console.log(`\n||\n|| ${mangaTitle}:\n||`);
-        for (const chapter of sortedChapters) {
-            const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
-            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
-            const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-            const unreadChapterFlag =  parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
-            console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
-            if (index === sortedChapters.length) console.log('||');
+        if (sortedChapters?.length === 0) {
+            console.log('|| - No chapters found\n||');
+        } else {
+            for (const chapter of sortedChapters) {
+                const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
+                const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
+                const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
+                const unreadChapterFlag =  parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
+                console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
+                if (index === sortedChapters.length) console.log('||');
+            }
         }
         const highestSelectableIndex = index - 1; index = 0; 
-        console.log(`\n||\n|| s -> Sort ${SORTDIRECTION === ASCENDING ? 'descending' : 'ascending'}`);
+        console.log(`\n||\n|| s -> Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
+        console.log(`|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
         console.log('|| e -> Go back\n||');
         
         m = await takeUserInput(true); // get user input 
@@ -128,8 +138,11 @@ async function traverseChapters (mangaTitle, selectedManga) {
         if (m >= 0 && m <= highestSelectableIndex) { 
             await chapterOptionsMenu(sortedChapters[m]);
         } else if (m === 's') { // toggle SORTDIRECTION = asc/desc
-            if (SORTDIRECTION === ASCENDING) SORTDIRECTION = DESCENDING;
-            else SORTDIRECTION = ASCENDING;
+            if (options.logChapterDirection === 'asc') options.logChapterDirection = 'desc';
+            else options.logChapterDirection = 'asc';
+        } else if (m === 'h') { // toggle hide read chapters
+            if (options.hideReadChapters) options.hideReadChapters = false;
+            else options.hideReadChapters = true;
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
