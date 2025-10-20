@@ -88,4 +88,15 @@ function capitalFirstLetterString (string) {
     return string.at(0).toUpperCase() + string.slice(1);
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay, menuLogMangadexDisplay, capitalFirstLetterString };
+function longStringToArray (string, maxLengthOfElement) {
+    let arr = [];
+    // special/whitespace replaced by single space
+    // two or more spaces replaced by single space
+    const formattedString = string.replace(/\s/g, ' ').replace(/ {2,}/g, ' '); 
+    for (let i = 0; i < formattedString.length; i += maxLengthOfElement) {
+        arr.push(formattedString.slice(i, i + maxLengthOfElement).trim());
+    }
+    return arr;
+}
+
+export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay, menuLogMangadexDisplay, capitalFirstLetterString, longStringToArray };
