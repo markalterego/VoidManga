@@ -1,5 +1,5 @@
 import open from 'open';
-import { takeUserInput, menuLogMangadexDisplay } from '../helpers/functions.js';
+import { takeUserInput, menuLogMangadexDisplay, capitalFirstLetterString, longStringToArray } from '../helpers/functions.js';
 import { logMangadexOptions } from '../helpers/export.js';
 
 // TODO:
@@ -70,7 +70,7 @@ async function mangaOptionsMenu (selectedManga) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            await logMangaData(selectedManga.manga);
+            await logDataDeepMenu(selectedManga.manga, 'manga');
         } else if (m === MALPROGRESS) { 
             await logSeriesProgress(selectedManga.manga);
         } else if (m === TRAVERSECHAPTERS) { 
@@ -83,12 +83,74 @@ async function mangaOptionsMenu (selectedManga) {
     }
 }
 
-async function logMangaData (manga) {
+async function logDataDeepMenu (data, dataTitle, propertyTitle) {
     // <-- either do a menu here from which you can choose
     //     what data to log from selectedManga or simply
     //     log data that the user might be interested in 
     //     in regards to the manga
-    console.log(); console.dir(manga, { depth: null });
+    let m = 0;
+
+    // TODO:
+    // - splice/split longer strings and log them in separate lines
+    // - go even deeper right away in case of objects with no pre-defined keys 
+    // - HOX HOX HOX <--------- DO NOT KEEP THIS AS IS,,,,.,. I want to make this 
+    //   function into possibly multiple smaller functions and make it less convoluted
+    //   this is only the very first version of it that I made so that I have at least
+    //   somewhat working code, this is in no way the last version of this unless my 
+    //   brain completely malfunctions and I just do nothing about this for no reason what-so-ever
+
+    while (m !== 'e') 
+    {
+        let index = 0;
+        console.log(`\n||\n|| Log ${dataTitle}:\n||`);
+        Object.keys(data).forEach((key) => {
+            console.log(`|| ${index++} -> ${propertyTitle ? capitalFirstLetterString(propertyTitle) : capitalFirstLetterString(key)}`);
+        });
+        const highestSelectableIndex = index - 1; 
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(true); // get user input
+
+        if (m >= 0 && m <= highestSelectableIndex) { 
+            const key = Object.keys(data)[m];
+            const property = Object.values(data)[m];
+            // below statement short circuits prior to type-erroring!! 
+            if (property && typeof property === 'object' && Object.keys(property).length > 0) { // go deeper into data 
+                if (Array.isArray(property) && typeof property[0] === 'object') { // is array consisting objects
+                    if (Object.keys(property[0]).length > 1) {
+                        await logDataDeepMenu(property, key, key.slice(0, -1));
+                    } else {
+                        const flat = Object.assign({}, ...property);
+                        if (propertyTitle) await logDataDeepMenu(flat, propertyTitle);
+                        else await logDataDeepMenu(flat, key);
+                    }
+                } else if (Array.isArray(property) && typeof property[0] !== 'object') { // is array consisting of primitive types
+                    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+                    property.forEach((p, i) => {
+                        if (i < property.length - 1) console.log(`|| - ${capitalFirstLetterString(p)}`);
+                        else console.log(`|| - ${capitalFirstLetterString(p)}\n||`);
+                    });
+                } else {
+                    if (propertyTitle) await logDataDeepMenu(property, propertyTitle);
+                    else await logDataDeepMenu(property, key);
+                }
+            } else { // log data
+                const desiredLength = 60, isLongString = property?.length > desiredLength;
+                if (isLongString) {
+                    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+                    const propertyAsArray = longStringToArray(property, desiredLength);
+                    propertyAsArray.forEach((line, lineIndex) => {
+                        if (lineIndex < propertyAsArray.length - 1) console.log(`|| ${line}`);
+                        else console.log(`|| ${line}\n||`);
+                    });
+                } else {
+                    console.log(`\n||\n|| ${capitalFirstLetterString(key)}: ${property}\n||`);
+                }
+            }
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
 }
 
 async function traverseChapters (mangaTitle, selectedManga) {
@@ -98,7 +160,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
                        .flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
     // TODO:
-    // - filter chapters by language/show only unread
+    // - filter chapters by language
     // - add paging so that results are easier to read
 
     while (m !== 'e') 
