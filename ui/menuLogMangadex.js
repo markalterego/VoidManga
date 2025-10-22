@@ -83,7 +83,7 @@ async function mangaOptionsMenu (selectedManga) {
     }
 }
 
-async function logDataDeepMenu (data, dataTitle, propertyTitle) {
+async function logDataDeepMenu (data, dataTitle) {
     // <-- either do a menu here from which you can choose
     //     what data to log from selectedManga or simply
     //     log data that the user might be interested in 
@@ -91,66 +91,114 @@ async function logDataDeepMenu (data, dataTitle, propertyTitle) {
     let m = 0;
 
     // TODO:
-    // - splice/split longer strings and log them in separate lines
-    // - go even deeper right away in case of objects with no pre-defined keys 
-    // - HOX HOX HOX <--------- DO NOT KEEP THIS AS IS,,,,.,. I want to make this 
-    //   function into possibly multiple smaller functions and make it less convoluted
-    //   this is only the very first version of it that I made so that I have at least
-    //   somewhat working code, this is in no way the last version of this unless my 
-    //   brain completely malfunctions and I just do nothing about this for no reason what-so-ever
+    // - fix flattening arr in the form of [{}, {}, etc...] so that 
+    //   in the case of e.g. altTitles and there being multiple 'en'
+    //   or other language titles, flattening happens with no over-writing
 
     while (m !== 'e') 
     {
         let index = 0;
         console.log(`\n||\n|| Log ${dataTitle}:\n||`);
         Object.keys(data).forEach((key) => {
-            console.log(`|| ${index++} -> ${propertyTitle ? capitalFirstLetterString(propertyTitle) : capitalFirstLetterString(key)}`);
+            const formattedKey = parseInt(key) >= 0 ? dataTitle.slice(0, -1) : key; // keys named as indexes formatted to e.g. 'tag'
+            console.log(`|| ${index++} -> ${capitalFirstLetterString(formattedKey)}`);
         });
+        if (!Object.keys(data).length) {
+            console.log('|| ? -> No keys to select');
+        }
         const highestSelectableIndex = index - 1; 
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(true); // get user input
 
+        // 1. display selectable keys of data
+        // 2. handle user input
+        //    - if data[selected] is primitive type, log --> key: value
+        //      -- in case of a long string, format string prior to logging
+        //    - else if data[selected] is array of primitives, log --> key\n -value\n -value etc...
+        //    - else data[selected] is array of object(s) / object of objects, call function again with data[selected]
+        // 3.    
+
         if (m >= 0 && m <= highestSelectableIndex) { 
             const key = Object.keys(data)[m];
-            const property = Object.values(data)[m];
-            // below statement short circuits prior to type-erroring!! 
-            if (property && typeof property === 'object' && Object.keys(property).length > 0) { // go deeper into data 
-                if (Array.isArray(property) && typeof property[0] === 'object') { // is array consisting objects
-                    if (Object.keys(property[0]).length > 1) {
-                        await logDataDeepMenu(property, key, key.slice(0, -1));
-                    } else {
-                        const flat = Object.assign({}, ...property);
-                        if (propertyTitle) await logDataDeepMenu(flat, propertyTitle);
-                        else await logDataDeepMenu(flat, key);
-                    }
-                } else if (Array.isArray(property) && typeof property[0] !== 'object') { // is array consisting of primitive types
-                    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
-                    property.forEach((p, i) => {
-                        if (i < property.length - 1) console.log(`|| - ${capitalFirstLetterString(p)}`);
-                        else console.log(`|| - ${capitalFirstLetterString(p)}\n||`);
-                    });
-                } else {
-                    if (propertyTitle) await logDataDeepMenu(property, propertyTitle);
-                    else await logDataDeepMenu(property, key);
-                }
-            } else { // log data
-                const desiredLength = 60, isLongString = property?.length > desiredLength;
-                if (isLongString) {
-                    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
-                    const propertyAsArray = longStringToArray(property, desiredLength);
-                    propertyAsArray.forEach((line, lineIndex) => {
-                        if (lineIndex < propertyAsArray.length - 1) console.log(`|| ${line}`);
-                        else console.log(`|| ${line}\n||`);
-                    });
-                } else {
-                    console.log(`\n||\n|| ${capitalFirstLetterString(key)}: ${property}\n||`);
+            const value = Object.values(data)[m];
+            const dataTypeOfValue = getDataTypeOfValue(value);
+            console.log(dataTypeOfValue);
+
+            if (!dataTypeOfValue) console.log('\n||\n|| Data type of value couldn\'t be resolved\n||');
+            else if (dataTypeOfValue === 'primitive' || dataTypeOfValue === 'null') logObject(key, value);
+            else if (dataTypeOfValue === 'arrayOfPrimitives') logArrayOfPrimitives(key, value);
+            else if (dataTypeOfValue === 'object') {
+                // title handling so that if key is simply an index
+                // said key is changed to represent something generic e.g. 'Tag'
+                if (key.length > 1) await logDataDeepMenu(value, key);
+                else await logDataDeepMenu(value, dataTitle.slice(0, -1));
+            }
+            else if (dataTypeOfValue === 'arrayOfObjects') {
+                // flatten array based on some reason ???
+                
+                console.log(value);
+                const arrLength = value.length; // amount objects
+                const keysPerObject = Object.keys(value[0]).length; // keyCount in object
+                const count_1 = arrLength * keysPerObject;
+                console.log(count_1);
+
+                const flatObject = Object.assign({}, ...value);
+                const count_2 = Object.keys(flatObject).length;
+                console.log(flatObject);
+
+                if (count_1 === count_2) { // flattening didn't over-write properties
+                    await logDataDeepMenu(flatObject, key);
+                } else { // flattening broke structure
+                    await logDataDeepMenu(value, key);
                 }
             }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
+}
+
+function getDataTypeOfValue (value) {
+    // 1. property is null
+    // 2. property is primitive type 
+    // 3. property is array of primitive(s)
+    // 4. property is array of object(s)
+    // 5. property is object
+    if (value === null || value === undefined) {
+        return 'null';
+    } else if (typeof value !== 'object') {
+        return 'primitive';
+    } else if (Array.isArray(value) && typeof value[0] !== 'object') {
+        return 'arrayOfPrimitives';
+    } else if (Array.isArray(value) && typeof value[0] === 'object') {
+        return 'arrayOfObjects';
+    } else if (typeof value === 'object') {
+        return 'object';
+    } 
+}
+
+function logObject (key, property) {
+    const maxLineLength = 60;
+    if (typeof property === 'string' && property.length > maxLineLength) {
+        const stringAsArr = longStringToArray(property, maxLineLength);
+        console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+        stringAsArr.forEach((line, index) => {
+            if (index < stringAsArr.length - 1) console.log(`|| ${line}`);
+            else console.log(`|| ${line}\n||`);
+        });
+    } else {
+        console.log(`\n||\n|| ${capitalFirstLetterString(key)}: ${property === undefined || property === null ? 'N/A' : property}\n||`);
+    }
+}
+
+function logArrayOfPrimitives (key, array) {
+    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+    array.forEach((value, index) => {
+        if (index < array.length - 1) console.log(`|| - ${value}`);
+        else console.log(`|| - ${value}\n||`);
+    });
+    if (!array.length) console.log('|| - Nothing was found\n||');
 }
 
 async function traverseChapters (mangaTitle, selectedManga) {
