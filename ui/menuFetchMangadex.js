@@ -455,7 +455,8 @@ async function selectMangasFromFetchResults (mangaSearches) {
             // logging selected titles
             selectedMangas.forEach((selectedManga) => { 
                 const attributes = selectedManga.manga.attributes;
-                console.log(`|| - ${attributes.title.en}`); 
+                const firstTitle = Object.values(attributes.title)[0]; // first title
+                console.log(`|| - ${firstTitle}`); 
             });
             console.log('||');
         }
