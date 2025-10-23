@@ -37,8 +37,8 @@ async function menuLogMangadex (mangadexData, l, config) {
 
         m = await takeUserInput(true); // get user input - true for whole numbers
         
-        if (m >= 0 && m < mangadexData.length) {
-            await mangaOptionsMenu(mangadexData[m]); // input selected manga
+        if (m >= 0 && m < filteredMangadexData.length) {
+            await mangaOptionsMenu(filteredMangadexData[m]); // input selected manga
         } else if (m === 'h') { // toggle hide/show zero length manga
             if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
             else options.hideZeroLengthManga = true;
@@ -70,7 +70,7 @@ async function mangaOptionsMenu (selectedManga) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            await logDataDeepMenu(selectedManga.manga, 'manga');
+            await logDataDeepMenu(selectedManga.manga, title);
         } else if (m === MALPROGRESS) { 
             await logSeriesProgress(selectedManga.manga);
         } else if (m === TRAVERSECHAPTERS) { 
@@ -81,124 +81,6 @@ async function mangaOptionsMenu (selectedManga) {
             console.log('\n|| Please input a valid option');
         }
     }
-}
-
-async function logDataDeepMenu (data, dataTitle) {
-    // <-- either do a menu here from which you can choose
-    //     what data to log from selectedManga or simply
-    //     log data that the user might be interested in 
-    //     in regards to the manga
-    let m = 0;
-
-    // TODO:
-    // - fix flattening arr in the form of [{}, {}, etc...] so that 
-    //   in the case of e.g. altTitles and there being multiple 'en'
-    //   or other language titles, flattening happens with no over-writing
-
-    while (m !== 'e') 
-    {
-        let index = 0;
-        console.log(`\n||\n|| Log ${dataTitle}:\n||`);
-        Object.keys(data).forEach((key) => {
-            const formattedKey = parseInt(key) >= 0 ? dataTitle.slice(0, -1) : key; // keys named as indexes formatted to e.g. 'tag'
-            console.log(`|| ${index++} -> ${capitalFirstLetterString(formattedKey)}`);
-        });
-        if (!Object.keys(data).length) {
-            console.log('|| ? -> No keys to select');
-        }
-        const highestSelectableIndex = index - 1; 
-        console.log('|| e -> Go back\n||');
-
-        m = await takeUserInput(true); // get user input
-
-        // 1. display selectable keys of data
-        // 2. handle user input
-        //    - if data[selected] is primitive type, log --> key: value
-        //      -- in case of a long string, format string prior to logging
-        //    - else if data[selected] is array of primitives, log --> key\n -value\n -value etc...
-        //    - else data[selected] is array of object(s) / object of objects, call function again with data[selected]
-        // 3.    
-
-        if (m >= 0 && m <= highestSelectableIndex) { 
-            const key = Object.keys(data)[m];
-            const value = Object.values(data)[m];
-            const dataTypeOfValue = getDataTypeOfValue(value);
-            console.log(dataTypeOfValue);
-
-            if (!dataTypeOfValue) console.log('\n||\n|| Data type of value couldn\'t be resolved\n||');
-            else if (dataTypeOfValue === 'primitive' || dataTypeOfValue === 'null') logObject(key, value);
-            else if (dataTypeOfValue === 'arrayOfPrimitives') logArrayOfPrimitives(key, value);
-            else if (dataTypeOfValue === 'object') {
-                // title handling so that if key is simply an index
-                // said key is changed to represent something generic e.g. 'Tag'
-                if (key.length > 1) await logDataDeepMenu(value, key);
-                else await logDataDeepMenu(value, dataTitle.slice(0, -1));
-            }
-            else if (dataTypeOfValue === 'arrayOfObjects') {
-                // flatten array based on some reason ???
-                
-                console.log(value);
-                const arrLength = value.length; // amount objects
-                const keysPerObject = Object.keys(value[0]).length; // keyCount in object
-                const count_1 = arrLength * keysPerObject;
-                console.log(count_1);
-
-                const flatObject = Object.assign({}, ...value);
-                const count_2 = Object.keys(flatObject).length;
-                console.log(flatObject);
-
-                if (count_1 === count_2) { // flattening didn't over-write properties
-                    await logDataDeepMenu(flatObject, key);
-                } else { // flattening broke structure
-                    await logDataDeepMenu(value, key);
-                }
-            }
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
-        }
-    }
-}
-
-function getDataTypeOfValue (value) {
-    // 1. property is null
-    // 2. property is primitive type 
-    // 3. property is array of primitive(s)
-    // 4. property is array of object(s)
-    // 5. property is object
-    if (value === null || value === undefined) {
-        return 'null';
-    } else if (typeof value !== 'object') {
-        return 'primitive';
-    } else if (Array.isArray(value) && typeof value[0] !== 'object') {
-        return 'arrayOfPrimitives';
-    } else if (Array.isArray(value) && typeof value[0] === 'object') {
-        return 'arrayOfObjects';
-    } else if (typeof value === 'object') {
-        return 'object';
-    } 
-}
-
-function logObject (key, property) {
-    const maxLineLength = 60;
-    if (typeof property === 'string' && property.length > maxLineLength) {
-        const stringAsArr = longStringToArray(property, maxLineLength);
-        console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
-        stringAsArr.forEach((line, index) => {
-            if (index < stringAsArr.length - 1) console.log(`|| ${line}`);
-            else console.log(`|| ${line}\n||`);
-        });
-    } else {
-        console.log(`\n||\n|| ${capitalFirstLetterString(key)}: ${property === undefined || property === null ? 'N/A' : property}\n||`);
-    }
-}
-
-function logArrayOfPrimitives (key, array) {
-    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
-    array.forEach((value, index) => {
-        if (index < array.length - 1) console.log(`|| - ${value}`);
-        else console.log(`|| - ${value}\n||`);
-    });
-    if (!array.length) console.log('|| - Nothing was found\n||');
 }
 
 async function traverseChapters (mangaTitle, selectedManga) {
@@ -233,7 +115,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
                 const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
                 const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
                 const unreadChapterFlag =  parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
-                console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
+                console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} - ` : ''}${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
                 if (index === sortedChapters.length) console.log('||');
             }
         }
@@ -246,7 +128,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
 
         // handle user input
         if (m >= 0 && m <= highestSelectableIndex) { 
-            await chapterOptionsMenu(sortedChapters[m]);
+            await chapterOptionsMenu(sortedChapters[m], mangaTitle);
         } else if (m === 's') { // toggle SORTDIRECTION = asc/desc
             if (options.logChapterDirection === 'asc') options.logChapterDirection = 'desc';
             else options.logChapterDirection = 'asc';
@@ -287,15 +169,15 @@ async function findChapterOfManga (title, selectedManga) {
         
         if (m === NEXTUNREADCHAPTER) {
             const foundChapter = await findNextUnreadChapter(selectedManga);
-            if (foundChapter) await chapterOptionsMenu(foundChapter);
+            if (foundChapter) await chapterOptionsMenu(foundChapter, title);
         } else if (m === LOWESTCHAPTER) {
             const foundChapter = await findLowestChapterNumber(selectedManga.chapters);
-            if (foundChapter) await chapterOptionsMenu(foundChapter);
+            if (foundChapter) await chapterOptionsMenu(foundChapter, title);
         } else if (m === HIGHESTCHAPTER) {
             const foundChapter = await findHighestChapterNumber(selectedManga.chapters);
-            if (foundChapter) await chapterOptionsMenu(foundChapter);
+            if (foundChapter) await chapterOptionsMenu(foundChapter, title);
         } else if (m === SPECIFICCHAPTER) {
-            await findChapterByChapterNumber(selectedManga.chapters);
+            await findChapterByChapterNumber(selectedManga.chapters, title);
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
@@ -339,7 +221,7 @@ async function findHighestChapterNumber (chapters) {
     }
 }
 
-async function findChapterByChapterNumber (chapters) {
+async function findChapterByChapterNumber (chapters, mangaTitle) {
     let m = 0;
 
     while (m !== 'e') 
@@ -354,7 +236,7 @@ async function findChapterByChapterNumber (chapters) {
             if (!foundChapter) {
                 console.log('\n||\n|| Given chapter was not found\n||');
             } else {
-                await chapterOptionsMenu(foundChapter);
+                await chapterOptionsMenu(foundChapter, mangaTitle);
             }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -362,7 +244,7 @@ async function findChapterByChapterNumber (chapters) {
     }
 }
 
-async function chapterOptionsMenu (selectedChapter) {
+async function chapterOptionsMenu (selectedChapter, mangaTitle) {
     const LOGDATA = 0, OPENINBROWSER = 1;
     let m = 0;
 
@@ -371,7 +253,8 @@ async function chapterOptionsMenu (selectedChapter) {
         const chapterTitle = selectedChapter.attributes.title ? selectedChapter.attributes.title : 'No Title'; // title
         const chNum = selectedChapter.attributes.chapter !== null ? selectedChapter.attributes.chapter : -1; // chapter number
         const transLang = selectedChapter.attributes.translatedLanguage ? selectedChapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-        console.log(`\n||\n|| ${chNum >= 0 ? `Chapter: ${chNum} -` : ''} ${chapterTitle} (${transLang}):\n||`);
+        const formattedTitle = `${chNum >= 0 ? `Chapter: ${chNum} - ` : ''}${chapterTitle} (${transLang})`;
+        console.log(`\n||\n|| ${formattedTitle}:\n||`);
         console.log('|| 0 -> Log chapter data');
         console.log('|| 1 -> Open chapter in browser');
         console.log('|| e -> Go back\n||');
@@ -379,7 +262,7 @@ async function chapterOptionsMenu (selectedChapter) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            await logChapterData(selectedChapter);
+            await logDataDeepMenu(selectedChapter, `${mangaTitle} (chapter: ${chNum >= 0 ? chNum : 'N/A'})`);
         } else if (m === OPENINBROWSER) {
             await open(selectedChapter.link); 
         } else if (m !== 'e') {
@@ -388,12 +271,122 @@ async function chapterOptionsMenu (selectedChapter) {
     }
 }
 
-async function logChapterData (chapter) {
-    // <-- either do a menu here from which you can choose
-    //     what data to log from chapter or simply
-    //     log data that the user might be interested in 
-    //     in regards to the chapter
-    console.log(); console.dir(chapter, { depth: null });
+async function logDataDeepMenu (data, dataTitle) {
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        let index = 0;
+        console.log(`\n||\n|| Log ${dataTitle}:\n||`);
+        Object.keys(data).forEach((key) => {
+            const formattedKey = parseInt(key) >= 0 ? dataTitle.slice(0, -1) : key; // keys named as indexes formatted to e.g. 'tag'
+            console.log(`|| ${index++} -> ${capitalFirstLetterString(formattedKey)}`);
+        });
+        if (!Object.keys(data).length) {
+            console.log('|| ? -> No keys to select');
+        }
+        const highestSelectableIndex = index - 1; 
+        console.log('|| e -> Go back\n||');
+
+        m = await takeUserInput(true); // get user input
+
+        // 1. display selectable keys of data
+        // 2. handle user input
+        //    - if data[selected] is primitive type, log --> key: value
+        //      -- in case of a long string, format string prior to logging
+        //    - else if data[selected] is array of primitives, log --> key\n -value\n -value etc...
+        //    - else data[selected] is array of object(s) / object of objects, call function again with data[selected]
+
+        if (m >= 0 && m <= highestSelectableIndex) { 
+            const key = Object.keys(data)[m];
+            const value = Object.values(data)[m];
+            const dataTypeOfValue = getDataTypeOfValue(value);
+            if (!dataTypeOfValue) console.log('\n||\n|| Data type of value couldn\'t be resolved\n||');
+            else if (dataTypeOfValue === 'primitive' || dataTypeOfValue === 'null') logObject(key, value);
+            else if (dataTypeOfValue === 'arrayOfPrimitives') logArrayOfPrimitives(key, value);
+            else if (dataTypeOfValue === 'object') {
+                // title handling so that if key is simply an index
+                // said key is changed to represent something generic e.g. 'Tag'
+                if (key.length > 1) await logDataDeepMenu(value, key);
+                else await logDataDeepMenu(value, dataTitle.slice(0, -1));
+            }
+            else if (dataTypeOfValue === 'arrayOfObjects') {
+                const array = value; // array of objects
+                const objectsInArray = array.length; // count of objects in array
+                const keysPerObject = Object.keys(array[0]).length; // keyCount in object
+                const countOfKeyValuePairs = objectsInArray * keysPerObject;
+                // flatten array when count of all key/value pairs 
+                // don't exceed 15 inside array 
+                if (countOfKeyValuePairs < 15) {
+                    const flatArray = flattenArrayOfObjects(array);
+                    await logDataDeepMenu(flatArray, key);
+                } else {
+                    await logDataDeepMenu(array, key);
+                }
+            }
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+function getDataTypeOfValue (value) {
+    // 1. property is null
+    // 2. property is primitive type 
+    // 3. property is array of primitive(s)
+    // 4. property is array of object(s)
+    // 5. property is object
+    if (value === null || value === undefined) {
+        return 'null';
+    } else if (typeof value !== 'object') {
+        return 'primitive';
+    } else if (Array.isArray(value) && typeof value[0] !== 'object') {
+        return 'arrayOfPrimitives';
+    } else if (Array.isArray(value) && typeof value[0] === 'object') {
+        return 'arrayOfObjects';
+    } else if (typeof value === 'object') {
+        return 'object';
+    } 
+}
+
+function logObject (key, property) {
+    const maxLineLength = 75;
+    if (typeof property === 'string' && property.length > maxLineLength) {
+        const stringAsArr = longStringToArray(property, maxLineLength);
+        console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+        stringAsArr.forEach((line, index) => {
+            if (index < stringAsArr.length - 1) console.log(`|| ${line}`);
+            else console.log(`|| ${line}\n||`);
+        });
+    } else {
+        console.log(`\n||\n|| ${capitalFirstLetterString(key)}: ${property === undefined || property === null ? 'N/A' : property}\n||`);
+    }
+}
+
+function logArrayOfPrimitives (key, array) {
+    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+    array.forEach((value, index) => {
+        if (index < array.length - 1) console.log(`|| - ${value}`);
+        else console.log(`|| - ${value}\n||`);
+    });
+    if (!array.length) console.log('|| - Nothing was found\n||');
+}
+
+function flattenArrayOfObjects (array) {
+    let flatObject = {}; // holds flattened object
+    let keyCount = {}; // counts how many keys by name key encountered e.g. 'en': 2 <-- two keys by name 'en' encountered
+    for (const obj of array) { // refers to e.g. '{ 'en': 'frieren' }'
+        for (const key in obj) { // e.g. 'en'
+            if (!flatObject[key]) { // key doesn't yet exist
+                keyCount[key] = 1; // start counting key
+                flatObject[key] = obj[key];
+            } else { // key exists
+                const formattedKey = `${key}_${keyCount[key]++}`; // format key && increment keyCount[key]
+                flatObject[formattedKey] = obj[key]; // add data to formatted key
+            }
+        }
+    }
+    return flatObject;
 }
 
 async function openChaptersInBrowserMenu (fetchResults) {
