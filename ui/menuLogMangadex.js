@@ -274,20 +274,25 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
 async function logDataDeepMenu (data, dataTitle) {
     let m = 0;
 
+    // TODO: 
+    // - make sorting a-z also work right when calling the function
+    //   e.g. when logging Berserk manga the order should be Attributes, 
+    //        Id, Relationships, Type
+
     while (m !== 'e') 
     {
         let index = 0;
         console.log(`\n||\n|| Log ${dataTitle}:\n||`);
-        Object.keys(data).forEach((key) => {
-            const formattedKey = parseInt(key) >= 0 ? dataTitle.slice(0, -1) : key; // keys named as indexes formatted to e.g. 'tag'
-            console.log(`|| ${index++} -> ${capitalFirstLetterString(formattedKey)}`);
-        });
         if (!Object.keys(data).length) {
             console.log('|| ? -> No keys to select');
+        } else {
+            for (const key in data) {
+                console.log(`|| ${index++} -> ${capitalFirstLetterString(key)}`);
+            }
         }
-        const highestSelectableIndex = index - 1; 
         console.log('|| e -> Go back\n||');
-
+        const highestSelectableIndex = index - 1;
+        
         m = await takeUserInput(true); // get user input
 
         // 1. display selectable keys of data
@@ -298,31 +303,25 @@ async function logDataDeepMenu (data, dataTitle) {
         //    - else data[selected] is array of object(s) / object of objects, call function again with data[selected]
 
         if (m >= 0 && m <= highestSelectableIndex) { 
-            const key = Object.keys(data)[m];
-            const value = Object.values(data)[m];
+            // data[m] is an object: 
+            // -> key = key of data[m]
+            // -> value = value of data[m]
+            const key = Object.keys(data)[m], value = Object.values(data)[m]; 
             const dataTypeOfValue = getDataTypeOfValue(value);
-            if (!dataTypeOfValue) console.log('\n||\n|| Data type of value couldn\'t be resolved\n||');
-            else if (dataTypeOfValue === 'primitive' || dataTypeOfValue === 'null') logObject(key, value);
-            else if (dataTypeOfValue === 'arrayOfPrimitives') logArrayOfPrimitives(key, value);
-            else if (dataTypeOfValue === 'object') {
-                // title handling so that if key is simply an index
-                // said key is changed to represent something generic e.g. 'Tag'
-                if (key.length > 1) await logDataDeepMenu(value, key);
-                else await logDataDeepMenu(value, dataTitle.slice(0, -1));
-            }
-            else if (dataTypeOfValue === 'arrayOfObjects') {
-                const array = value; // array of objects
-                const objectsInArray = array.length; // count of objects in array
-                const keysPerObject = Object.keys(array[0]).length; // keyCount in object
-                const countOfKeyValuePairs = objectsInArray * keysPerObject;
-                // flatten array when count of all key/value pairs 
-                // don't exceed 15 inside array 
-                if (countOfKeyValuePairs < 15) {
-                    const flatArray = flattenArrayOfObjects(array);
-                    await logDataDeepMenu(flatArray, key);
-                } else {
-                    await logDataDeepMenu(array, key);
-                }
+            if (!dataTypeOfValue) { // unknown datatype of value
+                console.log('\n||\n|| Data type of value couldn\'t be resolved\n||')
+            } else if (dataTypeOfValue === 'primitive' || dataTypeOfValue === 'null') { // key: value || key: null/undefined
+                logObject(key, value); 
+            } else if (dataTypeOfValue === 'arrayOfPrimitives') { // key: [data1, data2]
+                logArrayOfPrimitives(key, value);
+            } else if (dataTypeOfValue === 'object') { // key: { key1: value1, key2: value2 }
+                const sortedObject = sortObjectByKeysAlphabetical(value);
+                await logDataDeepMenu(sortedObject, key);
+            } else if (dataTypeOfValue === 'arrayOfObjects') { // key: [ {key1: value1}, {key2: value2} ]
+                const keyValuePairs = countKeyValuePairs(value); // counts each key inside arr
+                const object = keyValuePairs < 20 ? flattenArrayOfObjects(value) : // flatten and format to object
+                                                    formatArrayOfObjectsToObject(value, key); // format to object
+                await logDataDeepMenu(object, key);
             }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -331,11 +330,11 @@ async function logDataDeepMenu (data, dataTitle) {
 }
 
 function getDataTypeOfValue (value) {
-    // 1. property is null
-    // 2. property is primitive type 
-    // 3. property is array of primitive(s)
-    // 4. property is array of object(s)
-    // 5. property is object
+    // 1. value is null
+    // 2. value is primitive type 
+    // 3. value is array of primitive(s)
+    // 4. value is array of object(s)
+    // 5. value is object
     if (value === null || value === undefined) {
         return 'null';
     } else if (typeof value !== 'object') {
@@ -349,22 +348,24 @@ function getDataTypeOfValue (value) {
     } 
 }
 
-function logObject (key, property) {
+function logObject (title, value) {
     const maxLineLength = 75;
-    if (typeof property === 'string' && property.length > maxLineLength) {
-        const stringAsArr = longStringToArray(property, maxLineLength);
-        console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+    if (typeof value === 'string' && value.length > maxLineLength) {
+        const stringAsArr = longStringToArray(value, maxLineLength);
+        console.log(`\n||\n|| ${capitalFirstLetterString(title)}:\n||`);
         stringAsArr.forEach((line, index) => {
             if (index < stringAsArr.length - 1) console.log(`|| ${line}`);
             else console.log(`|| ${line}\n||`);
         });
     } else {
-        console.log(`\n||\n|| ${capitalFirstLetterString(key)}: ${property === undefined || property === null ? 'N/A' : property}\n||`);
+        // TODO: 
+        // - make better logging for dates 
+        console.log(`\n||\n|| ${capitalFirstLetterString(title)}: ${value === undefined || value === null ? 'N/A' : value}\n||`);
     }
 }
 
-function logArrayOfPrimitives (key, array) {
-    console.log(`\n||\n|| ${capitalFirstLetterString(key)}:\n||`);
+function logArrayOfPrimitives (title, array) {
+    console.log(`\n||\n|| ${capitalFirstLetterString(title)}:\n||`);
     array.forEach((value, index) => {
         if (index < array.length - 1) console.log(`|| - ${value}`);
         else console.log(`|| - ${value}\n||`);
@@ -372,7 +373,18 @@ function logArrayOfPrimitives (key, array) {
     if (!array.length) console.log('|| - Nothing was found\n||');
 }
 
+function countKeyValuePairs (array) {
+    let count = 0;
+    for (const element of array) {
+        for (const key in element) {
+            count++;
+        }
+    }
+    return count;
+}
+
 function flattenArrayOfObjects (array) {
+    // flattens array of objects to a single object holding key-value pairs
     let flatObject = {}; // holds flattened object
     let keyCount = {}; // counts how many keys by name key encountered e.g. 'en': 2 <-- two keys by name 'en' encountered
     for (const obj of array) { // refers to e.g. '{ 'en': 'frieren' }'
@@ -386,7 +398,37 @@ function flattenArrayOfObjects (array) {
             }
         }
     }
+    // sorts objects only when sorting doesn't break data structure
+    if (Object.keys(array[0]).length === 1) {
+        flatObject = sortObjectByKeysAlphabetical(flatObject); // sort object by keys a-z
+    }
     return flatObject;
+}
+
+function sortObjectByKeysAlphabetical (object, direction) {
+    // re-arrange given object by the names of the objects keys
+    // object can either be arranged in a-z or z-a order based on direction
+    if (!direction || direction === 'asc') { // sort keys a-z
+        object = Object.fromEntries( // format back to obj
+            Object.entries(object).sort((a, b) => a[0].localeCompare(b[0])) // format obj to arr and sort by keys a-z
+        ); 
+    } else { // sort keys z-a
+        object = Object.fromEntries( // re-arrange by keys
+            Object.entries(object).sort((a, b) => b[0].localeCompare(a[0])) // format obj to arr and sort by keys z-a
+        );
+    }
+    return object;
+}
+
+function formatArrayOfObjectsToObject (array, keyOfArray) {
+    // formats array of objects to single object and names the keys
+    // of each object it holds into keyOfArray_index e.g. tags -> tag_0, tag_1 etc...
+    let newObject = {};
+    for (const key in array) {
+        const formattedKey = `${keyOfArray.slice(0, -1)}_${key}`; // format name of key by upper key
+        newObject[formattedKey] = array[key]; // create newObject.formattedKey to hold value of array[obj]
+    }
+    return newObject;
 }
 
 async function openChaptersInBrowserMenu (fetchResults) {
