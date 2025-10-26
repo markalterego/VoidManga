@@ -70,7 +70,7 @@ async function mangaOptionsMenu (selectedManga) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            await logDataDeepMenu(selectedManga.manga, title);
+            await logDataDeepMenu(selectedManga.manga, title, true);
         } else if (m === MALPROGRESS) { 
             await logSeriesProgress(selectedManga.manga);
         } else if (m === TRAVERSECHAPTERS) { 
@@ -262,7 +262,7 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            await logDataDeepMenu(selectedChapter, `${mangaTitle} (chapter: ${chNum >= 0 ? chNum : 'N/A'})`);
+            await logDataDeepMenu(selectedChapter, `${mangaTitle} (chapter: ${chNum >= 0 ? chNum : 'N/A'})`, true);
         } else if (m === OPENINBROWSER) {
             await open(selectedChapter.link); 
         } else if (m !== 'e') {
@@ -271,16 +271,15 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
     }
 }
 
-async function logDataDeepMenu (data, dataTitle) {
+async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical) {
     let m = 0;
 
-    // TODO: 
-    // - make sorting a-z also work right when calling the function
-    //   e.g. when logging Berserk manga the order should be Attributes, 
-    //        Id, Relationships, Type
+    if (sortByKeysAlphabetical) {
+        data = sortObjectByKeysAlphabetical(data, 'asc'); // sort by keys a-z
+    }
 
     while (m !== 'e') 
-    {
+    {   
         let index = 0;
         console.log(`\n||\n|| Log ${dataTitle}:\n||`);
         if (!Object.keys(data).length) {
@@ -315,13 +314,11 @@ async function logDataDeepMenu (data, dataTitle) {
             } else if (dataTypeOfValue === 'arrayOfPrimitives') { // key: [data1, data2]
                 logArrayOfPrimitives(key, value);
             } else if (dataTypeOfValue === 'object') { // key: { key1: value1, key2: value2 }
-                const sortedObject = sortObjectByKeysAlphabetical(value);
-                await logDataDeepMenu(sortedObject, key);
+                await logDataDeepMenu(value, key, 'asc');
             } else if (dataTypeOfValue === 'arrayOfObjects') { // key: [ {key1: value1}, {key2: value2} ]
-                const keyValuePairs = countKeyValuePairs(value); // counts each key inside arr
-                const object = keyValuePairs < 20 ? flattenArrayOfObjects(value) : // flatten and format to object
-                                                    formatArrayOfObjectsToObject(value, key); // format to object
-                await logDataDeepMenu(object, key);
+                const isFlattenable = isFilledWithOneLengthObjects(value); 
+                const object = isFlattenable ? flattenArrayOfObjects(value) : reformatArrayObjectsToObject(value, key);
+                await logDataDeepMenu(object, key, isFlattenable); // isFlattenable triggers alphabetical sorting if true
             }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -360,7 +357,7 @@ function logObject (title, value) {
     } else {
         // TODO: 
         // - make better logging for dates 
-        console.log(`\n||\n|| ${capitalFirstLetterString(title)}: ${value === undefined || value === null ? 'N/A' : value}\n||`);
+        console.log(`\n||\n|| ${capitalFirstLetterString(title)}: ${value === undefined || value === null || value?.length === 0 ? 'N/A' : value}\n||`);
     }
 }
 
@@ -398,11 +395,36 @@ function flattenArrayOfObjects (array) {
             }
         }
     }
-    // sorts objects only when sorting doesn't break data structure
-    if (Object.keys(array[0]).length === 1) {
-        flatObject = sortObjectByKeysAlphabetical(flatObject); // sort object by keys a-z
-    }
     return flatObject;
+}
+
+function reformatArrayObjectsToObject (array, keyOfArray) {
+    // formats array of objects to single object and names the keys
+    // of each object it holds into keyOfArray_index e.g. tags -> tag_0, tag_1 etc...
+    let newObject = {};
+    for (const key in array) {
+        const formattedKey = `${keyOfArray.slice(0, -1)}_${key}`; // format name of key by upper key
+        newObject[formattedKey] = array[key]; // create newObject.formattedKey to hold value of array[obj]
+    }
+    return newObject;
+}
+
+function isFilledWithIndexedKeys (object) {
+    // text <-- length text
+    // _ <-- one underscore 
+    // y <-- number
+    for (const key in object) {
+        const test = /[a-z]+_{1}[0-9]+/i.test(key); // test for each, return false right away if false otherwise return true at the end 
+        if (!test) return false;
+    }
+    return true;
+}
+
+function isFilledWithOneLengthObjects (array) {
+    for (const obj of array) { // obj
+        if (Object.keys(obj).length > 1) return false; // more then one key value pair
+    }
+    return true; // every obj of length zero or one
 }
 
 function sortObjectByKeysAlphabetical (object, direction) {
@@ -418,17 +440,6 @@ function sortObjectByKeysAlphabetical (object, direction) {
         );
     }
     return object;
-}
-
-function formatArrayOfObjectsToObject (array, keyOfArray) {
-    // formats array of objects to single object and names the keys
-    // of each object it holds into keyOfArray_index e.g. tags -> tag_0, tag_1 etc...
-    let newObject = {};
-    for (const key in array) {
-        const formattedKey = `${keyOfArray.slice(0, -1)}_${key}`; // format name of key by upper key
-        newObject[formattedKey] = array[key]; // create newObject.formattedKey to hold value of array[obj]
-    }
-    return newObject;
 }
 
 async function openChaptersInBrowserMenu (fetchResults) {
