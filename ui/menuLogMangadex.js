@@ -156,6 +156,9 @@ async function findChapterOfManga (title, selectedManga) {
     const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3; 
     let m = 0; 
 
+    // TODO: 
+    // - if multiple chapters found, give user the option to pick a specific one
+
     while (m !== 'e') 
     {
         console.log(`\n||\n|| Search ${title}\n||`);

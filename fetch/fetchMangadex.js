@@ -78,35 +78,52 @@ async function fetchMangadexChapters (selectedMangas, options) {
                 if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit
             }
         } else {
-            let chapters = [], offset = 0;
+            const limit = 100; let chapters = [], errorsInRow = 0, mangaIndex = 0, fetchIndex = 0;
             for (const selectedManga of selectedMangas) {
-                let keepFetching = true
+                let keepFetching = true, offset = 0;
+                // console.log(selectedManga);
+                const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
+                console.log(`|| Fetching ${mangaTitle}`);
                 while (keepFetching) {
-                    const startTimeChapter = performance.now(); // timing chapter fetch start
-                    const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
-                        params: {
-                            limit: 100, // max fetch size
-                            offset: offset, // e.g. if offset 5, orders by given options and then moves index by 5
+                    const formattedParams = Object.fromEntries( // obj
+                        Object.entries({ // arr
+                            limit: limit, // max fetch size
+                            offset: offset, // offset
                             translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
                             contentRating: options.contentRating // includes preferred contentRatings
-                        }
-                    });
-                    if (chapterResponse.data.data?.length > 0) { // fetch returned results
-                        const finalChapterResponseData = (() => { // keep only relevant info from results
-                            return chapterResponse.data.data.map((chapter) => {
-                                return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
-                            }); 
-                        })();
-                        chapters.push(finalChapterResponseData);
-                        offset += 100; // append offset by 100
-                    } else { // fetch returned no results
-                        mangaAndChapterInfo.push({ manga: selectedManga.manga, 
-                                                   chapters: chapters.flatMap(c => c) }); // push combined manga and chapter info to array 
-                        chapters = []; keepFetching = false;
-                    } 
+                        }).filter(([_, value]) => (Array.isArray(value) && value.length) || (typeof value === 'number' && value >= 0)) // remove empty keys
+                    );
+                    const startTimeChapter = performance.now(); // timing chapter fetch start
+                    try {
+                        const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
+                            params: formattedParams
+                        }); 
+                        const isAllowedOffsetSizeSum = offset + limit + 100 < 10000; // calculates the next fetches offset + size -> api allows offset + size < 10k
+                        if (chapterResponse.data.data?.length > 0 && isAllowedOffsetSizeSum) { // fetch returned results && 
+                            const finalChapterResponseData = (() => { // keep only relevant info from results
+                                return chapterResponse.data.data.map((chapter) => {
+                                    return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
+                                }); 
+                            })();
+                            console.log(`|| Fetch ${++fetchIndex}: ${finalChapterResponseData?.length} chapters fetched (Offset: ${offset})`);
+                            chapters.push(finalChapterResponseData);
+                            offset += 100; // append offset by 100
+                        } else { // fetch returned no results
+                            mangaAndChapterInfo.push({ manga: selectedManga.manga, 
+                                                       chapters: chapters.flatMap(c => c) }); // push combined manga and chapter info to array 
+                            chapters = []; keepFetching = false;
+                        } 
+                        errorsInRow = 0; // resetting consecutive errors
+                    } catch (error) { // throw when error not 400 or multiple errors in a row
+                        // error.response.data
+                        // basic check for if given errors actually matter
+                        console.log(`|| Fetch failed (Tries remaining: ${5 - (++errorsInRow)})`);
+                    }
                     const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
-                    if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit
+                    if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limits
+                    if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // five fetches in a row err
                 }
+                if (!mangaAndChapterInfo[mangaIndex++].chapters?.length) console.log(`|| No chapters found...`);
             }
         }
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
