@@ -90,7 +90,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
                        .flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
     // TODO:
-    // - filter chapters by language
+    // - enhance logic of language filtering!!!
     // - add paging so that results are easier to read
 
     while (m !== 'e') 
@@ -100,11 +100,14 @@ async function traverseChapters (mangaTitle, selectedManga) {
         } else { // sortedChapters <- copy of chapters
             sortedChapters = JSON.parse(JSON.stringify(chapters)); 
         }
+        if (options.filterChapterLanguages.length) { // filter by translated language
+            sortedChapters = Object.values(sortedChapters).filter(chapter => options.filterChapterLanguages.includes(chapter.attributes.translatedLanguage));
+        }
         if (options.logChapterDirection === 'asc') { // sort ch num ascending e.g. 1-999
             sortedChapters = Object.values(sortedChapters).sort((a, b) => Number(a.attributes.chapter) - Number(b.attributes.chapter));
         } else { // sort ch num descending e.g. 999-1
             sortedChapters = Object.values(sortedChapters).sort((a, b) => Number(b.attributes.chapter) - Number(a.attributes.chapter));
-        } 
+        }
         
         console.log(`\n||\n|| ${mangaTitle}:\n||`);
         if (sortedChapters?.length === 0) {
@@ -122,9 +125,12 @@ async function traverseChapters (mangaTitle, selectedManga) {
         const highestSelectableIndex = index - 1; index = 0; 
         console.log(`\n||\n|| s -> Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
         console.log(`|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
+        console.log(`|| ? -> Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`);
         console.log('|| e -> Go back\n||');
         
         m = await takeUserInput(true); // get user input 
+
+        const isValidLangCode = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // test lang-code 
 
         // handle user input
         if (m >= 0 && m <= highestSelectableIndex) { 
@@ -135,6 +141,11 @@ async function traverseChapters (mangaTitle, selectedManga) {
         } else if (m === 'h') { // toggle hide read chapters
             if (options.hideReadChapters) options.hideReadChapters = false;
             else options.hideReadChapters = true;
+        } else if (m === 'l') { // clear lang-codes
+            options.filterChapterLanguages = [];
+        } else if (isValidLangCode) { // add lang-code
+            options.filterChapterLanguages.push(m); // add lang-code
+            options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
