@@ -78,6 +78,7 @@ export const logMangadexOptions = {
     hideZeroLengthManga: false, // true, false
     logChapterDirection: 'asc', // 'asc', 'desc'
     hideReadChapters: false, // true, false
+    filterChapterLanguages: [] // true, false
 };
 /*
     Options for Mangadex's fetchChapters() custom search:
