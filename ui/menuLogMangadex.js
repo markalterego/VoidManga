@@ -188,13 +188,13 @@ async function findChapterOfManga (title, selectedManga) {
         m = await takeUserInput();
         
         if (m === NEXTUNREADCHAPTER) {
-            const foundChapter = await findNextUnreadChapter(selectedManga);
+            const foundChapter = findNextUnreadChapter(selectedManga);
             if (foundChapter) await chapterOptionsMenu(foundChapter, title);
         } else if (m === LOWESTCHAPTER) {
-            const foundChapter = await findLowestChapterNumber(selectedManga.chapters);
+            const foundChapter = findLowestChapterNumber(selectedManga.chapters);
             if (foundChapter) await chapterOptionsMenu(foundChapter, title);
         } else if (m === HIGHESTCHAPTER) {
-            const foundChapter = await findHighestChapterNumber(selectedManga.chapters);
+            const foundChapter = findHighestChapterNumber(selectedManga.chapters);
             if (foundChapter) await chapterOptionsMenu(foundChapter, title);
         } else if (m === SPECIFICCHAPTER) {
             await findChapterByChapterNumber(selectedManga.chapters, title);
@@ -204,7 +204,7 @@ async function findChapterOfManga (title, selectedManga) {
     }
 }
 
-async function findNextUnreadChapter (selectedManga) {
+function findNextUnreadChapter (selectedManga) {
     const mangaEntry = lists[1]
                        .flatMap(status => status) // flatten all manga statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // try to find matching id
@@ -221,7 +221,7 @@ async function findNextUnreadChapter (selectedManga) {
     }
 }
 
-async function findLowestChapterNumber (chapters) {
+function findLowestChapterNumber (chapters) {
     const lowestChapterNumber = Math.min(...chapters.map(chapter => Number(chapter.attributes.chapter)));
     const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === lowestChapterNumber);
     if (!foundChapter) {
@@ -231,7 +231,7 @@ async function findLowestChapterNumber (chapters) {
     }   
 }
 
-async function findHighestChapterNumber (chapters) {
+function findHighestChapterNumber (chapters) {
     const highestChapterNumber = Math.max(...chapters.map(chapter => Number(chapter.attributes.chapter)));
     const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === highestChapterNumber);
     if (!foundChapter) {
