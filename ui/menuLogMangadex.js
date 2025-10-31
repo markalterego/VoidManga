@@ -72,7 +72,7 @@ async function mangaOptionsMenu (selectedManga) {
         if (m === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
         } else if (m === MALPROGRESS) { 
-            await logSeriesProgress(selectedManga.manga);
+            logSeriesProgress(selectedManga.manga);
         } else if (m === TRAVERSECHAPTERS) { 
             await traverseChapters(title, selectedManga); 
         } else if (m === FINDCHAPTEROFMANGA) { 
@@ -85,29 +85,18 @@ async function mangaOptionsMenu (selectedManga) {
 
 async function traverseChapters (mangaTitle, selectedManga) {
     const chapters = selectedManga.chapters;
-    let m = 0, index = 0, sortedChapters = JSON.parse(JSON.stringify(chapters));
     const foundManga = lists[1] // manga list
                        .flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
+    let m = 0, index = 0;
+
     // TODO:
-    // - enhance logic of language filtering!!!
     // - add paging so that results are easier to read
 
     while (m !== 'e') 
     {
-        if (options.hideReadChapters) { // hide read chapters
-            sortedChapters = Object.values(sortedChapters).filter(chapter => chapter.attributes.chapter > parseInt(foundManga?.list_status.num_chapters_read)); 
-        } else { // sortedChapters <- copy of chapters
-            sortedChapters = JSON.parse(JSON.stringify(chapters)); 
-        }
-        if (options.filterChapterLanguages.length) { // filter by translated language
-            sortedChapters = Object.values(sortedChapters).filter(chapter => options.filterChapterLanguages.includes(chapter.attributes.translatedLanguage));
-        }
-        if (options.logChapterDirection === 'asc') { // sort ch num ascending e.g. 1-999
-            sortedChapters = Object.values(sortedChapters).sort((a, b) => Number(a.attributes.chapter) - Number(b.attributes.chapter));
-        } else { // sort ch num descending e.g. 999-1
-            sortedChapters = Object.values(sortedChapters).sort((a, b) => Number(b.attributes.chapter) - Number(a.attributes.chapter));
-        }
+        // sort chapters by options
+        let sortedChapters = sortChapters(chapters, foundManga);
         
         console.log(`\n||\n|| ${mangaTitle}:\n||`);
         if (sortedChapters?.length === 0) {
@@ -117,7 +106,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
                 const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
                 const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
                 const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-                const unreadChapterFlag =  parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
+                const unreadChapterFlag = parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
                 console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} - ` : ''}${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
                 if (index === sortedChapters.length) console.log('||');
             }
@@ -152,7 +141,24 @@ async function traverseChapters (mangaTitle, selectedManga) {
     }
 }
 
-async function logSeriesProgress (manga) {
+function sortChapters (chapters, foundManga) {
+    let sortedChapters = Object.values(chapters); // chapters
+    // hide read chapters
+    if (options.hideReadChapters) { 
+        sortedChapters = sortedChapters.filter(chapter => chapter.attributes.chapter > parseInt(foundManga?.list_status.num_chapters_read)); 
+    } 
+    // filter by translated language 
+    if (options.filterChapterLanguages.length) { 
+        sortedChapters = sortedChapters.filter(chapter => options.filterChapterLanguages.includes(chapter.attributes.translatedLanguage));
+    }
+    // log by chapter number either 1-999 or 999-1
+    const logDirection = options.logChapterDirection;
+    sortedChapters = logDirection === 'asc' ? sortedChapters = sortedChapters.sort((a, b) => Number(a.attributes.chapter) - Number(b.attributes.chapter)):  // sort ch num ascending e.g. 1-999
+                                              sortedChapters = sortedChapters.sort((a, b) => Number(b.attributes.chapter) - Number(a.attributes.chapter));  // sort ch num descending e.g. 999-1
+    return sortedChapters;
+}
+
+function logSeriesProgress (manga) {
     const foundManga = lists[1] // manga list
                        .flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(manga.attributes.links?.mal)); // return first entry where id is the same
