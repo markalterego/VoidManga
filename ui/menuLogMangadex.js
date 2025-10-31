@@ -175,6 +175,8 @@ async function findChapterOfManga (title, selectedManga) {
 
     // TODO: 
     // - if multiple chapters found, give user the option to pick a specific one
+    //   e.g. could try something like if multiple chapters found, run traverseChapters
+    //   with the array of found chapters etc...
 
     while (m !== 'e') 
     {
