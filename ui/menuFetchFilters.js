@@ -9,7 +9,7 @@ async function filterEntriesFromFetch (l, k) {
     lists = l; key = k; // referring lists and key accordingly
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
     if (!lists) { // lists was undefined in given parameters
-        console.log(`\n||\n|| Lists is not defined\n||`);
+        console.log(`\n||\n|| MAL lists not found\n||`);
     } else if (!isValidFilterKey) { // function parameter is not an expected value
         console.log(`\n||\n|| The received value '${key}' is not valid\n||`);
     } else { // function parameter is an expected value
