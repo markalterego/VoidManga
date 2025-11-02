@@ -6,6 +6,7 @@ import { logMangadexOptions } from '../helpers/export.js';
 // - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
+// - make it so that if lists is not set, the user can still log information
 
 let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
@@ -13,7 +14,7 @@ let options = null; // config.logMangadexOptions
 async function menuLogMangadex (mangadexData, l, config) {
     let m = 0, filteredMangadexData = JSON.parse(JSON.stringify(mangadexData)); 
     options = !config?.logMangadexOptions ? JSON.parse(JSON.stringify(logMangadexOptions)) : config.logMangadexOptions;
-    lists = l;
+    lists = Array.isArray(l) ? l : []; 
 
     while (m !== 'e') 
     {
@@ -86,7 +87,7 @@ async function mangaOptionsMenu (selectedManga) {
 async function traverseChapters (mangaTitle, selectedManga) {
     const chapters = selectedManga.chapters;
     const foundManga = lists[1] // manga list
-                       .flatMap(status => status) // combines all entries from all statuses to one arr
+                       ?.flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
     let m = 0, index = 0;
 
@@ -144,8 +145,8 @@ async function traverseChapters (mangaTitle, selectedManga) {
 function sortChapters (chapters, foundManga) {
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
-    if (options.hideReadChapters) { 
-        sortedChapters = sortedChapters.filter(chapter => chapter.attributes.chapter > parseInt(foundManga?.list_status.num_chapters_read)); 
+    if (options.hideReadChapters && foundManga) { // don't hide if foundManga undefined
+        sortedChapters = sortedChapters.filter(chapter => chapter.attributes.chapter > parseInt(foundManga.list_status.num_chapters_read)); 
     } 
     // filter by translated language 
     if (options.filterChapterLanguages.length) { 
@@ -160,7 +161,7 @@ function sortChapters (chapters, foundManga) {
 
 function logSeriesProgress (manga) {
     const foundManga = lists[1] // manga list
-                       .flatMap(status => status) // combines all entries from all statuses to one arr
+                       ?.flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(manga.attributes.links?.mal)); // return first entry where id is the same
     if (!foundManga) {
         console.log('\n||\n|| Given manga was not found\n||');
@@ -208,7 +209,7 @@ async function findChapterOfManga (title, selectedManga) {
 
 function findNextUnreadChapter (selectedManga) {
     const mangaEntry = lists[1]
-                       .flatMap(status => status) // flatten all manga statuses to one arr
+                       ?.flatMap(status => status) // flatten all manga statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // try to find matching id
     if (!mangaEntry) {
         console.log('\n||\n|| Given manga was not found\n||');
