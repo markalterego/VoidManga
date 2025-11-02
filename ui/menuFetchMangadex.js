@@ -24,7 +24,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         console.log('|| 1 -> Change options');
         console.log('|| 2 -> Filter MAL titles');
         console.log('|| 3 -> Reset default options');
-        console.log('|| 4 -> Toggle chapter fetch type');
+        console.log(`|| 4 -> Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`);
         console.log('|| e -> Return to menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -418,9 +418,6 @@ async function optionContentRatings (options) {
 
 async function selectMangasFromFetchResults (mangaSearches) {
     let m = 0, index = 0, highestSelectableIndex = 0, selectedMangas = [];
-
-    // TODO:
-    // - make it possible to autosearch Mangadex by matching only perfect matches
 
     while (m !== 's' && m !== 'e') 
     {
