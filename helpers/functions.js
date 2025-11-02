@@ -65,7 +65,7 @@ function menuLogMangadexDisplay (mangadexData, indexedList) {
 function menuFetchFiltersDisplay (lists, key) {
     // display current filters
     let selectionFound = false;
-    lists.forEach((type, type_index) => { // anime/manga
+    lists?.forEach((type, type_index) => { // anime/manga
         if (type_index === 0) {
             console.log('\n||\n|| Current selection:\n||');
         }
