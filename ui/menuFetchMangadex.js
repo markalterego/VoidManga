@@ -61,42 +61,66 @@ async function menuFetchMangadex (lists, config, mangadexData) {
 }
 
 async function fetchWithOptions (lists, options, mangadexData) {
+    // attempts finding a title included to search at lists
+    if (!anySelectedTitles(lists)) { // no titles selected
+        console.log('\n||\n|| No MAL titles selected for search\n||');
+        return;
+    } 
+    // attempts fetching mangas by selected MAL titles
     const mangaData = await fetchMangadexMangas(lists, options);
     const foundManga = mangaData?.some(mangaSearch => mangaSearch?.searchResults?.length > 0); // mangas found for at least one search
-    if (!foundManga) {
+    if (!foundManga) { // no mangas found for search
         console.log('\n||\n|| No mangas were found\n||');
-    } else {
-        const selectedMangas = await selectMangasFromFetchResults(mangaData);
-        if (selectedMangas.length === 0) { // no mangas selected
-            console.log('\n||\n|| No mangas were selected\n||');
+        return;
+    } 
+    // presents an indexed list of found mangas to user, from which
+    // the user can select one/multiple mangas to include in chapter search
+    const selectedMangas = await selectMangasFromFetchResults(mangaData);
+    if (!selectedMangas.length) { // no mangas selected
+        console.log('\n||\n|| No mangas were selected\n||');
+        return;
+    } 
+    // attempts to fetch chapters for each manga included in chapter search
+    const combinedData = await fetchMangadexChapters(selectedMangas, options); // returns an array of { manga: {}, chapters: [] }
+    const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
+    if (!hasChapters) { // no chapters found
+        console.log('\n||\n|| No chapters were found\n||');
+        return;
+    } 
+    // appends combinedData into mangadexData
+    combinedData.forEach((search) => { // search per title
+        const foundKey = Object.keys(mangadexData).find(key => mangadexData[key].manga.id === search.manga.id);
+        if (foundKey) { // manga found in existing data
+            let reference = mangadexData[foundKey].chapters;
+            // filter reference to contain only unique chapter ids
+            const fetchedChapters = search.chapters;
+            fetchedChapters.forEach((chapter) => {
+                const isDuplicate = reference.some(existingChapter => existingChapter.id === chapter.id);
+                if (!isDuplicate) {
+                    reference.push(chapter); // append unique chapters to mangadexData
+                }
+            });
         } else {
-            const combinedData = await fetchMangadexChapters(selectedMangas, options);
-            const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
-            if (!hasChapters) { // no chapters found
-                console.log('\n||\n|| No chapters were found\n||');
-            } else {
-                // append combinedData into mangadexData
-                combinedData.forEach((search) => { // search per title
-                    const foundKey = Object.keys(mangadexData).find(key => mangadexData[key].manga.id === search.manga.id);
-                    if (foundKey) { // manga found in existing data
-                        let reference = mangadexData[foundKey].chapters;
-                        // filter reference to contain only unique chapter ids
-                        const fetchedChapters = search.chapters;
-                        fetchedChapters.forEach((chapter) => {
-                            const isDuplicate = reference.some(existingChapter => existingChapter.id === chapter.id);
-                            if (!isDuplicate) {
-                                reference.push(chapter); // append unique chapters to mangadexData
-                            }
-                        });
-                    } else {
-                        // appending new info to existing info
-                        mangadexData.push({ manga: search.manga, chapters: search.chapters});
-                    } 
-                });
-                console.log('\n||\n|| Mangedex fetch was successful\n||');
+            // appending new info to existing info
+            mangadexData.push({ manga: search.manga, chapters: search.chapters});
+        } 
+    });
+    console.log('\n||\n|| Mangedex fetch was successful\n||');
+}
+
+function anySelectedTitles (lists) {
+    // determines if any MAL title at lists has the
+    // value of includeInMangadexFetch set to true
+    if (Array.isArray(lists)) {
+        for (const type of lists) {
+            for (const status of type) {
+                for (const entry of status) {
+                    if (entry.includeInMangadexFetch) return true;
+                }
             }
         }
     }
+    return false;
 }
 
 async function fetchOptionsMenu (options) {
