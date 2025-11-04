@@ -53,6 +53,8 @@ async function fetchMangadexChapters (selectedMangas, options) {
         // - somehow use chapterResponse.data.total to fetch one time less
         //   and hence fetch only exactly what's needed -> minus ~200ms of 
         //   total fetch time taken (when fetching all chapters)
+        // - re-arrange into smaller functions, e.g. fetchMangadexChapters -> customFetchChapters() and fetchAllChapters()
+        //   -- implement logging in a way that it doesn't disrupt understanding of the code itself
 
         let mangaAndChapterInfo = [];
         if (!options.fetchAllChapters) {
@@ -83,7 +85,7 @@ async function fetchMangadexChapters (selectedMangas, options) {
                 let keepFetching = true, offset = 0;
                 // console.log(selectedManga);
                 const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
-                console.log(`|| Fetching ${mangaTitle}`);
+                console.log(`\n||\n|| Fetching ${mangaTitle}:\n||`);
                 while (keepFetching) {
                     const formattedParams = Object.fromEntries( // obj
                         Object.entries({ // arr
@@ -117,13 +119,15 @@ async function fetchMangadexChapters (selectedMangas, options) {
                     } catch (error) { // throw when error not 400 or multiple errors in a row
                         // error.response.data
                         // basic check for if given errors actually matter
-                        console.log(`|| Fetch failed (Tries remaining: ${5 - (++errorsInRow)})`);
+                        const triesRemaining = 5 - (++errorsInRow);
+                        console.log(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
                     }
                     const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
                     if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limits
                     if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // five fetches in a row err
                 }
-                if (!mangaAndChapterInfo[mangaIndex++].chapters?.length) console.log(`|| No chapters found...`);
+                if (!mangaAndChapterInfo[mangaIndex++].chapters?.length) console.log(`|| No chapters found...\n||`);
+                else console.log('||');
             }
         }
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
