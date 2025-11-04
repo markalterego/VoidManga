@@ -7,9 +7,14 @@ const MAL = { // determines what is logged
 
 async function customLogMAL (options, lists) {
     try {
-        if (await validateOptions(options)) { // making sure options is formatted correctly
-            if (await parseOptions(options, lists)) { // parsing options and saving them to MAL
-                await logMAL(lists); // logging given options
+        if (!lists) console.log('\n||\n|| MAL lists not found\n||'); // lists === undefined
+        else if (!options) console.log('\n||\n|| Options not found\n||'); // options === undefined
+        else 
+        {
+            if (await validateOptions(options)) { // making sure options is formatted correctly
+                if (await parseOptions(options, lists)) { // parsing options and saving them to MAL
+                    await logMAL(lists); // logging given options
+                }
             }
         }
     } catch (error) {
