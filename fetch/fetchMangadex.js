@@ -17,14 +17,11 @@ async function fetchMangadexMangas (lists, options) {
         } 
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
-        if (error.response) {
-            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
-            if ((typeof error.response.data)!=='string') error.response.data.errors.forEach(err => { console.error(`|| ${err.detail}`); });
-            else console.error(`\n|| ${error.response.data}`);
-            console.log('||'); // hifistely
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
-        }
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        // console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
+        // if ((typeof error.response.data)!=='string') error.response.data.errors.forEach(err => { console.error(`|| ${err.detail}`); });
+        // else console.error(`\n|| ${error.response.data}`);
+        // console.log('||'); // hifistely
     }
 }
 
@@ -49,11 +46,6 @@ function findIncludedEntries (lists) {
 }
 
 async function fetchManga (entry, options) {
-
-    // TODO: 
-    // - improve error logging so that errors not related to failed fetches
-    //   are also logged in a meaningful way
-
     let formattedMangaResponse = {}, errorsInRow = 0, mangaFetchTimeTaken = 0, keepFetching = true;
     const startTimeManga = performance.now(); // timing manga fetch start
     while (keepFetching) {
@@ -76,10 +68,13 @@ async function fetchManga (entry, options) {
             if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
             keepFetching = false; // stop fetching
         } catch (error) {
-            // update errorsInRow and log failed fetch
-            const triesRemaining = 5 - (++errorsInRow); 
-            console.error(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
-            if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // throw five fetches in a row err
+            if (error.response) { // <-- error related to fetching 
+                const triesRemaining = 5 - (++errorsInRow); // update errorsInRow and log failed fetch
+                console.error(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
+                if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // throw five fetches in a row err
+            } else {
+                throw error; // throw error up the hierarchy
+            }
         }
     }   
     return formattedMangaResponse;
