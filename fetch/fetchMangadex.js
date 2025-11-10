@@ -18,10 +18,6 @@ async function fetchMangadexMangas (lists, options) {
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
-        // console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
-        // if ((typeof error.response.data)!=='string') error.response.data.errors.forEach(err => { console.error(`|| ${err.detail}`); });
-        // else console.error(`\n|| ${error.response.data}`);
-        // console.log('||'); // hifistely
     }
 }
 
@@ -46,9 +42,9 @@ function findIncludedEntries (lists) {
 }
 
 async function fetchManga (entry, options) {
-    let formattedMangaResponse = {}, errorsInRow = 0, mangaFetchTimeTaken = 0, keepFetching = true;
-    const startTimeManga = performance.now(); // timing manga fetch start
+    let formattedMangaResponse = {}, errorsInRow = 0, keepFetching = true;
     while (keepFetching) {
+        const startTimeManga = performance.now(); // timing manga fetch start
         try {
             const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
                 params: {
@@ -64,8 +60,6 @@ async function fetchManga (entry, options) {
                                             id: entry.node.id, // MAL id
                                             type: entry.type === 0 ? 'anime' : 'manga', // list type
                                       }}; 
-            mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for fetch
-            if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
             keepFetching = false; // stop fetching
         } catch (error) {
             if (error.response) { // <-- error related to fetching 
@@ -76,6 +70,8 @@ async function fetchManga (entry, options) {
                 throw error; // throw error up the hierarchy
             }
         }
+        const mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for fetch
+        if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
     }   
     return formattedMangaResponse;
 }
@@ -86,100 +82,117 @@ async function fetchMangadexChapters (selectedMangas, options) {
         // TODO: 
         // - make it so limit_chapter > 100 is allowed in a way that fetches are split
         //   into multiple 100 sized or smaller fetches 
-        // - somehow use chapterResponse.data.total to fetch one time less
-        //   and hence fetch only exactly what's needed -> minus ~200ms of 
-        //   total fetch time taken (when fetching all chapters)
-        // - re-arrange into smaller functions, e.g. fetchMangadexChapters -> customFetchChapters() and fetchAllChapters()
-        //   -- implement logging in a way that it doesn't disrupt understanding of the code itself
 
         let mangaAndChapterInfo = [];
-        if (!options.fetchAllChapters) {
-            for (const selectedManga of selectedMangas) {
-                const startTimeChapter = performance.now(); // timing chapter fetch start
-                const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
-                    params: {
-                        limit: options.limit_chapter, // preferred fetch length 
-                        offset: options.offset_chapter, // e.g. if offset 5, orders by given options and then moves index by 5
-                        [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
-                        translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
-                        contentRating: options.contentRating // includes preferred contentRatings
-                    }
-                });
-                const finalChapterResponseData = (() => { // keep only relevant info from results
-                    return chapterResponse.data.data.map((chapter) => {
-                        return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
-                    }); 
-                })();
-                mangaAndChapterInfo.push({ manga: selectedManga.manga, 
-                                           chapters: finalChapterResponseData }); // push combined manga and chapter info to array 
-                const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
-                if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit
-            }
-        } else {
-            const limit = 100; let chapters = [], errorsInRow = 0, mangaIndex = 0, fetchIndex = 0;
-            for (const selectedManga of selectedMangas) {
-                let keepFetching = true, offset = 0;
-                // console.log(selectedManga);
-                const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
-                console.log(`\n||\n|| Fetching ${mangaTitle}:\n||`);
-                while (keepFetching) {
-                    const formattedParams = Object.fromEntries( // obj
-                        Object.entries({ // arr
-                            limit: limit, // max fetch size
-                            offset: offset, // offset
-                            translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
-                            contentRating: options.contentRating // includes preferred contentRatings
-                        }).filter(([_, value]) => (Array.isArray(value) && value.length) || (typeof value === 'number' && value >= 0)) // remove empty keys
-                    );
-                    const startTimeChapter = performance.now(); // timing chapter fetch start
-                    try {
-                        const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
-                            params: formattedParams
-                        }); 
-                        const isAllowedOffsetSizeSum = offset + limit + 100 < 10000; // calculates the next fetches offset + size -> api allows offset + size < 10k
-                        if (chapterResponse.data.data?.length > 0 && isAllowedOffsetSizeSum) { // fetch returned results && 
-                            const finalChapterResponseData = (() => { // keep only relevant info from results
-                                return chapterResponse.data.data.map((chapter) => {
-                                    return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
-                                }); 
-                            })();
-                            console.log(`|| Fetch ${++fetchIndex}: ${finalChapterResponseData?.length} chapters fetched (Offset: ${offset})`);
-                            chapters.push(finalChapterResponseData);
-                            offset += 100; // append offset by 100
-                        } else { // fetch returned no results
-                            mangaAndChapterInfo.push({ manga: selectedManga.manga, 
-                                                       chapters: chapters.flatMap(c => c) }); // push combined manga and chapter info to array 
-                            chapters = []; keepFetching = false;
-                        } 
-                        errorsInRow = 0; // resetting consecutive errors
-                    } catch (error) { // throw when error not 400 or multiple errors in a row
-                        // error.response.data
-                        // basic check for if given errors actually matter
-                        const triesRemaining = 5 - (++errorsInRow);
-                        console.log(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
-                    }
-                    const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
-                    if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limits
-                    if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // five fetches in a row err
-                }
-                if (!mangaAndChapterInfo[mangaIndex++].chapters?.length) console.log(`|| No chapters found...\n||`);
-                else console.log('||');
-            }
+        for (const selectedManga of selectedMangas) {
+            const isFirstManga = selectedManga === selectedMangas[0]; // first manga of selectedMangas
+            const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0]; // first title at ...attributes.title
+            console.log(`${isFirstManga ? '\n' : ''}||\n|| Fetching: ${mangaTitle}`);
+            const fetchedChapters = !options.fetchAllChapters ? await fetchChaptersCustom(selectedManga, options) : await fetchChaptersAll(selectedManga, options); // fetch chapters for manga
+            const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine selectedManga.manga && fetchedChapter into obj
+            const fetchedChaptersCount = combinedMangaChapterData.chapters?.length; // total chapters found
+            mangaAndChapterInfo.push(combinedMangaChapterData); // append combined manga chapter info to mangaAndChapterInfo
+            const isLastManga = selectedManga === selectedMangas[selectedMangas.length-1]; // last manga in selectedMangas
+            console.log(`|| Total fetched: ${fetchedChaptersCount ? `${fetchedChaptersCount} chapters` : 'no chapters found'}${isLastManga ? '\n||' : ''}`); // logging total found chapters for selectedManga
         }
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
     } catch (error) {
-        if (error.response) {
-            console.error(`||\n|| Error: ${error.response.status}: ${error.response.statusText}`);
-            if ((typeof error.response.data)!=='string') error.response.data.errors.forEach(err => { console.error(`|| ${err.detail}`); });
-            else console.error(`\n|| ${error.response.data}`);
-            console.log('||'); // hifistely
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
-        }
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
 }
 
+async function fetchChaptersCustom (selectedManga, options) {
+    let formattedChapterResponse = [], keepFetching = true;
+    while (keepFetching) {
+        const startTimeChapter = performance.now(); // timing chapter fetch start
+        try {
+            // format params from options 
+            const formattedParams = Object.fromEntries( // obj
+                Object.entries({ // arr
+                    limit: options.limit_chapter, // preferred fetch length 
+                    offset: options.offset_chapter, // e.g. if offset 5, orders by given options and then moves index by 5
+                    [`order[${options.chapterOrderType}]`]: options.chapterOrderDirection, // e.g 'order[chapter]': 'desc' - orders by newest to oldest chapter
+                    translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
+                    contentRating: options.contentRating // includes preferred contentRatings
+                }).filter(([_, value]) => ((Array.isArray(value) || typeof value === 'string') && value.length) || (typeof value === 'number' && value >= 0)) // remove empty keys
+            );
+            // fetching chapters of selectedManga
+            const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { 
+                params: formattedParams
+            });
+            // including links to each returned chapter
+            formattedChapterResponse = chapterResponse?.data?.data?.map((chapter) => {
+                return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
+            });
+            keepFetching = false; // stop fetching
+        } catch (error) {
+            if (error.response) { // <-- error related to fetching 
+                const triesRemaining = 5 - (++errorsInRow); // update errorsInRow and log failed fetch
+                console.error(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
+                if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // throw five fetches in a row err
+            } else {
+                throw error; // throw error up the hierarchy
+            }
+        } 
+        const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
+        if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limit       
+    }
+    return formattedChapterResponse;
+}
+
+async function fetchChaptersAll (selectedManga, options) {
+    const limit = 100; let chapters = [], offset = 0, keepFetching = true, errorsInRow = 0, fetchIndex = 0;
+    while (keepFetching) {
+        const startTimeChapter = performance.now(); // timing chapter fetch start
+        try {
+            // format params
+            const formattedParams = Object.fromEntries( // obj
+                Object.entries({ // arr
+                    limit: limit, // max fetch size
+                    offset: offset, // offset
+                    translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
+                    contentRating: options.contentRating // includes preferred contentRatings
+                }).filter(([_, value]) => (Array.isArray(value) && value.length) || (typeof value === 'number' && value >= 0)) // remove empty keys
+            );
+            // fetch chapter endpoint
+            const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
+                params: formattedParams
+            }); 
+            // handle received chapter data
+            const fetchedChaptersCount = chapterResponse.data.data?.length;
+            const hasNoMoreFetchableChapters = fetchedChaptersCount !== limit; // endpoint didn't return the amount of chapters it was asked to return
+            const nextFetchExceedsAllowedOffsetSizeSum = offset + limit + 100 >= 10000; // calculates the next fetches offset + size -> api allows offset + size < 10k
+            if (fetchedChaptersCount) { // found chapters
+                const finalChapterResponseData = chapterResponse.data.data.map((chapter) => { // keep only relevant info from results
+                    return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
+                });
+                chapters.push(finalChapterResponseData); // pushes array of obj to chapters
+            }
+            if (hasNoMoreFetchableChapters || nextFetchExceedsAllowedOffsetSizeSum) {
+                chapters = chapters.flatMap(c => c); // flatten arr of arr of obj TO arr of obj
+                keepFetching = false; // stop fetching
+            }
+            console.log(`|| Fetch ${++fetchIndex}: ${fetchedChaptersCount} chapters fetched (Offset: ${offset})`);
+            offset += 100; // append offset by 100
+            errorsInRow = 0; // resetting consecutive errors
+        } catch (error) { 
+            if (error.response) { // <-- error related to fetching
+                const triesRemaining = 5 - (++errorsInRow); // update errorsInRow and log failed fetch
+                console.log(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
+                if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // five fetches in a row err
+            } else {
+                throw error; // throw error up the hierarchy
+            }
+        }
+        const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
+        if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limits
+    }   
+    return chapters;
+}
+
 export { fetchMangadexMangas, fetchMangadexChapters };
+
+// HOX... the below comments may not be up to date anymore...
 
 /* fetchMangadexMangas:
 
