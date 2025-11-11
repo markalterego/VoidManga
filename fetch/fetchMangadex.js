@@ -13,7 +13,7 @@ async function fetchMangadexMangas (lists, options) {
             const fetchedMangasCount = fetchResult.searchResults?.length; // length of searchResults
             mangaEndpointFetchResults.push(fetchResult);
             const isLastEntry = entry === includedEntries[includedEntries.length-1]; // last entry in includedEntries
-            console.log(`|| Fetch ${++fetchCount}: Search: ${searchTitle}: ${fetchedMangasCount ? `${fetchedMangasCount} mangas fetched`: 'no mangas found'}${isLastEntry ? '\n||' : ''}`);
+            console.log(`|| [${searchTitle}] ${fetchedMangasCount ? `${fetchedMangasCount} mangas fetched`: 'no mangas found'} (${++fetchCount}/${includedEntries.length})${isLastEntry ? '\n||' : ''}`);
         } 
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
@@ -83,17 +83,17 @@ async function fetchMangadexChapters (selectedMangas, options) {
         // - make it so limit_chapter > 100 is allowed in a way that fetches are split
         //   into multiple 100 sized or smaller fetches 
 
-        let mangaAndChapterInfo = [];
+        let mangaAndChapterInfo = [], fetchCount = 0;
         for (const selectedManga of selectedMangas) {
             const isFirstManga = selectedManga === selectedMangas[0]; // first manga of selectedMangas
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0]; // first title at ...attributes.title
-            console.log(`${isFirstManga ? '\n' : ''}||\n|| Fetching: ${mangaTitle}`);
+            console.log(`${isFirstManga ? '\n' : ''}||\n|| [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
             const fetchedChapters = !options.fetchAllChapters ? await fetchChaptersCustom(selectedManga, options) : await fetchChaptersAll(selectedManga, options); // fetch chapters for manga
             const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine selectedManga.manga && fetchedChapter into obj
             const fetchedChaptersCount = combinedMangaChapterData.chapters?.length; // total chapters found
             mangaAndChapterInfo.push(combinedMangaChapterData); // append combined manga chapter info to mangaAndChapterInfo
             const isLastManga = selectedManga === selectedMangas[selectedMangas.length-1]; // last manga in selectedMangas
-            console.log(`|| Total fetched: ${fetchedChaptersCount ? `${fetchedChaptersCount} chapters` : 'no chapters found'}${isLastManga ? '\n||' : ''}`); // logging total found chapters for selectedManga
+            console.log(`||   ${fetchedChaptersCount ? `Total: ${fetchedChaptersCount} chapters` : 'No chapters found'}${isLastManga ? '\n||' : ''}`); // logging total found chapters for selectedManga
         }
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
     } catch (error) {
@@ -141,7 +141,7 @@ async function fetchChaptersCustom (selectedManga, options) {
 }
 
 async function fetchChaptersAll (selectedManga, options) {
-    const limit = 100; let chapters = [], offset = 0, keepFetching = true, errorsInRow = 0, fetchIndex = 0;
+    const limit = 100; let chapters = [], offset = 0, keepFetching = true, errorsInRow = 0; 
     while (keepFetching) {
         const startTimeChapter = performance.now(); // timing chapter fetch start
         try {
@@ -167,12 +167,13 @@ async function fetchChaptersAll (selectedManga, options) {
                     return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
                 });
                 chapters.push(finalChapterResponseData); // pushes array of obj to chapters
+                // adds padding at start based on letters in number
+                console.log(`||    ${String(fetchedChaptersCount).padStart(3)} chapters (offset ${String(offset).padStart(4)})`);
             }
             if (hasNoMoreFetchableChapters || nextFetchExceedsAllowedOffsetSizeSum) {
                 chapters = chapters.flatMap(c => c); // flatten arr of arr of obj TO arr of obj
                 keepFetching = false; // stop fetching
             }
-            console.log(`|| Fetch ${++fetchIndex}: ${fetchedChaptersCount} chapters fetched (Offset: ${offset})`);
             offset += 100; // append offset by 100
             errorsInRow = 0; // resetting consecutive errors
         } catch (error) { 
