@@ -83,7 +83,7 @@ async function fetchMangaList (username) {
 function sortSeriesByStatus (animelist, mangalist, old_lists) {
     const animemangalist = [
         Array(animeStatus.length).fill(null).map(() => []), // animelist
-        Array(animeStatus.length).fill(null).map(() => [])  // mangalist
+        Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
     ]; 
     const ANIME = 0, MANGA = 1;
     animeStatus.forEach((status, status_index) => { // anime statuses
@@ -91,7 +91,7 @@ function sortSeriesByStatus (animelist, mangalist, old_lists) {
             const entry_status = entry.list_status.status;
             if (entry_status === status) { // same status found
                 const entry_title = entry.node.title; // MAL_title
-                const result = await handleFilters(ANIME, entry_title, old_lists); // get filters
+                const result = handleFilters(ANIME, entry_title, old_lists); // get filters
                 const entry_final = { ...entry, 
                                         includeInMangadexFetch: result.includeInMangadexFetch };
                 animemangalist[ANIME][status_index].push(entry_final);
