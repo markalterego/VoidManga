@@ -10,7 +10,11 @@ async function testFetching() {
     console.log('\n>> Fetching... >>');
     // await fetchMangaUpdatesAPI();
     // await fetchAuthorizationToken();
-    await fetchAuthorizationCode();
+    const code_verifier = generateCodeVerifier(); // used for code_challenge
+    const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
+    // <-- define logic which avoids fetching tokens completely if 
+    //     authorization_code is not defined
+    const tokens = await fetchTokens(code_verifier, authorization_code); // returns access_token + refesh_token
 }
 
 async function fetchMangaUpdatesAPI() {
@@ -83,7 +87,20 @@ async function fetchMangaUpdatesAPI() {
     }
 }
 
-async function fetchAuthorizationCode() { 
+function generateCodeVerifier() {
+    // min length 43, max length 128
+    // consists of [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"
+    let code_verifier = ''; // code verifier
+    const min_length = 43, max_length = 128, chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    const lengthOfString = Math.floor((Math.random() * (max_length-min_length+1))) + min_length; // num between min-max  
+    // generate random length string consisting of allowed characters
+    for (let i = 0; i < lengthOfString; i++) {
+        code_verifier += chars.charAt(Math.floor(Math.random() * chars.length)); // take random allowed char
+    }
+    return code_verifier; // return code_verifier
+}
+
+async function fetchAuthorizationCode (code_verifier) { 
     /*
     https://myanimelist.net/v1/oauth2/authorize?
     response_type=code
@@ -100,16 +117,15 @@ async function fetchAuthorizationCode() {
     */
     let authorization_code = '';
     try {
-        const code_verifier = generateCodeVerifier(); // used for code_challenge
         const base_url = 'https://myanimelist.net/v1/oauth2/authorize?';
         const params = {
             response_type: 'code', // required - must be code
             client_id: process.env.MAL_API_CLIENT_ID, // required - client id at .env
             // state: '???' <-- recommended 
-            redirect_uri: 'http://localhost:3000/callback', // <-- optional - redirects here after user authorizes connection
+            // redirect_uri: '???', // <-- optional - redirects here after user authorizes connection
             code_challenge: code_verifier, // required - more info at bottom of file
             // code_challenge_method: '???' <-- optional - defaults to plain which is the only supported as of 20251118
-        }
+        };
         const url = base_url + new URLSearchParams(params).toString(); // authentication url
         await open(url); // open authorization page in browser
         authorization_code = await waitForCallback(); // waits for callback servers response
@@ -119,25 +135,15 @@ async function fetchAuthorizationCode() {
     return authorization_code;
 }
 
-function generateCodeVerifier() {
-    // min length 43, max length 128
-    // consists of [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"
-    let code_verifier = ''; // code verifier
-    const min_length = 43, max_length = 128, chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    const lengthOfString = Math.floor((Math.random() * (max_length-min_length+1))) + min_length; // num between min-max  
-    // generate random length string consisting of allowed characters
-    for (let i = 0; i < lengthOfString; i++) {
-        code_verifier += chars.charAt(Math.floor(Math.random() * chars.length)); // take random allowed char
-    }
-    return code_verifier; // return code_verifier
-}
-
 async function waitForCallback() {
+    // callback server is used solely for receiving the authorization_code 
+    // which is sent by MAL after the user has authorized the current "computer"
+    // through the authorization page
     const app = express(), server = app.listen(3000);
     return await new Promise((resolve, reject) => {
         // assign 60s timeout on server
         const timeout = globalThis.setTimeout(() => {  
-                server.close(() => reject(new Error('timeout 60s')));
+            server.close(() => reject(new Error('timeout 60s')));
         }, 60000);
         // route definition
         app.get('/callback', (req, res) => {
@@ -156,6 +162,56 @@ async function waitForCallback() {
             });
         });
     });
+}
+
+async function fetchTokens (code_verifier, authorization_code) {
+    /* 
+    Scheme 2: including the client credentials in the request-body
+
+    Also, MyAnimeList supports the authentication scheme which includes the client credentials in the request-body.
+    In this case, the access token request has the following form:
+
+    POST https://myanimelist.net/v1/oauth2/token HTTP/1.1
+    Host: server.example.com
+    Content-Type: application/x-www-form-urlencoded
+
+    client_id=YOUR_CLIENT_ID <-- REQUIRED in Scheme 2.
+    &client_secret=YOUR_CLIENT_SECRET <-- REQUIRED, if your client has client secret in Scheme 2.
+    &grant_type=authorization_code <-- REQUIRED. Value MUST be set to “authorization_code”.
+    &code=AUTHORIZATION_CODE <-- REQUIRED. The authorization code you got in the previous step.
+    &redirect_uri=YOUR_REDIRECT_URI <-- OPTIONAL. The value of this parameter must be identical to one that is included the previous authorization request.
+    &code_verifier=YOUR_PKCE_CODE_VERIFIER <-- REQUIRED. Same value that was used in generating code_challenge.
+    */
+    /*
+        tokens: {
+            token_type,
+            expires_in,
+            access_token,
+            refresh_token
+        }
+    */
+    let tokens = {}; 
+    try {
+        const base_url = 'https://myanimelist.net/v1/oauth2/token';
+        const data = new URLSearchParams({
+            client_id: process.env.MAL_API_CLIENT_ID,
+            client_secret: process.env.MAL_API_CLIENT_SECRET,
+            grant_type: 'authorization_code',
+            code: authorization_code,
+            // redirect_uri <-- already defined
+            code_verifier: code_verifier
+        });
+        const response = await axios.post(base_url, data.toString(), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        console.log(response.data);
+        tokens = response.data; // authentication_token + refresh_token
+    } catch (error) {
+        console.log(`\n||\n|| Error: ${error.message}\n||`);
+    }
+    return tokens;
 }
 
 /*
@@ -226,6 +282,18 @@ async function waitForCallback() {
    underscore (%5F), or tilde (%7E) should not be created by URI
    producers and, when found in a URI, should be decoded to their
    corresponding unreserved characters by URI normalizers.
+
+
+- Understanding OAuth 2.0 -
+
+So you do the steps, you get an authorization token which you use once
+to receive an access token along with a refresh token. Until the access 
+token expires etc. you can use that token to communicate with the api. 
+When the former expires, you then use the refresh token solely for the 
+purpose for getting a new access token that you can again use for a limited
+period of time. If all goes well, at some point your access token will 
+expire and your refresh token will also have expired, at that point you
+will finally start from the beginning.
 */
 
 export { testFetching };
