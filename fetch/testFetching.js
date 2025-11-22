@@ -9,12 +9,30 @@ dotenv.config();
 async function testFetching() {
     console.log('\n>> Fetching... >>');
     // await fetchMangaUpdatesAPI();
-    // await fetchAuthorizationToken();
+
+    // TODO:
+    // - implement logic for writing retreived tokens to .env file.
+    // - implement logic for calculating when exactly a token
+    //   will expire. Make it so that this logic is calculated
+    //   right after new tokens are retreived so that the calculation
+    //   will be as accurate as possible.
+    // - use the prior in a way that e.g. when starting app, tokens
+    //   are retreived right away, if either one is old enough, along 
+    //   with retrieving mal.file data. Most likely it won't happen but
+    //   in case the refresh_token is old, make the user go through the 
+    //   authentication process again either right away or later somewhere
+    //   else in the app.  
+
     const code_verifier = generateCodeVerifier(); // used for code_challenge
     const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
     // <-- define logic which avoids fetching tokens completely if 
     //     authorization_code is not defined
-    const tokens = await fetchTokens(code_verifier, authorization_code); // returns access_token + refesh_token
+    let tokens = await fetchTokens(code_verifier, authorization_code); // returns access_token + refesh_token
+    // as long as refreshTokens is ran at least once a month and older
+    // tokens are re-written each time, strictly in theory, the user will
+    // never have to go through the authentication process from start again
+    // after going through it once
+    tokens = await refreshTokens(tokens.refresh_token); // returns access_token + refresh_token
 }
 
 async function fetchMangaUpdatesAPI() {
@@ -103,12 +121,12 @@ function generateCodeVerifier() {
 async function fetchAuthorizationCode (code_verifier) { 
     /*
     https://myanimelist.net/v1/oauth2/authorize?
-    response_type=code
-    &client_id=YOUR_CLIENT_ID
-    &state=YOUR_STATE
-    &redirect_uri=YOUR_REDIRECT_URI
-    &code_challenge=YOUR_PKCE_CODE_CHALLENGE
-    &code_challenge_method=plain 
+    response_type=code <-- required - must be string = 'code'
+    &client_id=YOUR_CLIENT_ID <-- required - client id at .env
+    &state=YOUR_STATE <-- recommended - honestly idk how this works yet/what's it's purpose...
+    &redirect_uri=YOUR_REDIRECT_URI <-- optional - only necessary if multiple uris defined at https://myanimelist.net/apiconfig
+    &code_challenge=YOUR_PKCE_CODE_CHALLENGE <-- required - more info at bottom of file
+    &code_challenge_method=plain <-- optional/unnecessary - only supports string = 'plain' AND defaults to string = 'plain' when not set, as of 20251123
     HTTP/1.1
     Host: YOUR_HOST_URL
 
@@ -119,18 +137,15 @@ async function fetchAuthorizationCode (code_verifier) {
     try {
         const base_url = 'https://myanimelist.net/v1/oauth2/authorize?';
         const params = {
-            response_type: 'code', // required - must be code
-            client_id: process.env.MAL_API_CLIENT_ID, // required - client id at .env
-            // state: '???' <-- recommended 
-            // redirect_uri: '???', // <-- optional - redirects here after user authorizes connection
-            code_challenge: code_verifier, // required - more info at bottom of file
-            // code_challenge_method: '???' <-- optional - defaults to plain which is the only supported as of 20251118
+            response_type: 'code',
+            client_id: process.env.MAL_API_CLIENT_ID, 
+            code_challenge: code_verifier, 
         };
         const url = base_url + new URLSearchParams(params).toString(); // authentication url
         await open(url); // open authorization page in browser
         authorization_code = await waitForCallback(); // waits for callback servers response
     } catch (error) {
-        console.log(`\n||\n|| Error: ${error.message}\n||`);
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
     return authorization_code;
 }
@@ -166,39 +181,30 @@ async function waitForCallback() {
 
 async function fetchTokens (code_verifier, authorization_code) {
     /* 
-    Scheme 2: including the client credentials in the request-body
+    Scheme 1: the HTTP Basic authentication
 
-    Also, MyAnimeList supports the authentication scheme which includes the client credentials in the request-body.
-    In this case, the access token request has the following form:
+    MyAnimeList supports the HTTP Basic authentication scheme as defined in RFC2617 to authenticate with the authorization server.
+    client_id is used as the username; client_secret is used as the password.
+    (If your client doesn’t have a client secret, client_secret will be an empty.)
 
     POST https://myanimelist.net/v1/oauth2/token HTTP/1.1
     Host: server.example.com
+    Authorization: Basic exampleEXAMPLEeXaMpLeExAmPlE
     Content-Type: application/x-www-form-urlencoded
 
-    client_id=YOUR_CLIENT_ID <-- REQUIRED in Scheme 2.
-    &client_secret=YOUR_CLIENT_SECRET <-- REQUIRED, if your client has client secret in Scheme 2.
-    &grant_type=authorization_code <-- REQUIRED. Value MUST be set to “authorization_code”.
-    &code=AUTHORIZATION_CODE <-- REQUIRED. The authorization code you got in the previous step.
-    &redirect_uri=YOUR_REDIRECT_URI <-- OPTIONAL. The value of this parameter must be identical to one that is included the previous authorization request.
-    &code_verifier=YOUR_PKCE_CODE_VERIFIER <-- REQUIRED. Same value that was used in generating code_challenge.
-    */
-    /*
-        tokens: {
-            token_type,
-            expires_in,
-            access_token,
-            refresh_token
-        }
+    client_id=YOUR_CLIENT_ID <-- required - the client id stored at .env
+    &grant_type=authorization_code <-- required - has to be set to string = 'authorization_code'
+    &code=AUTHORIZATION_CODE <-- required - the authorization_code received at fetchAuthorizationCode
+    &redirect_uri=YOUR_REDIRECT_URI <-- optional - doesn't serve a purpose when fetching tokens as redirection doesn't happen
+    &code_verifier=YOUR_PKCE_CODE_VERIFIER <-- required - the code_verifier used to create code_challenge (when plain, code_challenge = code_verifier)
     */
     let tokens = {}; 
     try {
         const base_url = 'https://myanimelist.net/v1/oauth2/token';
         const data = new URLSearchParams({
             client_id: process.env.MAL_API_CLIENT_ID,
-            client_secret: process.env.MAL_API_CLIENT_SECRET,
             grant_type: 'authorization_code',
             code: authorization_code,
-            // redirect_uri <-- already defined
             code_verifier: code_verifier
         });
         const response = await axios.post(base_url, data.toString(), {
@@ -206,14 +212,54 @@ async function fetchTokens (code_verifier, authorization_code) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         });
-        console.log(response.data);
-        tokens = response.data; // authentication_token + refresh_token
+        /*
+            tokens: {
+                token_type: STRING,
+                expires_in: NUMBER,
+                access_token: STRING,
+                refresh_token: STRING
+            }
+        */
+        tokens = response.data;
     } catch (error) {
-        console.log(`\n||\n|| Error: ${error.message}\n||`);
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
     return tokens;
 }
 
+async function refreshTokens (refresh_token) {
+    // Function is supposed to be used when an access_token
+    // has expired. Function takes in a refresh_token and passes
+    // it to the .../token endpoint. A successful fetch to the
+    // endpoint will return new tokens, the same way as fetchTokens does.
+    let tokens = {}; 
+    try {
+        const base_url = 'https://myanimelist.net/v1/oauth2/token';
+        const data = new URLSearchParams({
+            client_id: process.env.MAL_API_CLIENT_ID, // required - client_id stored at .env
+            grant_type: 'refresh_token', // required - must be string -> 'refresh_token'
+            refresh_token: refresh_token // required - must be string -> refresh_token retreived by fetchTokens
+        });
+        const response = await axios.post(base_url, data.toString(), {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        /*
+            tokens: {
+                token_type: STRING,
+                expires_in: NUMBER,
+                access_token: STRING,
+                refresh_token: STRING
+            }
+        */
+        tokens = response.data; 
+    } catch (error) {
+        console.error(`\n||\n|| Error: ${error.message}\n||`);
+    } 
+    return tokens;
+}
+ 
 /*
 [RFC 7636]
 
@@ -290,10 +336,10 @@ So you do the steps, you get an authorization token which you use once
 to receive an access token along with a refresh token. Until the access 
 token expires etc. you can use that token to communicate with the api. 
 When the former expires, you then use the refresh token solely for the 
-purpose for getting a new access token that you can again use for a limited
-period of time. If all goes well, at some point your access token will 
-expire and your refresh token will also have expired, at that point you
-will finally start from the beginning.
+purpose for getting new tokens that you can again use for a limited
+period of time. You only start the whole process again from the beginning 
+in case you don't get a new refresh_token at least once a month, as that
+is the amount of time it takes for a refresh_token to expire.
 */
 
 export { testFetching };
