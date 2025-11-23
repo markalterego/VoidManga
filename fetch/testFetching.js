@@ -12,19 +12,12 @@ async function testFetching() {
 
     // TODO:
     // - implement logic for writing retreived tokens to .env file.
-    // - implement logic for calculating when exactly a token
-    //   will expire. Make it so that this logic is calculated
-    //   right after new tokens are retreived so that the calculation
-    //   will be as accurate as possible.
-    // - use the prior in a way that e.g. when starting app, tokens
-    //   are retreived right away, if either one is old enough, along 
+    // - use calculated expiry dates in a way that e.g. when starting app, tokens
+    //   are retrieved right away, if either one is old enough, along 
     //   with retrieving mal.file data. Most likely it won't happen but
     //   in case the refresh_token is old, make the user go through the 
     //   authentication process again either right away or later somewhere
-    //   else in the app.  
-    // - REMEMBER REMEMBER!!! SETTIMOUT!!½!½½!
-    // - make into separate function formatting expires_in into something like
-    //   utc date of expiration
+    //   else in the app.
 
     const code_verifier = generateCodeVerifier(); // used for code_challenge
     const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
@@ -35,9 +28,7 @@ async function testFetching() {
     // tokens are re-written each time, strictly in theory, the user will
     // never have to go through the authentication process from start again
     // after going through it once
-    console.log(tokens);
     tokens = await refreshTokens(tokens.refresh_token); // returns access_token + refresh_token
-    console.log(tokens);
 }
 
 async function fetchMangaUpdatesAPI() {
@@ -226,12 +217,12 @@ async function fetchTokens (code_verifier, authorization_code) {
             }
         */
         tokens = response.data;
-        // includes token_expires_at for both 
-        // access_token AND refresh_token
+        // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
-    }
+    } 
+    await setTimeout(100); // avoid rate-limit
     return tokens;
 }
 
@@ -262,12 +253,12 @@ async function refreshTokens (refresh_token) {
             }
         */
         tokens = response.data; 
-        // includes token_expires_at for both 
-        // access_token AND refresh_token
+        // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
     } 
+    await setTimeout(100); // avoid rate-limit
     return tokens;
 }
 
