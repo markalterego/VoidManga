@@ -22,17 +22,22 @@ async function testFetching() {
     //   in case the refresh_token is old, make the user go through the 
     //   authentication process again either right away or later somewhere
     //   else in the app.  
+    // - REMEMBER REMEMBER!!! SETTIMOUT!!½!½½!
+    // - make into separate function formatting expires_in into something like
+    //   utc date of expiration
 
     const code_verifier = generateCodeVerifier(); // used for code_challenge
     const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
-    // <-- define logic which avoids fetching tokens completely if 
-    //     authorization_code is not defined
+    // // <-- define logic which avoids fetching tokens completely if 
+    // //     authorization_code is not defined
     let tokens = await fetchTokens(code_verifier, authorization_code); // returns access_token + refesh_token
     // as long as refreshTokens is ran at least once a month and older
     // tokens are re-written each time, strictly in theory, the user will
     // never have to go through the authentication process from start again
     // after going through it once
+    console.log(tokens);
     tokens = await refreshTokens(tokens.refresh_token); // returns access_token + refresh_token
+    console.log(tokens);
 }
 
 async function fetchMangaUpdatesAPI() {
@@ -221,6 +226,9 @@ async function fetchTokens (code_verifier, authorization_code) {
             }
         */
         tokens = response.data;
+        // includes token_expires_at for both 
+        // access_token AND refresh_token
+        tokens = setTokenExpiryDates(tokens);
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
     }
@@ -254,12 +262,30 @@ async function refreshTokens (refresh_token) {
             }
         */
         tokens = response.data; 
+        // includes token_expires_at for both 
+        // access_token AND refresh_token
+        tokens = setTokenExpiryDates(tokens);
     } catch (error) {
         console.error(`\n||\n|| Error: ${error.message}\n||`);
     } 
     return tokens;
 }
- 
+
+function setTokenExpiryDates (tokens) {
+    // access_token (at) stuff (expires in ~1 hour)
+    const at_expires_at = Date.now() + tokens.expires_in - 300000; // access_token expires at - 5 minutes
+    delete tokens.expires_in; // remove unnecessary key-value pair
+    // refresh_token (rt) stuff (expires in ~1 month)
+    const dayInMs = 1000 * 60 * 60 * 24; // day in milliseconds
+    const monthInMs = dayInMs * 30; // month in milliseconds
+    const rt_expires_at = Date.now() + monthInMs - dayInMs; // refresh_token expires at - 1 day
+    // include at + rt with new expires_at dates to tokens
+    return tokens = {
+        ...tokens,
+        access_token_expires_at: at_expires_at, // time now (utc) + 1 hour - 5 minutes
+        refresh_token_expires_at: rt_expires_at // time now (utc) + 1 month - 1 day
+    }
+}
 /*
 [RFC 7636]
 
