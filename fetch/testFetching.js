@@ -3,6 +3,7 @@ import { setTimeout } from "timers/promises";
 import dotenv from 'dotenv';
 import open from 'open';
 import express from 'express';
+import { writeEnv } from '../filehandling/filehandle.js';
 
 dotenv.config();
 
@@ -21,14 +22,15 @@ async function testFetching() {
 
     const code_verifier = generateCodeVerifier(); // used for code_challenge
     const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
-    // // <-- define logic which avoids fetching tokens completely if 
-    // //     authorization_code is not defined
+    // <-- define logic which avoids fetching tokens completely if 
+    //     authorization_code is not defined
     let tokens = await fetchTokens(code_verifier, authorization_code); // returns access_token + refesh_token
     // as long as refreshTokens is ran at least once a month and older
     // tokens are re-written each time, strictly in theory, the user will
     // never have to go through the authentication process from start again
     // after going through it once
-    tokens = await refreshTokens(tokens.refresh_token); // returns access_token + refresh_token
+    tokens = await refreshTokens(tokens.REFRESH_TOKEN); // returns access_token + refresh_token
+    writeEnv(tokens); // write found tokens to env
 }
 
 async function fetchMangaUpdatesAPI() {
@@ -141,7 +143,12 @@ async function fetchAuthorizationCode (code_verifier) {
         await open(url); // open authorization page in browser
         authorization_code = await waitForCallback(); // waits for callback servers response
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        if (error.response) {
+            const data = error.response?.data;
+            console.error(`\n||\n|| Error: ${error.status}: ${data.error}: ${data.message} ${data.hint}\n||`);            
+        } else {
+            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        }
     }
     return authorization_code;
 }
@@ -220,7 +227,12 @@ async function fetchTokens (code_verifier, authorization_code) {
         // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        if (error.response) {
+            const data = error.response?.data;
+            console.error(`\n||\n|| Error: ${error.status}: ${data.error}: ${data.message} ${data.hint}\n||`);            
+        } else {
+            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        }
     } 
     await setTimeout(100); // avoid rate-limit
     return tokens;
@@ -256,7 +268,12 @@ async function refreshTokens (refresh_token) {
         // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        if (error.response) {
+            const data = error.response?.data;
+            console.error(`\n||\n|| Error: ${error.status}: ${data.error}: ${data.message} ${data.hint}\n||`);            
+        } else {
+            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        }
     } 
     await setTimeout(100); // avoid rate-limit
     return tokens;
@@ -266,15 +283,17 @@ function setTokenExpiryDates (tokens) {
     // access_token (at) stuff (expires in ~1 hour)
     const at_expires_at = Date.now() + tokens.expires_in - 300000; // access_token expires at - 5 minutes
     delete tokens.expires_in; // remove unnecessary key-value pair
+    delete tokens.token_type; // -||- 
     // refresh_token (rt) stuff (expires in ~1 month)
     const dayInMs = 1000 * 60 * 60 * 24; // day in milliseconds
     const monthInMs = dayInMs * 30; // month in milliseconds
     const rt_expires_at = Date.now() + monthInMs - dayInMs; // refresh_token expires at - 1 day
     // include at + rt with new expires_at dates to tokens
     return tokens = {
-        ...tokens,
-        access_token_expires_at: at_expires_at, // time now (utc) + 1 hour - 5 minutes
-        refresh_token_expires_at: rt_expires_at // time now (utc) + 1 month - 1 day
+        ACCESS_TOKEN: tokens.access_token, // access_token
+        ACCESS_TOKEN_EXPIRES_AT: at_expires_at, // time now (utc) + 1 hour - 5 minutes
+        REFRESH_TOKEN: tokens.refresh_token, // refresh_token
+        REFRESH_TOKEN_EXPIRES_AT: rt_expires_at // time now (utc) + 1 month - 1 day
     }
 }
 /*
