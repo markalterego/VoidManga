@@ -12,7 +12,6 @@ async function testFetching() {
     // await fetchMangaUpdatesAPI();
 
     // TODO:
-    // - implement logic for writing retreived tokens to .env file.
     // - use calculated expiry dates in a way that e.g. when starting app, tokens
     //   are retrieved right away, if either one is old enough, along 
     //   with retrieving mal.file data. Most likely it won't happen but
