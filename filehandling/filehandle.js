@@ -31,6 +31,7 @@ function writeEnv (input) {
             const value = `${key}=${input[key]}`; // key=value pair as string
             if (index >= 0) env[index] = value; // found key at env
             else env.push(value); // append new key=value pair to env
+            process.env[key] = input[key]; // updates process.env
         }
         // write .env file by combining each element of env to a single 
         // string separated by '\n' (the format of an .env file)
