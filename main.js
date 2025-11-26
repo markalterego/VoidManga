@@ -6,11 +6,13 @@ import { fetchMangadexOptions, logMangadexOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
+import dotenv from 'dotenv';
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 let mangadexData = null; // holds mangas and chapters fetched from Mangadex
 const rl = readline.createInterface({ input , output }); // enabling input/output
+dotenv.config(); // load .env file to process.env
 
 // main
 (async () => {
@@ -18,9 +20,9 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
 
     if (!existsSync('./data/mal.file')) {
         lists = await fetchMAL(); // searches and returns MAL lists
-        await filehandle('mal', lists); // writes mal.file
+        filehandle('mal', lists); // writes mal.file
     } else { 
-        lists = await filehandle('mal'); // reads mal.file
+        lists = filehandle('mal'); // reads mal.file
     }
 
     if (!existsSync('./data/config.file')) {
@@ -32,16 +34,16 @@ const rl = readline.createInterface({ input , output }); // enabling input/outpu
             fetchMangadexOptions: fetchMangadexOptions,
             logMangadexOptions: logMangadexOptions 
         }; 
-        await filehandle('config', config); // writes config.file
+        filehandle('config', config); // writes config.file
     } else {    
-        config = await filehandle('config'); // reads config.file
+        config = filehandle('config'); // reads config.file
     }
 
     if (!existsSync('./data/mangadex.file')) {
         // initializing mangadexData with an empty array
         mangadexData = [];
     } else {
-        mangadexData = await filehandle('mangadex'); // reads mangadex.file
+        mangadexData = filehandle('mangadex'); // reads mangadex.file
     }
 
     await menu(lists, config, mangadexData); // menu ui
