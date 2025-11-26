@@ -1,35 +1,17 @@
 import axios from 'axios';
 import { setTimeout } from "timers/promises";
-import dotenv from 'dotenv';
 import open from 'open';
 import express from 'express';
 import { writeEnv } from '../filehandling/filehandle.js';
-
-dotenv.config();
 
 async function testFetching() {
     console.log('\n>> Fetching... >>');
     // await fetchMangaUpdatesAPI();
 
     // TODO:
-    // - use calculated expiry dates in a way that e.g. when starting app, tokens
-    //   are retrieved right away, if either one is old enough, along 
-    //   with retrieving mal.file data. Most likely it won't happen but
-    //   in case the refresh_token is old, make the user go through the 
-    //   authentication process again either right away or later somewhere
-    //   else in the app.
+    // - integrate checkAndUpdateTokens to fetchMAL.js
 
-    const code_verifier = generateCodeVerifier(); // used for code_challenge
-    const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
-    // <-- define logic which avoids fetching tokens completely if 
-    //     authorization_code is not defined
-    let tokens = await fetchTokens(code_verifier, authorization_code); // returns access_token + refesh_token
-    // as long as refreshTokens is ran at least once a month and older
-    // tokens are re-written each time, strictly in theory, the user will
-    // never have to go through the authentication process from start again
-    // after going through it once
-    tokens = await refreshTokens(tokens.REFRESH_TOKEN); // returns access_token + refresh_token
-    writeEnv(tokens); // write found tokens to env
+    await checkAndUpdateTokens();
 }
 
 async function fetchMangaUpdatesAPI() {
@@ -102,6 +84,31 @@ async function fetchMangaUpdatesAPI() {
     }
 }
 
+async function checkAndUpdateTokens() {
+    // This function is meant to be ran prior to
+    // fetching anything from MAL. 
+
+    // 1. if access_token is valid, function will exit 
+    // 2. if access_token is expired but refresh_token exists
+    //    the function will refresh tokens
+    // 3. if both tokens are expired the function will go through
+    //    the whole OAuth 2.0 process from the start
+
+    // check if tokens are still valid
+    const isValidAccessToken = Date.now() < process.env.ACCESS_TOKEN_EXPIRES_AT;
+    const isValidRefreshToken = Date.now() < process.env.REFRESH_TOKEN_EXPIRES_AT;
+    // decide what to do
+    if (!isValidAccessToken && isValidRefreshToken) { // refresh tokens
+        const tokens = await refreshTokens(process.env.REFRESH_TOKEN); // returns tokens
+        writeEnv(tokens); // write found tokens to env
+    } else if (!isValidAccessToken && !isValidRefreshToken) { // start OAuth again
+        const code_verifier = generateCodeVerifier(); // used for code_challenge
+        const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
+        const tokens = await fetchTokens(code_verifier, authorization_code); // returns tokens
+        writeEnv(tokens); // write found tokens to env
+    }
+}
+
 function generateCodeVerifier() {
     // min length 43, max length 128
     // consists of [A-Z] / [a-z] / [0-9] / "-" / "." / "_" / "~"
@@ -142,12 +149,29 @@ async function fetchAuthorizationCode (code_verifier) {
         await open(url); // open authorization page in browser
         authorization_code = await waitForCallback(); // waits for callback servers response
     } catch (error) {
-        if (error.response) {
-            const data = error.response?.data;
-            console.error(`\n||\n|| Error: ${error.status}: ${data.error}: ${data.message} ${data.hint}\n||`);            
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        const status = error.response?.status;
+        const data = error.response?.data;
+
+        const apiError = data?.error;
+        const apiMessage = data?.message;
+        const apiHint = data?.hint;
+        console.error('\n||\n|| Authorization error');
+        
+        if (status) {
+            console.error(`|| Status: ${status}`);
         }
+
+        if (apiError || apiMessage || apiHint) {
+            if (apiError)   console.error(`|| Error: ${apiError}`);
+            if (apiMessage) console.error(`|| Message: ${apiMessage}`);
+            if (apiHint)    console.error(`|| Hint: ${apiHint}`);
+        } else {
+            console.error(`|| ${error.message}`);
+        }
+
+        console.error('||\n');
+
+        throw new Error('failed to receive authorization_code');
     }
     return authorization_code;
 }
@@ -214,6 +238,7 @@ async function fetchTokens (code_verifier, authorization_code) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         });
+        await setTimeout(100); // avoid rate-limit
         /*
             tokens: {
                 token_type: STRING,
@@ -226,14 +251,30 @@ async function fetchTokens (code_verifier, authorization_code) {
         // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
-        if (error.response) {
-            const data = error.response?.data;
-            console.error(`\n||\n|| Error: ${error.status}: ${data.error}: ${data.message} ${data.hint}\n||`);            
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        const status = error.response?.status;
+        const data = error.response?.data;
+
+        const apiError = data?.error;
+        const apiMessage = data?.message;
+        const apiHint = data?.hint;
+        console.error('\n||\n|| Authorization error');
+        
+        if (status) {
+            console.error(`|| Status: ${status}`);
         }
+
+        if (apiError || apiMessage || apiHint) {
+            if (apiError)   console.error(`|| Error: ${apiError}`);
+            if (apiMessage) console.error(`|| Message: ${apiMessage}`);
+            if (apiHint)    console.error(`|| Hint: ${apiHint}`);
+        } else {
+            console.error(`|| ${error.message}`);
+        }
+
+        console.error('||\n');
+
+        throw new Error('failed to receive tokens');
     } 
-    await setTimeout(100); // avoid rate-limit
     return tokens;
 }
 
@@ -255,6 +296,7 @@ async function refreshTokens (refresh_token) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         });
+        await setTimeout(100); // avoid rate-limit
         /*
             tokens: {
                 token_type: STRING,
@@ -267,14 +309,30 @@ async function refreshTokens (refresh_token) {
         // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
-        if (error.response) {
-            const data = error.response?.data;
-            console.error(`\n||\n|| Error: ${error.status}: ${data.error}: ${data.message} ${data.hint}\n||`);            
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
+        const status = error.response?.status;
+        const data = error.response?.data;
+
+        const apiError = data?.error;
+        const apiMessage = data?.message;
+        const apiHint = data?.hint;
+        console.error('\n||\n|| Authorization error');
+        
+        if (status) {
+            console.error(`|| Status: ${status}`);
         }
+
+        if (apiError || apiMessage || apiHint) {
+            if (apiError)   console.error(`|| Error: ${apiError}`);
+            if (apiMessage) console.error(`|| Message: ${apiMessage}`);
+            if (apiHint)    console.error(`|| Hint: ${apiHint}`);
+        } else {
+            console.error(`|| ${error.message}`);
+        }
+
+        console.error('||\n');
+
+        throw new Error('failed to refresh tokens');
     } 
-    await setTimeout(100); // avoid rate-limit
     return tokens;
 }
 
