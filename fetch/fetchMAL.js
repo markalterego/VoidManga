@@ -1,47 +1,44 @@
 import axios from 'axios';
 import { setTimeout } from "timers/promises";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
+import { checkAndUpdateTokens } from './fetchMALTokens.js';
 
 // TODO:
 // - re-arrange this file into smaller/clearer functions
-// - somehow implement user OAuth2 authentication
 // - allow limited functionality without explicit authentication
 //   when authentication is not possible/not wanted by the user
-
-/*
-
-1.1 if MAL_USERNAME is not defined, check authentication status
-1.2. 
-
-fetchMAL <-- base function
-- include timings in here
-
-getAuthenticationToken <-- implement this
-*/
+// - implement fetchMAL in a way where e.g. it takes in as input
+//   what it's supposed to fetch and runs a specific function 
+//   based on that input
 
 async function fetchMAL (old_lists) {
-    const username = process.env.MAL_USERNAME;
-    if (!username?.length) {
-        console.log(`\n||\n|| MAL_USERNAME was not defined at .env file\n||`);
-    } else {
-        console.log(`\n||\n|| Now fetching MAL lists for ${username}\n||`);
-        const animelist = await fetchAnimeList(username); // fetch Anime endpoint
-        const mangalist = await fetchMangaList(username); // fetch Manga endpoint
-        const formattedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
-        return formattedLists; // return formatted lists
-    }   
+    // fetch anime + manga lists
+    return await fetchMALUserLists (old_lists);
 }
 
-async function fetchAnimeList (username) {
+async function fetchMALUserLists (old_lists) {
     try {
-        const malResponseAnime = await axios.get(`https://api.myanimelist.net/v2/users/${username}/animelist`, {
+        await checkAndUpdateTokens(); // check token validity + update if necessary
+        console.log(`\n||\n|| Now fetching MAL lists\n||`);
+        const animelist = await fetchAnimeList(); // fetch Anime endpoint
+        const mangalist = await fetchMangaList(); // fetch Manga endpoint
+        const formattedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
+        return formattedLists; // return formatted lists
+    } catch (error) {
+        console.log(`\n||\n|| Error: ${error.message}\n||`);
+    }
+}
+
+async function fetchAnimeList() {
+    try {
+        const malResponseAnime = await axios.get(`https://api.myanimelist.net/v2/users/@me/animelist`, {
             params: {
                 fields: 'list_status,num_episodes',
                 limit: 1000, // max value
                 nsfw: true // allows a more accurate response
             },
             headers: {
-                'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
+                'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
             }
         }).then(await setTimeout(100)); // avoid rate-limit
         return malResponseAnime.data.data;
@@ -54,16 +51,16 @@ async function fetchAnimeList (username) {
     }
 }
 
-async function fetchMangaList (username) {
+async function fetchMangaList() {
     try {
-        const malResponseManga = await axios.get(`https://api.myanimelist.net/v2/users/${username}/mangalist`, {
+        const malResponseManga = await axios.get(`https://api.myanimelist.net/v2/users/@me/mangalist`, {
             params: {
                 fields: 'list_status,num_chapters',
                 limit: 1000, // max value
                 nsfw: true // allows a more accurate response
             },
             headers: {
-                'X-MAL-CLIENT-ID': process.env.MAL_API_CLIENT_ID
+                'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`
             }
         }).then(await setTimeout(100)); // avoid rate-limit
         return malResponseManga.data.data; 
@@ -132,3 +129,15 @@ function handleFilters (animeOrManga, title, old_lists) {
 }
 
 export { fetchMAL };
+
+/*
+Ideas for implementing authentication with only client_id...
+
+1.1 if MAL_USERNAME is not defined, check authentication status
+1.2. 
+
+fetchMAL <-- base function
+- include timings in here
+
+getAuthenticationToken <-- implement this
+*/
