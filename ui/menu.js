@@ -6,6 +6,7 @@ import { takeUserInput } from "../helpers/functions.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMAL } from "./menuLogMAL.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
+import { logErrorDetails } from "../helpers/errorLogger.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
@@ -20,7 +21,7 @@ async function menu (l, c, m) {
         }
     } catch (error) {
         if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
-        console.error(`\n||\n|| Error: ${error.message}\n||`); 
+        logErrorDetails(error);
     } 
 }
 

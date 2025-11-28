@@ -3,6 +3,7 @@ import { setTimeout } from "timers/promises";
 import open from 'open';
 import express from 'express';
 import { writeEnv } from '../filehandling/filehandle.js';
+import { logErrorDetails } from '../helpers/errorLogger.js';
 
 async function checkAndUpdateTokens() {
     // This function is meant to be ran prior to
@@ -69,28 +70,7 @@ async function fetchAuthorizationCode (code_verifier) {
         await open(url); // open authorization page in browser
         authorization_code = await waitForCallback(); // waits for callback servers response
     } catch (error) {
-        const status = error.response?.status;
-        const data = error.response?.data;
-
-        const apiError = data?.error;
-        const apiMessage = data?.message;
-        const apiHint = data?.hint;
-        console.error('\n||\n|| Authorization error');
-        
-        if (status) {
-            console.error(`|| Status: ${status}`);
-        }
-
-        if (apiError || apiMessage || apiHint) {
-            if (apiError)   console.error(`|| Error: ${apiError}`);
-            if (apiMessage) console.error(`|| Message: ${apiMessage}`);
-            if (apiHint)    console.error(`|| Hint: ${apiHint}`);
-        } else {
-            console.error(`|| ${error.message}`);
-        }
-
-        console.error('||\n');
-
+        logErrorDetails(error);
         throw new Error('failed to receive authorization_code');
     }
     return authorization_code;
@@ -171,28 +151,7 @@ async function fetchTokens (code_verifier, authorization_code) {
         // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
-        const status = error.response?.status;
-        const data = error.response?.data;
-
-        const apiError = data?.error;
-        const apiMessage = data?.message;
-        const apiHint = data?.hint;
-        console.error('\n||\n|| Authorization error');
-        
-        if (status) {
-            console.error(`|| Status: ${status}`);
-        }
-
-        if (apiError || apiMessage || apiHint) {
-            if (apiError)   console.error(`|| Error: ${apiError}`);
-            if (apiMessage) console.error(`|| Message: ${apiMessage}`);
-            if (apiHint)    console.error(`|| Hint: ${apiHint}`);
-        } else {
-            console.error(`|| ${error.message}`);
-        }
-
-        console.error('||\n');
-
+        logErrorDetails(error);
         throw new Error('failed to receive tokens');
     } 
     return tokens;
@@ -229,28 +188,7 @@ async function refreshTokens (refresh_token) {
         // includes token_expires_at for both tokens
         tokens = setTokenExpiryDates(tokens);
     } catch (error) {
-        const status = error.response?.status;
-        const data = error.response?.data;
-
-        const apiError = data?.error;
-        const apiMessage = data?.message;
-        const apiHint = data?.hint;
-        console.error('\n||\n|| Authorization error');
-        
-        if (status) {
-            console.error(`|| Status: ${status}`);
-        }
-
-        if (apiError || apiMessage || apiHint) {
-            if (apiError)   console.error(`|| Error: ${apiError}`);
-            if (apiMessage) console.error(`|| Message: ${apiMessage}`);
-            if (apiHint)    console.error(`|| Hint: ${apiHint}`);
-        } else {
-            console.error(`|| ${error.message}`);
-        }
-
-        console.error('||\n');
-
+        logErrorDetails(error);
         throw new Error('failed to refresh tokens');
     } 
     return tokens;

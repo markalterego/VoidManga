@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { setTimeout } from "timers/promises";
+import { logErrorDetails } from '../helpers/errorLogger.js';
 // import { toZonedTime, format } from 'date-fns-tz'; 
 
 async function fetchMangadexMangas (lists, options) {
@@ -17,7 +18,7 @@ async function fetchMangadexMangas (lists, options) {
         } 
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        logErrorDetails(error);
     }
 }
 
@@ -97,7 +98,7 @@ async function fetchMangadexChapters (selectedMangas, options) {
         }
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        logErrorDetails(error);
     }
 }
 

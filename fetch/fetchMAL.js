@@ -2,6 +2,7 @@ import axios from 'axios';
 import { setTimeout } from "timers/promises";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { checkAndUpdateTokens } from './fetchMALTokens.js';
+import { logErrorDetails } from '../helpers/errorLogger.js';
 
 // TODO:
 // - re-arrange this file into smaller/clearer functions
@@ -13,7 +14,15 @@ import { checkAndUpdateTokens } from './fetchMALTokens.js';
 
 async function fetchMAL (old_lists) {
     // fetch anime + manga lists
-    return await fetchMALUserLists (old_lists);
+    // return await fetchMALUserLists (old_lists);
+    // const manga = old_lists[1][4][0]; // 20th century boys
+    // manga.list_status.status = mangaStatus[0];
+    // manga.list_status.score = 2;
+    // await updateMangaList(manga);
+
+    return await fetchMALUserLists(old_lists);
+    // await updateListEntry();
+    // return old_lists;
 }
 
 async function fetchMALUserLists (old_lists) {
@@ -25,7 +34,7 @@ async function fetchMALUserLists (old_lists) {
         const formattedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
         return formattedLists; // return formatted lists
     } catch (error) {
-        console.log(`\n||\n|| Error: ${error.message}\n||`);
+        logErrorDetails(error);
     }
 }
 
@@ -33,7 +42,7 @@ async function fetchAnimeList() {
     try {
         const malResponseAnime = await axios.get(`https://api.myanimelist.net/v2/users/@me/animelist`, {
             params: {
-                fields: 'list_status,num_episodes',
+                fields: 'list_status{comments},num_episodes,type',
                 limit: 1000, // max value
                 nsfw: true // allows a more accurate response
             },
@@ -43,11 +52,7 @@ async function fetchAnimeList() {
         }).then(await setTimeout(100)); // avoid rate-limit
         return malResponseAnime.data.data;
     } catch (error) {
-        if (error.response) {
-            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
-        }
+        logErrorDetails(error);
     }
 }
 
@@ -55,7 +60,7 @@ async function fetchMangaList() {
     try {
         const malResponseManga = await axios.get(`https://api.myanimelist.net/v2/users/@me/mangalist`, {
             params: {
-                fields: 'list_status,num_chapters',
+                fields: 'list_status{comments},num_chapters',
                 limit: 1000, // max value
                 nsfw: true // allows a more accurate response
             },
@@ -65,12 +70,7 @@ async function fetchMangaList() {
         }).then(await setTimeout(100)); // avoid rate-limit
         return malResponseManga.data.data; 
     } catch (error) {
-        console.log(error.response);
-        if (error.response) {
-            console.error(`\n||\n|| Error: ${error.response.status}: ${error.response.statusText}: ${error.response.data.message}\n||`);
-        } else {
-            console.error(`\n||\n|| Error: ${error.message}\n||`);
-        }
+        logErrorDetails(error);
     }
 }
 
@@ -81,7 +81,7 @@ function sortSeriesByStatus (animelist, mangalist, old_lists) {
     ]; 
     const ANIME = 0, MANGA = 1;
     animeStatus.forEach((status, status_index) => { // anime statuses
-        animelist.forEach(async (entry) => { // entries
+        animelist.forEach((entry) => { // entries
             const entry_status = entry.list_status.status;
             if (entry_status === status) { // same status found
                 const entry_title = entry.node.title; // MAL_title
@@ -93,7 +93,7 @@ function sortSeriesByStatus (animelist, mangalist, old_lists) {
         })
     });
     mangaStatus.forEach((status, status_index) => { // manga statuses
-        mangalist.forEach(async (entry) => { // entries
+        mangalist.forEach((entry) => { // entries
             const entry_status = entry.list_status.status;
             if (entry_status === status) { // same status found
                 const entry_title = entry.node.title; // MAL_title
@@ -126,6 +126,27 @@ function handleFilters (animeOrManga, title, old_lists) {
         }
     }
     return result;
+}
+
+async function updateListEntry (entry) {
+    await checkAndUpdateTokens(); // check token validity + update if necessary
+    const type = entry?.node.num_episodes === undefined ? 'manga' : 'anime'; 
+    try {
+        const url = `https://api.myanimelist.net/v2/${type}/${entry?.node.id}/my_list_status`
+        const data = new URLSearchParams(
+            Object.entries(entry.list_status).filter(([key, _]) => key !== 'updated_at')
+        );
+        const response = await axios.put(url, data.toString(), {
+            headers: {
+                'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        }).then(await setTimeout(100)); // avoid rate-limit;
+        console.log(response.data);
+    } catch (error) {
+        logErrorDetails(error);
+        throw new Error('failed updating MAL entry')
+    }
 }
 
 export { fetchMAL };

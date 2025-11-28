@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { logErrorDetails } from '../helpers/errorLogger.js';
 import path from 'path';
 
 function filehandle (fileIdentifier, input) {
@@ -17,7 +18,7 @@ function filehandle (fileIdentifier, input) {
             console.log(`\n||\n|| The given fileIdentifier has to be of type string\n||`);
         } 
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        logErrorDetails(error);
     }
 }
 
@@ -37,7 +38,7 @@ function writeEnv (input) {
         // string separated by '\n' (the format of an .env file)
         writeFileSync(destination, env.join('\n'), 'utf8');
     } catch (error) {
-        console.error(`\n||\n|| Error: ${error.message}\n||`);
+        logErrorDetails(error);
     }
 }
 
