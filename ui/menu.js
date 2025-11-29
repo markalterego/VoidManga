@@ -31,9 +31,9 @@ async function rootMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| What would you like to do?\n||');
-        console.log('|| 0 -> Custom log MAL');
-        console.log('|| 1 -> Custom log Mangadex');
-        console.log(`|| 2 -> Custom fetch Mangadex`);
+        console.log('|| 0 -> Log MAL');
+        console.log('|| 1 -> Log Mangadex');
+        console.log(`|| 2 -> Fetch Mangadex`);
         console.log('|| 3 -> Fetch MAL');
         console.log('|| s -> Settings');
         console.log('|| e -> Exit\n||');
