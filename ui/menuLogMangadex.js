@@ -106,9 +106,10 @@ async function traverseChapters (mangaTitle, selectedManga) {
             for (const chapter of sortedChapters) {
                 const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
                 const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
+                const vlNum = chapter.attributes.volume !== null ? chapter.attributes.volume : 'N/A'; // volume number
                 const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
                 const unreadChapterFlag = parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
-                console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} - ` : ''}${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
+                console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} - ` : `Volume: ${vlNum} - `}${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
                 if (index === sortedChapters.length) console.log('||');
             }
         }
@@ -154,8 +155,30 @@ function sortChapters (chapters, foundManga) {
     }
     // log by chapter number either 1-999 or 999-1
     const logDirection = options.logChapterDirection;
-    sortedChapters = logDirection === 'asc' ? sortedChapters = sortedChapters.sort((a, b) => Number(a.attributes.chapter) - Number(b.attributes.chapter)):  // sort ch num ascending e.g. 1-999
-                                              sortedChapters = sortedChapters.sort((a, b) => Number(b.attributes.chapter) - Number(a.attributes.chapter));  // sort ch num descending e.g. 999-1
+    sortedChapters = sortedChapters.sort((a, b) => {
+        // sorts array based on return value
+        // A and B are two "random" points of array
+        // if return value > 0 -> moves A after B
+        // if return value < 0 -> moves A before B
+        // if return value = 0 -> keeps A and B in place
+
+        // check if A or B is volume
+        const isVolumeA = a.attributes.volume && !a.attributes.chapter;
+        const isVolumeB = b.attributes.volume && !b.attributes.chapter;
+        // group by A and B so that volumes come first 
+        const groupA = isVolumeA ? 0 : 1; 
+        const groupB = isVolumeB ? 0 : 1;
+        if (groupA !== groupB) return groupA - groupB; // short-circuit
+
+        // sort by either chNum or vlNum
+        const numA = isVolumeA ? Number(a.attributes.volume) : 
+                                 Number(a.attributes.chapter);
+        const numB = isVolumeB ? Number(b.attributes.volume) : 
+                                 Number(b.attributes.chapter);
+        // log ascending or descending based on user preference
+        return logDirection === 'asc' ? numA - numB : // sort ascending e.g. 1-999
+                                        numB - numA ; // sort descending e.g. 999-1
+    });  
     return sortedChapters;
 }
 
@@ -273,11 +296,12 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
 
     while (m !== 'e') 
     {
-        const chapterTitle = selectedChapter.attributes.title ? selectedChapter.attributes.title : 'No Title'; // title
-        const chNum = selectedChapter.attributes.chapter !== null ? selectedChapter.attributes.chapter : -1; // chapter number
+        const chapterTitle = selectedChapter.attributes.title ? selectedChapter.attributes.title : ''; // title
+        const chNum = selectedChapter.attributes.chapter !== null ? selectedChapter.attributes.chapter : -1; // chapter number 
+        const vlNum = selectedChapter.attributes.volume !== null ? selectedChapter.attributes.volume : -1; // volume number
         const transLang = selectedChapter.attributes.translatedLanguage ? selectedChapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-        const formattedTitle = `${chNum >= 0 ? `Chapter: ${chNum} - ` : ''}${chapterTitle} (${transLang})`;
-        console.log(`\n||\n|| ${formattedTitle}:\n||`);
+        const formattedTitle = `${chapterTitle.length > 0 ? chapterTitle.trim() : mangaTitle.trim() }${chNum >= 0 ? ` (ch: ${chNum})` : (vlNum >= 0 ? ` (vol: ${vlNum})` : '' )}${transLang.length > 0 ? ` (${transLang})` : ''}`;
+        console.log(`\n||\n|| ${formattedTitle}\n||`);
         console.log('|| 0 -> Log chapter data');
         console.log('|| 1 -> Open chapter in browser');
         console.log('|| e -> Go back\n||');
@@ -285,7 +309,9 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
-            await logDataDeepMenu(selectedChapter, `${mangaTitle} (chapter: ${chNum >= 0 ? chNum : 'N/A'})`, true);
+            const dataTitle = `${mangaTitle} ${chNum >= 0 ? `(ch: ${chNum})` : // chNum for context
+                                (vlNum >= 0 ? `(vol: ${vlNum})` : '' )}`;       // log neither volume nor chapter// vlNum for context
+            await logDataDeepMenu(selectedChapter, dataTitle, true);
         } else if (m === OPENINBROWSER) {
             await open(selectedChapter.link); 
         } else if (m !== 'e') {
@@ -304,7 +330,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical) {
     while (m !== 'e') 
     {   
         let index = 0;
-        console.log(`\n||\n|| Log ${dataTitle}:\n||`);
+        console.log(`\n||\n|| Log ${dataTitle}\n||`);
         if (!Object.keys(data).length) {
             console.log('|| ? -> No keys to select');
         } else {
