@@ -484,7 +484,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
         // log e -> exit, s -> search etc...
         console.log('\n||\n|| s -> Search chapters');
         console.log('|| p -> Select perfect matches');
-        console.log('|| c -> Clear selection');
+        console.log('|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
@@ -520,7 +520,16 @@ async function selectMangasFromFetchResults (mangaSearches) {
                     }
                 });
             }); 
-        } else if (m === 'c' || m === 'e') { // clear current selection
+        } else if (m === '+') {
+            // including all Manga titles to fetch
+            mangaSearches.forEach((mangaSearch) => {
+                const searchResults = mangaSearch.searchResults;
+                searchResults.forEach((searchResult) => {
+                    const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
+                    if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
+                });
+            });
+        } else if (m === '-' || m === 'e') { // clear current selection
             selectedMangas = [];
         } else {
             console.log('\n|| Please input a valid option');
