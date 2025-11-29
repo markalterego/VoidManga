@@ -31,13 +31,10 @@ async function rootMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| What would you like to do?\n||');
-        console.log('|| 0 -> Watching anime');
-        console.log('|| 1 -> Reading manga');
-        console.log('|| 2 -> Full list');
-        console.log('|| 3 -> Custom log MAL');
-        console.log('|| 4 -> Custom log Mangadex');
-        console.log(`|| 5 -> ${config?.autoFetchMangadex ? 'Auto' : 'Custom'} fetch Mangadex`);
-        console.log('|| 6 -> Fetch MAL');
+        console.log('|| 0 -> Custom log MAL');
+        console.log('|| 1 -> Custom log Mangadex');
+        console.log(`|| 2 -> Custom fetch Mangadex`);
+        console.log('|| 3 -> Fetch MAL');
         console.log('|| s -> Settings');
         console.log('|| e -> Exit\n||');
 
@@ -45,40 +42,24 @@ async function rootMenu() {
 
         switch (m) 
         {
-            case 0:
-                await customLogMAL({anime: [0]}, lists); // anime - watching
-                break;
-            case 1:
-                await customLogMAL({manga: [0]}, lists); // manga - reading
-                break;
-            case 2:
-                await customLogMAL({anime: [0,1,2,3,4], manga: [0,1,2,3,4]}, lists); // anime/manga - all
-                break;
-            case 3: {
+            case 0: {
                 const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
                 config = { ...config, logMALOptions: returnArr[0] };
                 await filehandle('config', config); 
                 break; }
-            case 4: {
+            case 1: {
                 const options = await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
                 config = { ...config, logMangadexOptions: options };
                 await filehandle('config', config);
                 break; } 
-            case 5: 
-                // if autofetching is disabled, loops through customFetchMenuMangadex normally (default behavior)
-                // in case enabled, calls fetchMangadex right away with options taken from config and goes back 
-                // to upper menu right after completion
-                if (!config?.autoFetchMangadex) {
-                    const fetchMangadexData = await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
-                    config = { ...config, fetchMangadexOptions: fetchMangadexData.options }; // append options to config
-                    await filehandle('config', config); // save config file
-                    await filehandle('mal', lists); // save lists to file
-                    await filehandle('mangadex', mangadexData); // save data to file
-                } else { 
-                    // await fetchMangadex(lists, config?.fetchMangadexOptions);
-                }
-                break;
-            case 6: 
+            case 2: {
+                const fetchMangadexData = await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
+                config = { ...config, fetchMangadexOptions: fetchMangadexData.options }; // append options to config
+                await filehandle('config', config); // save config file
+                await filehandle('mal', lists); // save lists to file
+                await filehandle('mangadex', mangadexData); // save data to file
+                break; }
+            case 3: 
                 lists = await fetchMAL(lists); // searches and returns MAL lists
                 await filehandle('mal', lists);
                 break; 
@@ -92,7 +73,6 @@ async function rootMenu() {
                 console.log('\n|| Please input a valid option');
         }
     }
-
     return r;
 }
 
@@ -105,20 +85,15 @@ async function settingsMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Auto-fetch Mangadex [${config?.autoFetchMangadex ? 'x' : ''}]`);
-        console.log(`|| 1 -> Fetch ??? (WIP)`);
+        console.log(`|| 0 -> Fetch ??? (WIP)`);
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
 
         switch (m) 
         {
-            case 0: // autoFetchMangadex toggle
-                if (config?.autoFetchMangadex) config = { ...config, autoFetchMangadex: false }; else config = { ...config, autoFetchMangadex: true }; // toggling autofetching on Mangadex
-                await filehandle('config', config); // writes config.file
-                break;
-            case 1: 
-                await testFetching();    
+            case 0: 
+                await testFetching();   
                 break;
             case 'e':
                 break;
