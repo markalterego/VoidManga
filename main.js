@@ -29,7 +29,6 @@ dotenv.config(); // load .env file to process.env
         // setting initial menu preference
         config = { 
             ...config,  
-            autoFetchMangadex: false, 
             logMALOptions: { anime: [], manga: [] },
             fetchMangadexOptions: fetchMangadexOptions,
             logMangadexOptions: logMangadexOptions 
