@@ -76,9 +76,11 @@ export const expectedFilters = ['includeInMangadexFetch']; // expected function 
 export const logMangadexOptions = {
     logMangaDirection: 'asc', // 'asc', 'desc'
     hideZeroLengthManga: false, // true, false
+    enablePagingManga: true, // true, false
     logChapterDirection: 'asc', // 'asc', 'desc'
     hideReadChapters: false, // true, false
-    filterChapterLanguages: [] // true, false
+    filterChapterLanguages: [], // true, false
+    enablePagingChapter: true // true, false
 };
 /*
     Options for Mangadex's fetchChapters() custom search:
