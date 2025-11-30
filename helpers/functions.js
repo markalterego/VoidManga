@@ -46,19 +46,27 @@ function menuLogMALDisplay (anime, manga) {
     console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
 }
 
-function menuLogMangadexDisplay (mangadexData, indexedList) {
-    console.log('\n||\n|| Select manga:\n||');
+function menuLogMangadexDisplay (mangadexData, indexedList, enablePageFooter, pageDetails) {
+    console.log('\n||\n|| --- Select manga ---\n||');
     if (!mangadexData.length) {
         console.log('|| - No selected manga\n||');
     } else {
-        mangadexData.forEach((MC, MCIndex) => {
-            const manga = MC.manga; // manga data
+        mangadexData.forEach((obj, index) => {
+            const manga = obj.manga; // manga data
             const title = Object.values(manga.attributes.title)[0]; // first title
-            const chapterCount = MC.chapters.length;
-            if (indexedList) console.log(`|| ${MCIndex}: ${title} (${chapterCount})`);
+            const chapterCount = obj.chapters.length;
+            if (indexedList) console.log(`|| ${index}: ${title} (${chapterCount})`);
             else console.log(`|| - ${title} (${chapterCount})`);
-            if (MCIndex === mangadexData.length - 1) console.log('||');
+            if (index === mangadexData.length - 1) console.log('||');
         });
+        if (enablePageFooter) {
+            console.log('|| --------------------\n||');
+            const currentPageString = String(pageDetails.currentPage);
+            const lastPageString = String(pageDetails.lastPage);
+            const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
+            const label = `Page: `.padEnd(10, ' ');
+            console.log(`|| ${label} ${pageProgressString}\n||`);
+        } 
     }
 }
 
