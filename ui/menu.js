@@ -7,6 +7,8 @@ import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMAL } from "./menuLogMAL.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
+import { updateMAL } from "../updateMAL/updateMAL.js";
+import { animeStatus, mangaStatus } from "../helpers/export.js";
 
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
@@ -45,23 +47,23 @@ async function rootMenu() {
             case 0: {
                 const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
                 config = { ...config, logMALOptions: returnArr[0] };
-                await filehandle('config', config); 
+                filehandle('config', config); 
                 break; }
             case 1: {
                 const options = await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
                 config = { ...config, logMangadexOptions: options };
-                await filehandle('config', config);
+                filehandle('config', config);
                 break; } 
             case 2: {
                 const fetchMangadexData = await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
                 config = { ...config, fetchMangadexOptions: fetchMangadexData.options }; // append options to config
-                await filehandle('config', config); // save config file
-                await filehandle('mal', lists); // save lists to file
-                await filehandle('mangadex', mangadexData); // save data to file
+                filehandle('config', config); // save config file
+                filehandle('mal', lists); // save lists to file
+                filehandle('mangadex', mangadexData); // save data to file
                 break; }
             case 3: 
                 lists = await fetchMAL(lists); // searches and returns MAL lists
-                await filehandle('mal', lists);
+                filehandle('mal', lists);
                 break; 
             case 's':
                 await settingsMenu();  
@@ -85,7 +87,7 @@ async function settingsMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Fetch ??? (WIP)`);
+        console.log(`|| 0 -> Update MAL...`);
         console.log('|| e -> Return to main menu\n||');
 
         m = await takeUserInput(); // get user input
@@ -93,7 +95,11 @@ async function settingsMenu() {
         switch (m) 
         {
             case 0: 
-                await testFetching();   
+                await testFetching(); 
+                // let cloned_entry = structuredClone(lists[1][4][0]); // 
+                // cloned_entry.list_status.status = mangaStatus[0]; // reading
+                // lists = await updateMAL(lists, cloned_entry);
+                // filehandle('mal', lists);
                 break;
             case 'e':
                 break;
