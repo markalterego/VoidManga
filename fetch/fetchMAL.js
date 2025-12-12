@@ -137,9 +137,11 @@ function handleFilters (animeOrManga, title, old_lists) {
 async function updateListEntry (entry) {
     try {
         await checkAndUpdateTokens(); // check token validity + update if necessary
-        const type = entry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
-        const updatedListStatus = await putListEntry(entry, type); // put to ../${type}/${id}/my_list_status endpoint
-        return { ...entry, list_status: updatedListStatus }; // returns updated entry
+        const parsedEntry = { node: entry.node, 
+                              list_status: entry.list_status }; // removed includeInMangadexFetch
+        const type = parsedEntry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
+        const updatedListStatus = { list_status: await putListEntry(parsedEntry, type) }; // put to MAL
+        return Object.assign(entry, updatedListStatus); // returns updated entry
     } catch (error) {
         logErrorDetails(error);
     }
@@ -164,7 +166,7 @@ async function putListEntry (entry, type) {
     }   
 }
 
-export { fetchMAL };
+export { fetchMAL, updateListEntry };
 
 /*
 Ideas for implementing authentication with only client_id...
