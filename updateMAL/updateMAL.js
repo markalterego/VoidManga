@@ -12,35 +12,53 @@ const MANGA = 1; // manga -||-
 
 async function updateMAL (lists, entry) {
     try {
-        
         const syncedEntry = await updateListEntry(entry); // update online
-        const existingEntry = findOldEntry(lists, syncedEntry); // reference to oldEntry
-
-        if (!existingEntry) appendNewEntry(lists, syncedEntry); 
-        else Object.assign(oldEntry, syncedEntry); // overwrite oldEntry by finalEntry
-        
+        const existingEntry = findExistingEntry(lists, syncedEntry); // reference to existing MAL entry
+        const finalEntry = existingEntry ? { ...existingEntry, ...syncedEntry } : syncedEntry; // merge existing + synced OR use synced
+        if (existingEntry) removeOldEntry(lists, existingEntry); // remove existing entry 
+        appendNewEntry(lists, finalEntry); // add entry to lists
         return lists; // return updated lists
     } catch (error) {
         logErrorDetails(error);
     }
 }
 
-function findOldEntry (lists, updatedEntry) {
-    // type never changes, we can use the same as in newer entry
-    const type = updatedEntry.node.num_episodes === undefined ? MANGA : ANIME; 
-    const allEntriesByType = lists[type].flat(); // all anime/manga entries regardless of status
-    return allEntriesByType.find(entry => entry.node.id === updatedEntry.node.id);
+function findExistingEntry (lists, entry) {
+    const type = getTypeIndex(entry); // returns 0 OR 1
+    // attempts finding reference to existing entry from all anime/manga entries
+    return lists[type].flat().find(e => e.node.id === entry.node.id);
 }
 
-function appendNewEntry (lists, updatedEntry) {
-    const type = updatedEntry.node.num_episodes === undefined ? MANGA : ANIME; // type 
-    const status = type === ANIME ? animeStatus.findIndex(status => status === updatedEntry.list_status.status) : // anime
-                                    mangaStatus.findIndex(status => status === updatedEntry.list_status.status);  // manga
-    lists[type][status].push(updatedEntry); // append updatedEntry to lists
+function appendNewEntry (lists, entry) {
+    const type = getTypeIndex(entry); 
+    const status = getStatusIndex(entry);
+    lists[type][status].push(entry); // append entry to lists
 }
 
-function getType (entry) {
-    
+function removeOldEntry (lists, entry) {
+    const type = getTypeIndex(entry);
+    const status = getStatusIndex(entry);
+    const index = getEntryIndex(lists, entry);
+    lists[type][status].splice(index, 1);
+}
+
+function getTypeIndex (entry) {
+    // returns index for anime/manga at lists e.g. lists[0] === anime 
+    return entry.node.num_episodes === undefined ? MANGA : ANIME;
+}
+
+function getStatusIndex (entry) {
+    const type = getTypeIndex(entry);
+    // returns index of status
+    return type === ANIME ? animeStatus.findIndex(s => s === entry.list_status.status): // anime
+                            mangaStatus.findIndex(s => s === entry.list_status.status); // manga
+}
+
+function getEntryIndex (lists, entry) {
+    const type = getTypeIndex(entry); // returns 0 OR 1
+    const status = getStatusIndex(entry); // returns status
+    // returns index of given entry at lists[type][status]
+    return lists[type][status].findIndex(e => e.node.id === entry.node.id); 
 }
 
 export { updateMAL };
