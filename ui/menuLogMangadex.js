@@ -394,10 +394,10 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
     }
 }
 
-async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical) {
+async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSkipSorting) {
     let m = 0;
 
-    if (sortByKeysAlphabetical) {
+    if (!forceSkipSorting && sortByKeysAlphabetical) {
         data = sortObjectByKeysAlphabetical(data, 'asc'); // sort by keys a-z
     }
 
@@ -437,11 +437,11 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical) {
             } else if (dataTypeOfValue === 'arrayOfPrimitives') { // key: [data1, data2]
                 logArrayOfPrimitives(key, value);
             } else if (dataTypeOfValue === 'object') { // key: { key1: value1, key2: value2 }
-                await logDataDeepMenu(value, key, 'asc');
+                await logDataDeepMenu(value, key, 'asc', forceSkipSorting);
             } else if (dataTypeOfValue === 'arrayOfObjects') { // key: [ {key1: value1}, {key2: value2} ]
                 const isFlattenable = isFilledWithOneLengthObjects(value); 
                 const object = isFlattenable ? flattenArrayOfObjects(value) : reformatArrayObjectsToObject(value, key);
-                await logDataDeepMenu(object, key, isFlattenable); // isFlattenable triggers alphabetical sorting if true
+                await logDataDeepMenu(object, key, isFlattenable, forceSkipSorting); // isFlattenable triggers alphabetical sorting if true
             }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -614,4 +614,4 @@ async function openChaptersInBrowserMenu (fetchResults) {
     }
 }
 
-export { menuLogMangadex };
+export { menuLogMangadex, logDataDeepMenu };
