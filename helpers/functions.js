@@ -107,4 +107,18 @@ function longStringToArray (string, maxLengthOfElement) {
     return arr;
 }
 
-export { takeUserInput, clearScreen, customFetchMangadexDisplay, menuLogMALDisplay, menuFetchFiltersDisplay, menuLogMangadexDisplay, capitalFirstLetterString, longStringToArray };
+function truncateString (string, maxLengthOfString) {
+    return string.length > maxLengthOfString ? `${string.slice(0, maxLengthOfString).trim()}...`: string;
+}
+
+export { 
+    takeUserInput, 
+    clearScreen, 
+    customFetchMangadexDisplay, 
+    menuLogMALDisplay, 
+    menuFetchFiltersDisplay,
+    menuLogMangadexDisplay, 
+    capitalFirstLetterString, 
+    longStringToArray,
+    truncateString
+};
