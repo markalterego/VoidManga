@@ -34,7 +34,7 @@ async function rootMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| What would you like to do?\n||');
-        console.log('|| 0 -> Log/Update MAL');
+        console.log('|| 0 -> MyAnimeList');
         console.log('|| 1 -> Log Mangadex');
         console.log(`|| 2 -> Fetch Mangadex`);
         console.log('|| 3 -> Fetch MAL');
