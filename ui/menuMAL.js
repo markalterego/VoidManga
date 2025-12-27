@@ -10,9 +10,12 @@ async function menuMAL (l) {
     let m = 0;
     lists = l; // reference to lists
 
+    // TODO:
+    // - integrate fetching lists into this menu??? 
+
     while (m !== 'e') 
     {
-        console.log('\n||\n|| MyAnimeList options:\n||');
+        console.log('\n||\n|| MyAnimeList options\n||');
         console.log('|| 0 -> Log lists');
         console.log('|| 1 -> Update lists');
         console.log('|| e -> Go back\n||');
@@ -50,7 +53,7 @@ function formatListsToObject (lists_array) {
 }
 
 async function updateMALMenu() {
-    const TRAVERSE_TITLES = 0, SEARCH_TITLE = 1;
+    const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_TITLE = 2;
     let m = 0;
 
     // TODO: 
@@ -60,39 +63,20 @@ async function updateMALMenu() {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| MyAnimeList update:\n||');
-        console.log('|| 0 -> Traverse titles');
-        console.log('|| 1 -> Search title');
+        console.log('\n||\n|| Update MyAnimeList\n||');
+        console.log('|| 0 -> Traverse anime');
+        console.log('|| 1 -> Traverse manga');
+        console.log('|| 2 -> Search title');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(true); // take user input as whole num
 
-        if (m === TRAVERSE_TITLES) {
-            await traverseType();
+        if (m === TRAVERSE_ANIME) {
+            await traverseStatus(ANIME); // anime list
+        } else if (m === TRAVERSE_MANGA) {
+            await traverseStatus(MANGA); // manga list
         } else if (m === SEARCH_TITLE) {
             // <-- searchTitles function here
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
-        }
-    }
-}
-
-async function traverseType() {
-    let m = 0;
-
-    while (m !== 'e') 
-    {
-        console.log('\n||\n|| Select type:\n||');
-        console.log('|| 0 -> Anime');
-        console.log('|| 1 -> Manga');
-        console.log('|| e -> Go back\n||');
-
-        m = await takeUserInput(true); // take user input as whole num
-
-        if (m === ANIME) { 
-            await traverseStatus(ANIME); // anime list
-        } else if (m === MANGA) { 
-            await traverseStatus(MANGA); // manga list
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
@@ -105,7 +89,7 @@ async function traverseStatus (typeIndex) {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Select status:\n||');
+        console.log('\n||\n|| Select status\n||');
         statuses.forEach((status, statusIndex) => {
             console.log(`|| ${statusIndex} -> ${capitalFirstLetterString(status)}`);
         });
@@ -127,7 +111,7 @@ async function traverseEntry (typeIndex, statusIndex) {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Select entry:\n||');
+        console.log('\n||\n|| Select entry\n||');
         lists[typeIndex][statusIndex].forEach((entry, entryIndex) => {
             const entryTitle = entry.node.title;
             console.log(`|| ${entryIndex} -> ${entryTitle}`);
@@ -148,6 +132,7 @@ async function traverseEntry (typeIndex, statusIndex) {
 }
 
 async function updateEntryMenu (type, entry) {
+    const PADSTART = 10, PADEND = 12, BLANK = ' ';
     const STATUS = 0, SCORE = 1, PROGRESS = 2, ISREWATCHING = 3, COMMENTS = 4;
     const entry_clone = structuredClone(entry); // clone of entry
     let m = 0;
@@ -160,15 +145,35 @@ async function updateEntryMenu (type, entry) {
         const entryTitle = entry_clone.node.title; // anime/manga title
         const list_status = entry_clone.list_status; // list_status
         
-        console.log(`\n||\n|| Update ${entryTitle}:\n||`);
-        console.log(`|| 0 -> Status (${list_status.status})`);
-        console.log(`|| 1 -> Score (${list_status.score})`);
-        console.log(`|| 2 -> Progress (${type === 'anime' ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : 
-                                                            (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`) })`);
-        console.log(`|| 3 -> ${type === 'anime' ? (`Re-watching (${list_status.is_rewatching === true ? 'yes' : 'no'})`) : 
-                                                  (`Re-reading (${list_status.is_rereading === true ? 'yes' : 'no'})`) }`);
-        console.log(`|| 4 -> Comments (${list_status.comments.length > 0 ? `'${truncateString(list_status.comments, 10)}'` : 'empty'})`);
-        console.log('|| e -> Go back\n||');
+        // formatted menu option strings
+        const s1_status = `Status`.padEnd(PADEND, BLANK) + '| ';
+        const statusString = s1_status + `${list_status.status}`;
+
+        // score
+        const s1_score = `Score`.padEnd(PADEND, BLANK) + '| ';
+        const scoreString = s1_score + `${list_status.score}`;
+        
+        // progress
+        const s1_progress = `Progress`.padEnd(PADEND, BLANK) + '| ';
+        const progressString =  s1_progress + (type === 'anime' ? `${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}` : 
+                                                                  `${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);
+        
+        // re(watching/reading)
+        const s1_isRe = type === 'anime' ? `Re-watching`.padEnd(PADEND, BLANK) + '| ' : `Re-reading`.padEnd(PADEND, BLANK)   + '| ';
+        const s2_isRe = type === 'anime' ? `${list_status.is_rewatching === true ? 'yes' : 'no'}` : `${list_status.is_rereading === true ? 'yes' : 'no'}`;
+        const isReString = s1_isRe + s2_isRe;
+
+        // comments
+        const s1_comments = `Comments`.padEnd(PADEND, ' ') + '| ';
+        const commentsString = s1_comments + (list_status.comments.length > 0 ? `${truncateString(list_status.comments, 10)}` : 'empty');
+
+        console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
+        console.log(`|| 0 -> ${statusString}`);
+        console.log(`|| 1 -> ${scoreString}`);
+        console.log(`|| 2 -> ${progressString}`);
+        console.log(`|| 3 -> ${isReString}`);
+        console.log(`|| 4 -> ${commentsString}`);
+        console.log('||\n|| e -> Go back\n||');
         
         m = await takeUserInput(true); // take user input as whole num
 
