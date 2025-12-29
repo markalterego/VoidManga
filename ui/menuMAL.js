@@ -1,6 +1,7 @@
 import { takeUserInput, truncateString, capitalFirstLetterString } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logDataDeepMenu } from "./menuLogMangadex.js";
+import { updateMAL } from "../updateMAL/updateMAL.js";
 
 const ANIME = 0, MANGA = 1;
 let lists;
@@ -132,8 +133,8 @@ async function traverseEntry (typeIndex, statusIndex) {
 }
 
 async function updateEntryMenu (type, entry) {
-    const PADSTART = 10, PADEND = 12, BLANK = ' ';
-    const STATUS = 0, SCORE = 1, PROGRESS = 2, ISREWATCHING = 3, COMMENTS = 4;
+    // const PADSTART = 10, PADEND = 12, BLANK = ' ';
+    const STATUS = 0, SCORE = 1, PROGRESS = 2, ISRE = 3, COMMENTS = 4;
     const entry_clone = structuredClone(entry); // clone of entry
     let m = 0;
 
@@ -144,56 +145,106 @@ async function updateEntryMenu (type, entry) {
     {
         const entryTitle = entry_clone.node.title; // anime/manga title
         const list_status = entry_clone.list_status; // list_status
+        const status = list_status.status; // watching/reading etc...
+        const score = list_status.score > 0 ? list_status.score : // 1 - 10 
+                                              'not set';          // 0
+        const progress = type === 'anime' ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : // if anime 
+                                            (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);     // if manga
+        const isRe = type === 'anime' ? (list_status.is_rewatching ? 'yes' : 'no') : // if anime - isrewatching
+                                        (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
+        const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
+                                                           'no comment';                              // doesn't have comment
         
-        // formatted menu option strings
-        const s1_status = `Status`.padEnd(PADEND, BLANK) + '| ';
-        const statusString = s1_status + `${list_status.status}`;
-
-        // score
-        const s1_score = `Score`.padEnd(PADEND, BLANK) + '| ';
-        const scoreString = s1_score + `${list_status.score}`;
-        
-        // progress
-        const s1_progress = `Progress`.padEnd(PADEND, BLANK) + '| ';
-        const progressString =  s1_progress + (type === 'anime' ? `${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}` : 
-                                                                  `${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);
-        
-        // re(watching/reading)
-        const s1_isRe = type === 'anime' ? `Re-watching`.padEnd(PADEND, BLANK) + '| ' : `Re-reading`.padEnd(PADEND, BLANK)   + '| ';
-        const s2_isRe = type === 'anime' ? `${list_status.is_rewatching === true ? 'yes' : 'no'}` : `${list_status.is_rereading === true ? 'yes' : 'no'}`;
-        const isReString = s1_isRe + s2_isRe;
-
-        // comments
-        const s1_comments = `Comments`.padEnd(PADEND, ' ') + '| ';
-        const commentsString = s1_comments + (list_status.comments.length > 0 ? `${truncateString(list_status.comments, 10)}` : 'empty');
-
         console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
-        console.log(`|| 0 -> ${statusString}`);
-        console.log(`|| 1 -> ${scoreString}`);
-        console.log(`|| 2 -> ${progressString}`);
-        console.log(`|| 3 -> ${isReString}`);
-        console.log(`|| 4 -> ${commentsString}`);
+        console.log(`|| 0 -> Status (${status})`);
+        console.log(`|| 1 -> Score (${score})`);
+        console.log(`|| 2 -> Progress (${progress})`);
+        console.log(`|| 3 -> ${type === 'anime' ? 'Re-watching' :
+                                                  'Re-reading'} (${isRe})`);
+        console.log(`|| 4 -> Comments (${comments})`);
         console.log('||\n|| e -> Go back\n||');
-        
+
         m = await takeUserInput(true); // take user input as whole num
 
-        if (m === STATUS) {
-            
-        } else if (m === SCORE) {
-            
-        } else if (m === PROGRESS) {
+        let entryWasUpdated;
 
-        } else if (m === ISREWATCHING) {
-            
+        if (m === STATUS) {
+            entryWasUpdated = await updateStatusMenu(list_status);
+        } else if (m === SCORE) {
+            await updateScoreMenu(list_status); 
+        } else if (m === PROGRESS) {
+            await updateProgressMenu(list_status);
+        } else if (m === ISRE) {
+            await updateIsReMenu(list_status);
         } else if (m === COMMENTS) {
-            
+            await updateCommentsMenu(list_status);
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+        
+        lists = entryWasUpdated ? lists = await updateMAL(lists, entry, entry_clone) : // update lists locally + online
+                                  lists;                                               // keep old reference to lists 
+    }
+}
+
+async function updateStatusMenu (list_status) {
+    const statuses = list_status.num_episodes_watched !== undefined ? animeStatus : mangaStatus; // arr of available statuses
+    const statusBeforeChange = list_status.status;
+    let m = 0;
+    // animestatus/mangastatus based on type
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Pick from available statuses (${statusBeforeChange === list_status.status ? `current: ${list_status.status}` : 
+                                                                                                          `update to: ${list_status.status} - from: ${statusBeforeChange}`})\n||`);
+        statuses.forEach((status, statusIndex) => { // anime/manga statuses
+            console.log(`|| ${statusIndex} -> ${capitalFirstLetterString(status)}`);
+        });
+        console.log(`|| e -> Go back\n||`);
+
+        m = await takeUserInput(true); // take whole num as user input
+
+        if (m >= 0 && m < statuses.length) {
+            list_status.status = statuses[m]; // update status locally
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
+    // returns if statusChanged
+    return (statusBeforeChange !== list_status.status); 
 }
 
+async function updateScoreMenu (list_status) {
+    
 
+}
+
+async function updateProgressMenu (list_status) {
+    // episodes watched/chapters read
+
+
+}
+
+async function updateIsReMenu (list_status) {
+    
+}
+
+async function updateCommentsMenu (list_status) {
+
+}
+
+function hasEntryChanged (entry, entry_clone) {
+    for (const key in entry.list_status) {
+        if (key !== 'updated_at') { // ignore updated_at val
+            const v1 = entry.list_status[key]; 
+            const v2 = entry_clone.list_status[key]; 
+            console.log(`${v1} - ${v2}`);
+            if (v1 !== v2) {
+                return true; // has changed
+            }
+        }        
+    }
+    return false; // has not changed
+}
 
 // async function sortLists ()
 
