@@ -3,10 +3,8 @@ import { takeUserInput, menuLogMangadexDisplay, capitalFirstLetterString, longSt
 import { logMangadexOptions } from '../helpers/export.js';
 
 // TODO:
-// - attempt to make menuLogMangadex work more efficiently my instinct says it
-//   has something to do with copying mangadexData on each iteration of main loop
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
-// - implement paging for traverseChapters!!!!!
+// - implement paging for traverseChapters!!!!! <-- next thing to do?
 // - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
@@ -38,8 +36,8 @@ async function menuLogMangadex (mangadexData, l, config) {
 
         m = await takeUserInput(true); // get user input - true for whole numbers
         
-        if (m >= 0 && m < sortedMangas.length) {
-            await mangaOptionsMenu(sortedMangas[m]); // input selected manga
+        if (m >= 0 && m < pagedMangas.length) {
+            await mangaOptionsMenu(pagedMangas[m]); // input selected manga
         } else if (m === 's') { // toggle ascending/descending
             if (options.logMangaDirection === 'asc') options.logMangaDirection = 'desc';
             else options.logMangaDirection = 'asc';
@@ -77,8 +75,8 @@ async function menuLogMangadex (mangadexData, l, config) {
 }
 
 function sortMangas (mangadexData, pageDetails) {
-    // copy mangadexData to sortedMangas
-    let sortedMangas = JSON.parse(JSON.stringify(mangadexData));
+    // shallow copy of mangadexData
+    let sortedMangas = [...mangadexData];
     // filter mangas with no chapters
     if (options.hideZeroLengthManga) { 
         sortedMangas = sortedMangas.filter(obj => obj.chapters.length > 0);    
