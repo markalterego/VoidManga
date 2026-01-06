@@ -33,6 +33,7 @@ function appendNewEntry (lists, entry) {
     const type = getTypeIndex(entry); 
     const status = getStatusIndex(entry);
     lists[type][status].push(entry); // append entry to lists
+    lists[type][status].sort((a,b) => a.node.title.localeCompare(b.node.title)); // sort at lists alphabetical
 }
 
 function removeOldEntry (lists, entry) {
