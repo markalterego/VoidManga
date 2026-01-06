@@ -1,8 +1,3 @@
-import { fetchMAL } from "../fetch/fetchMAL.js";
-// import { customLogMAL } from "./customLogMAL.js";
-// import { menuLogMAL } from "./menuLogMAL.js";
-// import { updateMAL } from "../updateMAL/updateMAL.js";
-// import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { menuMAL } from "./menuMAL.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
@@ -37,7 +32,6 @@ async function rootMenu() {
         console.log('|| 0 -> MyAnimeList');
         console.log('|| 1 -> Log Mangadex');
         console.log(`|| 2 -> Fetch Mangadex`);
-        console.log('|| 3 -> Fetch MAL');
         console.log('|| s -> Settings');
         console.log('|| e -> Exit\n||');
 
@@ -47,6 +41,7 @@ async function rootMenu() {
         {
             case 0: 
                 lists = await menuMAL(lists);
+                filehandle('mal', lists);
                 // const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
                 // config = { ...config, logMALOptions: returnArr[0] };
                 // filehandle('config', config); 
@@ -63,10 +58,6 @@ async function rootMenu() {
                 filehandle('mal', lists); // save lists to file
                 filehandle('mangadex', mangadexData); // save data to file
                 break; }
-            case 3: 
-                lists = await fetchMAL(lists); // searches and returns MAL lists
-                filehandle('mal', lists);
-                break; 
             case 's':
                 await settingsMenu();  
                 r = true; m = 'e'; // goes out of loop and refreshes menu
