@@ -134,25 +134,21 @@ function handleFilters (animeOrManga, title, old_lists) {
     return result;
 }
 
-async function updateListEntry (entry) {
+async function updateListEntry (entry, changedFields) {
     try {
         await checkAndUpdateTokens(); // check token validity + update if necessary
-        const parsedEntry = { node: entry.node, 
-                              list_status: entry.list_status }; // removed includeInMangadexFetch
-        const type = parsedEntry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
-        const updatedListStatus = { list_status: await putListEntry(parsedEntry, type) }; // put to MAL
+        const type = entry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
+        const updatedListStatus = { list_status: await putListEntry(entry.node.id, type, changedFields) }; // put to MAL
         return Object.assign(entry, updatedListStatus); // returns updated entry
     } catch (error) {
         logErrorDetails(error);
     }
 }
 
-async function putListEntry (entry, type) {
+async function putListEntry (entry_id, type, data_fields) {
     try {
-        const url = `https://api.myanimelist.net/v2/${type}/${entry.node.id}/my_list_status`
-        const data = new URLSearchParams(
-            Object.entries(entry.list_status).filter(([key, _]) => key !== 'updated_at')
-        );
+        const url = `https://api.myanimelist.net/v2/${type}/${entry_id}/my_list_status`
+        const data = new URLSearchParams(data_fields);
         const response = await axios.put(url, data.toString(), {
             headers: {
                 'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
