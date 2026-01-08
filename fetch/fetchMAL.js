@@ -134,12 +134,12 @@ function handleFilters (animeOrManga, title, old_lists) {
     return result;
 }
 
-async function updateListEntry (entry, changedFields) {
+async function updateListEntry (changedFields, entry) {
     try {
         await checkAndUpdateTokens(); // check token validity + update if necessary
         const type = entry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
         const updatedListStatus = { list_status: await putListEntry(entry.node.id, type, changedFields) }; // put to MAL
-        return Object.assign(entry, updatedListStatus); // returns updated entry
+        return { ...entry, ...updatedListStatus };
     } catch (error) {
         logErrorDetails(error);
     }
