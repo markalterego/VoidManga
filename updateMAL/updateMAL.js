@@ -10,10 +10,10 @@ import { animeStatus, mangaStatus } from "../helpers/export.js";
 const ANIME = 0; // anime index
 const MANGA = 1; // manga -||-
 
-async function updateMAL (lists, entry, changedFields) {
+async function updateMAL (lists, changedFields, entry) {
     try {
-        const syncedEntry = await updateListEntry(entry, changedFields); // update online
-        const existingEntry = findExistingEntry(lists, syncedEntry); // reference to existing MAL entry
+        const syncedEntry = await updateListEntry(changedFields, entry); // update online
+        const existingEntry = findExistingEntry(lists, entry); // reference to existing MAL entry
         const finalEntry = existingEntry ? { ...existingEntry, ...syncedEntry } : syncedEntry; // merge existing + synced OR use synced
         if (existingEntry) removeOldEntry(lists, existingEntry); // remove existing entry 
         appendNewEntry(lists, finalEntry); // add entry to lists
@@ -40,7 +40,7 @@ function removeOldEntry (lists, entry) {
     const type = getTypeIndex(entry);
     const status = getStatusIndex(entry);
     const index = getEntryIndex(lists, entry);
-    lists[type][status].splice(index, 1);
+    lists[type][status].splice(index, 1); // removes given entry from lists
 }
 
 function getTypeIndex (entry) {
