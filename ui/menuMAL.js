@@ -138,28 +138,32 @@ async function traverseEntry (typeIndex, statusIndex) {
 
 async function updateEntryMenu (type, entry) {
     // const PADSTART = 10, PADEND = 12, BLANK = ' ';
+    const entry_clone = structuredClone(entry);
     const STATUS = 0, SCORE = 1, PROGRESS = 2, ISRE = 3, COMMENTS = 4;
     let m = 0, changedFields = {};
 
     // TODO: 
     // - make possible to update start/finish dates as well...
-    // - fix bug where changing status index will cause duplicates
-    //   of the same entry to appear in multiple parts of lists!!!!!!
 
     while (m !== 'e') 
     {
-        const entryTitle = entry.node.title; // anime/manga title
-        const list_status = entry.list_status; // list_status
+        // 1. I need original reference to entry + clone of entry
+        // 2. inside the loop I will only change data of the clone
+        // 3. after going out of loop, I will NOT pass the clone to updateMAL function 
+        //    as the clone is only used to reference changed values inside the loop 
+
+        const entryTitle = entry_clone.node.title; // anime/manga title
+        const list_status = entry_clone.list_status; // list_status
         const status = list_status.status; // watching/reading etc...
         const score = list_status.score > 0 ? list_status.score : // 1 - 10 
                                               'not set';          // 0
-        const progress = type === 'anime' ? (`${list_status.num_episodes_watched} / ${entry.node.num_episodes}`) : // if anime 
-                                            (`${list_status.num_chapters_read} / ${entry.node.num_chapters}`);     // if manga
+        const progress = type === 'anime' ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : // if anime 
+                                            (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);     // if manga
         const isRe = type === 'anime' ? (list_status.is_rewatching ? 'yes' : 'no') : // if anime - isrewatching
                                         (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
         const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
                                                            'no comment';                              // doesn't have comment
-        
+
         console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
         console.log(`|| 0 -> Status (${status})`);
         console.log(`|| 1 -> Score (${score})`);
@@ -189,7 +193,7 @@ async function updateEntryMenu (type, entry) {
 
     // update changes
     if (Object.keys(changedFields).length > 0) {
-        lists = await updateMAL(lists, entry, changedFields, oldEntry);
+        lists = await updateMAL(lists, changedFields, entry);
     }
 }
 
@@ -210,7 +214,7 @@ async function updateStatusMenu (list_status) {
         m = await takeUserInput(true); // take whole num as user input
 
         if (m >= 0 && m < statuses.length) {
-            list_status.status = statuses[m]; // update status locally
+            list_status.status = statuses[m]; // update entry_clone status
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
