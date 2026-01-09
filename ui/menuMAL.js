@@ -115,12 +115,16 @@ async function traverseEntry (typeIndex, statusIndex) {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Select entry\n||');
+        const status = typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex];
+        console.log(`\n||\n|| Status: ${capitalFirstLetterString(status)}\n||`);
         lists[typeIndex][statusIndex].forEach((entry, entryIndex) => {
             const entryTitle = entry.node.title;
             console.log(`|| ${entryIndex} -> ${entryTitle}`);
             if (entryIndex === lists[typeIndex][statusIndex].length - 1) console.log('||');
         });
+        if (!lists[typeIndex][statusIndex].length) {
+            console.log('|| ? -> No entries found\n||');
+        }
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(true); // take user input as whole num
@@ -128,15 +132,14 @@ async function traverseEntry (typeIndex, statusIndex) {
         if (m >= 0 && m < lists[typeIndex][statusIndex].length) {
             const entryIndex = m; // selected entry index
             const entry = lists[typeIndex][statusIndex][entryIndex]; // reference to selected entry
-            const type = !typeIndex ? 'anime' : 'manga'; // type of lists
-            await updateEntryMenu(type, entry); // update stuff related to selected entry
+            await updateEntryMenu(entry); // update stuff related to selected entry
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
-async function updateEntryMenu (type, entry) {
+async function updateEntryMenu (entry) {
     // const PADSTART = 10, PADEND = 12, BLANK = ' ';
     const entry_clone = structuredClone(entry);
     const STATUS = 0, SCORE = 1, PROGRESS = 2, ISRE = 3, COMMENTS = 4;
@@ -157,10 +160,10 @@ async function updateEntryMenu (type, entry) {
         const status = list_status.status; // watching/reading etc...
         const score = list_status.score > 0 ? list_status.score : // 1 - 10 
                                               'not set';          // 0
-        const progress = type === 'anime' ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : // if anime 
-                                            (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);     // if manga
-        const isRe = type === 'anime' ? (list_status.is_rewatching ? 'yes' : 'no') : // if anime - isrewatching
-                                        (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
+        const progress = getType(list_status) === ANIME ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : // if anime 
+                                                          (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);     // if manga
+        const isRe = getType(list_status) === ANIME ? (list_status.is_rewatching ? 'yes' : 'no') : // if anime - isrewatching
+                                                      (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
         const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
                                                            'no comment';                              // doesn't have comment
 
@@ -168,7 +171,7 @@ async function updateEntryMenu (type, entry) {
         console.log(`|| 0 -> Status (${status})`);
         console.log(`|| 1 -> Score (${score})`);
         console.log(`|| 2 -> Progress (${progress})`);
-        console.log(`|| 3 -> ${type === 'anime' ? 'Re-watching' : 'Re-reading'} (${isRe})`);
+        console.log(`|| 3 -> ${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'} (${isRe})`);
         console.log(`|| 4 -> Comments (${comments})`);
         console.log('||\n|| e -> Go back\n||');
 
@@ -183,7 +186,13 @@ async function updateEntryMenu (type, entry) {
             await updateScoreMenu(list_status); // update score menu
             if (oldScore !== list_status.score) changedFields.score = list_status.score;
         } else if (m === PROGRESS) {
-            await updateProgressMenu(list_status);
+            const oldProgress = getProgress(list_status); // progress before update
+            await updateProgressMenu(entry_clone);        // update progress menu
+            if (oldProgress !== getProgress(list_status)) {
+                // hox! for some reason the api expects num_watched_episodes but returns num_episodes_watched...
+                if (!getType(list_status)) changedFields.num_watched_episodes = list_status.num_episodes_watched; // anime
+                else changedFields.num_chapters_read = list_status.num_chapters_read;                             // manga
+            }
         } else if (m === ISRE) {
             await updateIsReMenu(list_status);
         } else if (m === COMMENTS) {
@@ -192,7 +201,7 @@ async function updateEntryMenu (type, entry) {
             console.log('\n|| Please input a valid option');
         }
     }
-
+    
     // update changes
     if (Object.keys(changedFields).length > 0) {
         lists = await updateMAL(lists, changedFields, entry);
@@ -246,8 +255,65 @@ async function updateScoreMenu (list_status) {
 
 async function updateProgressMenu (entry) {
     // episodes watched/chapters read
+    const list_status = entry.list_status;
+    const progressBeforeChange = getProgress(list_status);
+    let m = 0;
 
+    // TODO:
+    // - if changing progress to max doesn't update status of series to completed
+    //   consider giving the user the option to update status to completed after 
 
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Update progress (${progressBeforeChange === getProgress(list_status) ? `current: ${getProgress(list_status)} / ${getTotal(entry)}` :
+                                                                                                     `update to: ${getProgress(list_status)} / ${getTotal(entry)} - from: ${progressBeforeChange} / ${getTotal(entry)}`})\n||`);      
+        console.log('|| ± -> Increase/Decrease progress'); // + = increase by one, ++ = set max || - = decrease by one, -- = set min
+        console.log(`|| ? -> Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`);
+        console.log('||\n|| e -> Go back\n||');
+
+        m = await takeUserInput(true); // take whole num as user input
+
+        if ((m >= 0 && m <= getTotal(entry)) || (!getTotal(entry) && m >= 0)) { // update progress by given user input
+            setProgress(list_status, m); 
+        } else if (m === '+') { // progress++
+            // if total = 0 -- allows incrementing indefinitely
+            // if total > 0 -- allows incrementing until getTotal(entry) [episode count]
+            if (!getTotal(entry) || getProgress(list_status) < getTotal(entry)) {
+                const amount = getProgress(list_status) + 1;
+                setProgress(list_status, amount);
+            }
+        } else if (m === '-' && getProgress(list_status) > 0) { // progress--
+            const amount = getProgress(list_status) - 1;
+            setProgress(list_status, amount);
+        } else if (m === '++' && getTotal(entry)) { // progress = max (only works when max > 0)
+            const amount = getTotal(entry); 
+            setProgress(list_status, amount);
+        } else if (m === '--') { // progress = min (always sets progress to 0)
+            setProgress(list_status, 0);
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }  
+}
+
+function getType (list_status) {
+    return list_status.num_episodes_watched === undefined ? MANGA : ANIME;
+}
+
+function getProgress (list_status) {
+    return getType(list_status) ? list_status.num_chapters_read : list_status.num_episodes_watched; 
+}
+
+function getTotal (entry) {
+    return getType(entry.list_status) ? entry.node.num_chapters : entry.node.num_episodes; 
+}
+
+function setProgress (list_status, amount) {
+    if (!getType(list_status)) { // anime
+        list_status.num_episodes_watched = amount;
+    } else { // manga
+        list_status.num_chapters_read = amount;
+    }
 }
 
 async function updateIsReMenu (entry) {
