@@ -179,7 +179,9 @@ async function updateEntryMenu (type, entry) {
             await updateStatusMenu(list_status);  // update status menu 
             if (oldStatus !== list_status.status) changedFields.status = list_status.status; 
         } else if (m === SCORE) {
-            await updateScoreMenu(list_status); 
+            const oldScore = list_status.score; // score before update
+            await updateScoreMenu(list_status); // update score menu
+            if (oldScore !== list_status.score) changedFields.score = list_status.score;
         } else if (m === PROGRESS) {
             await updateProgressMenu(list_status);
         } else if (m === ISRE) {
@@ -221,9 +223,25 @@ async function updateStatusMenu (list_status) {
     }
 }
 
-async function updateScoreMenu (entry) {
+async function updateScoreMenu (list_status) {
+    const scoreBeforeChange = list_status.score;
+    let m = 0;
     
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Pick a score (${scoreBeforeChange === list_status.score ? `current: ${list_status.score}` :
+                                                                                        `update to: ${list_status.score} - from: ${scoreBeforeChange}`})\n||`);
+        console.log('|| ? -> Input a value between 0-10');
+        console.log('||\n|| e -> Go back\n||');
 
+        m = await takeUserInput(true); // take whole num as user input
+
+        if (m >= 0 && m <= 10) {
+            list_status.score = m; // save user input
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
 }
 
 async function updateProgressMenu (entry) {
