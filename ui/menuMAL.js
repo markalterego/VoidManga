@@ -142,7 +142,7 @@ async function traverseEntry (typeIndex, statusIndex) {
 async function updateEntryMenu (entry) {
     // const PADSTART = 10, PADEND = 12, BLANK = ' ';
     const entry_clone = structuredClone(entry);
-    const STATUS = 0, SCORE = 1, PROGRESS = 2, ISRE = 3, COMMENTS = 4;
+    const STATUS = 0, SCORE = 1, PROGRESS = 2, START_DATE = 3, FINISH_DATE = 4, ISRE = 5, COMMENTS = 6;
     let m = 0, changedFields = {};
 
     // TODO: 
@@ -167,12 +167,20 @@ async function updateEntryMenu (entry) {
         const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
                                                            'no comment';                              // doesn't have comment
 
+        /*
+        Neither are automatically set: 
+            start_date  - string or null <date>
+            finish_date - string or null <date> 
+        */
+
         console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
         console.log(`|| 0 -> Status (${status})`);
         console.log(`|| 1 -> Score (${score})`);
         console.log(`|| 2 -> Progress (${progress})`);
-        console.log(`|| 3 -> ${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'} (${isRe})`);
-        console.log(`|| 4 -> Comments (${comments})`);
+        console.log(`|| 3 -> Start date ()`);
+        console.log(`|| 4 -> Finish date ()`);
+        console.log(`|| 5 -> ${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'} (${isRe})`);
+        console.log(`|| 6 -> Comments (${comments})`);
         console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(true); // take user input as whole num
@@ -193,6 +201,14 @@ async function updateEntryMenu (entry) {
                 if (!getType(list_status)) changedFields.num_watched_episodes = list_status.num_episodes_watched; // anime
                 else changedFields.num_chapters_read = list_status.num_chapters_read;                             // manga
             }
+        } else if (m === START_DATE) {
+            const oldStartDate = list_status.start_date; // start date before update
+            await updateStartDateMenu(list_status);      // update start date menu
+            if (oldStartDate !== list_status.start_date) changedFields.start_date = list_status.start_date;
+        } else if (m === FINISH_DATE) {
+            const oldFinishDate = list_status.finish_date; // finish date before update
+            await updateFinishDateMenu(list_status);       // update finish date menu
+            if (oldFinishDate !== list_status.finish_date) changedFields.finish_date = list_status.finish_date;
         } else if (m === ISRE) {
             await updateIsReMenu(list_status);
         } else if (m === COMMENTS) {
@@ -205,6 +221,7 @@ async function updateEntryMenu (entry) {
     // update changes
     if (Object.keys(changedFields).length > 0) {
         lists = await updateMAL(lists, changedFields, entry);
+        filehandle('mal', lists);
     }
 }
 
@@ -316,6 +333,93 @@ function setProgress (list_status, amount) {
     }
 }
 
+async function updateStartDateMenu (list_status) {
+    const startDateBeforeChange = list_status.start_date;
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'not set'}` : 
+                                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'not set'}` })\n||`);
+        console.log('|| ? -> Input date (year-mm-dd)');
+        console.log('|| c -> Clear date');
+        console.log('||\n|| e -> Go back\n||');
+        
+        m = await takeUserInput(); // take user input
+
+        if (isValidDate(m)) { // is valid date
+            list_status.start_date = m; 
+        } else if (m === 'c') { // clear date
+            list_status.start_date = '0000-00-00';
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function updateFinishDateMenu (list_status) {
+    const finishDateBeforeChange = list_status.finish_date;
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'not set'}` : 
+                                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'not set'}` })\n||`);
+        console.log('|| ? -> Input date (\"year-mm-dd\")');
+        console.log('|| c -> Clear date');
+        console.log('||\n|| e -> Go back\n||');
+        
+        m = await takeUserInput(); // take user input
+
+        if (isValidDate(m)) { // is valid date
+            list_status.finish_date = m; 
+        } else if (m === 'c') { // clear date
+            list_status.finish_date = '0000-00-00';
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+function isValidDate (date) {
+    // year-mm-dd including the dashes --- e.g. '2024-07-12'
+    // allows year = 1996-2999
+    // allows mm   = 01-12
+    // allows dd   = 01-31
+    // currently does not take in account leap years or month lengths
+    
+    // HOX!
+    // Although pushing dates such as 0000-01-00 is allowed by the 
+    // endpoint, a date like this won't be returned back by the api.
+    // 
+    // The API can return dates as strings exclusively in the format of
+    // 1. yyyy
+    // 2. yyyy-mm
+    // 3. yyyy-mm-dd
+    //
+    // If you happen to set a date such as 2000-00-01, the API WILL accept
+    // the date and in fact you will even see the change reflected on your 
+    // anime/manga list, HOWEVER you won't be able to fetch back this date
+    // NOT through fetching your entire lists through anime/manga endpoints
+    // NOR when you push the update through the PUT endpoint. 
+    //
+    // If you happen to set a date such as 2000-02-30, a date that doesn't exist
+    // into the API, one more thing that will happen is that this will cause
+    // MAL to reject the date entirely and this will cause the date on MAL's side
+    // to be set to 'null' instead of retaining the old date. But again, doing something
+    // like 2000-02-00 is completely allowed and will return 2000-02 when you fetch
+    // an entry containing that specific date.
+    // 
+    // Thanks for coming into my TED talk!!!
+
+    // TODO: 
+    // - make it so that leap years and correct month lenghts are taken into 
+    //   account e.g. current system allows dates such as yyyy-02-31 although
+    //   february is never 31 days of length 
+
+    return /^(199[6-9]{1}|2[0-1]{1}[0-9]{2})-(0[1-9]{1}|1[0-2]{1}|00)-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}|00)$/.test(date); 
+}
+
 async function updateIsReMenu (entry) {
     
 }
@@ -337,8 +441,6 @@ function hasEntryChanged (entry, entry_clone) {
     }
     return false; // has not changed
 }
-
-// async function sortLists ()
 
 async function searchMALMenu() {
     let m = 0;
