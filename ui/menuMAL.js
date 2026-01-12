@@ -146,7 +146,13 @@ async function updateEntryMenu (entry) {
     let m = 0, changedFields = {};
 
     // TODO: 
-    // - make possible to update start/finish dates as well...
+    // - make it so that start/finish dates are automatically applied
+    //   upon e.g. the first episode/chapter read + setting the series
+    //   as completed/updating last chapter of series etc...
+    // - create some kind of system for actually being able to use
+    //   the isre(watching/reading) keys for something useful, this
+    //   also naturally includes integrating updating num_times_re...
+    //   etc. key-value pairs to the mix
 
     while (m !== 'e') 
     {
@@ -166,12 +172,6 @@ async function updateEntryMenu (entry) {
                                                       (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
         const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
                                                            'no comment';                              // doesn't have comment
-
-        /*
-        Neither are automatically set: 
-            start_date  - string or null <date>
-            finish_date - string or null <date> 
-        */
 
         console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
         console.log(`|| 0 -> Status (${status})`);
@@ -210,7 +210,12 @@ async function updateEntryMenu (entry) {
             await updateFinishDateMenu(list_status);       // update finish date menu
             if (oldFinishDate !== list_status.finish_date) changedFields.finish_date = list_status.finish_date;
         } else if (m === ISRE) {
-            await updateIsReMenu(list_status);
+            const oldIsRe = getIsRe(list_status); // isRe(reading/watching) before update
+            await updateIsReMenu(list_status);    // update isRe
+            if (oldIsRe !== getIsRe(list_status)) {
+                if (!getType(list_status)) changedFields.is_rewatching = list_status.is_rewatching; // anime
+                else changedFields.is_rereading = list_status.is_rereading;                         // manga
+            }
         } else if (m === COMMENTS) {
             await updateCommentsMenu(list_status);
         } else if (m !== 'e') {
@@ -420,8 +425,40 @@ function isValidDate (date) {
     return /^(199[6-9]{1}|2[0-1]{1}[0-9]{2})-(0[1-9]{1}|1[0-2]{1}|00)-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}|00)$/.test(date); 
 }
 
-async function updateIsReMenu (entry) {
-    
+async function updateIsReMenu (list_status) {
+    const isReBeforeChange = getIsRe(list_status);
+    let m = 0;
+
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
+                                                                                                                                               `update to: ${getIsRe(list_status) ? 'yes' : 'no'} - from: ${isReBeforeChange ? 'yes' : 'no'}`})\n||`);
+        console.log('|| 0 -> no');
+        console.log('|| 1 -> yes');
+        console.log('||\n|| e -> Go back\n||');
+
+        m = await takeUserInput(true); // take user input as whole number
+        
+        if (m >= 0 && m <= 1) {
+            const value = m === 0 ? false : true; // isRe value
+            setIsRe(list_status, value);          // update isRe
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        } 
+    }
+}
+
+function getIsRe (list_status) {
+    // 0 = is_rewatching ... 1 = is_rereading
+    return getType(list_status) ? list_status.is_rereading : list_status.is_rewatching;
+}
+
+function setIsRe (list_status, value) {
+    if (!getType(list_status)) { // anime = is_rewatching
+        list_status.is_rewatching = value;
+    } else {                     // manga = is_rereading
+        list_status.is_rereading = value;
+    }
 }
 
 async function updateCommentsMenu (entry) {
