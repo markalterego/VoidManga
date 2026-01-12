@@ -465,20 +465,6 @@ async function updateCommentsMenu (entry) {
 
 }
 
-function hasEntryChanged (entry, entry_clone) {
-    for (const key in entry.list_status) {
-        if (key !== 'updated_at') { // ignore updated_at val
-            const v1 = entry.list_status[key]; 
-            const v2 = entry_clone.list_status[key]; 
-            console.log(`${v1} - ${v2}`);
-            if (v1 !== v2) {
-                return true; // has changed
-            }
-        }        
-    }
-    return false; // has not changed
-}
-
 async function searchMALMenu() {
     let m = 0;
 
