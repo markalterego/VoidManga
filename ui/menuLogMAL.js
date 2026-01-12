@@ -43,7 +43,7 @@ async function menuLogMAL (lists, config) {
                     }
                     console.log('|| 5 -> Toggle add/remove');
                     console.log('|| 6 -> Toggle anime/manga');
-                    console.log('|| e -> Go back\n||');
+                    console.log('||\n|| e -> Go back\n||');
 
                     m = await takeUserInput(); // get user input
 

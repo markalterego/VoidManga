@@ -26,7 +26,7 @@ async function menuMAL (l) {
         if (m === LOGLISTS) {
             // await logMALMenu();
             const listsAsObject = formatListsToObject(lists);
-            await logDataDeepMenu(listsAsObject, 'MAL', false, true);
+            await logDataDeepMenu(listsAsObject, 'MyAnimeList', false, true);
         } else if (m === UPDATELISTS) {
             await updateMALMenu();
         } else if (m === FETCHLISTS) {

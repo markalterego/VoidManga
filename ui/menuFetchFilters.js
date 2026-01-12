@@ -28,7 +28,7 @@ async function filterTypeMenu() {
         console.log(`\n||\n|| Filtering ${key}:\n||`);
         console.log('|| 0 -> Filter anime');
         console.log('|| 1 -> Filter manga');
-        console.log('|| ± -> Include/Exclude all');
+        console.log('||\n|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
@@ -81,7 +81,7 @@ async function filterStatusMenu (type) {
                 console.log(`|| ${index} -> ${capitalFirstLetterString(status)}`);
             });
         }
-        console.log('|| ± -> Include/Exclude all');
+        console.log('||\n|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
@@ -130,8 +130,8 @@ async function filterEntriesMenu (type, status) {
         lists[type][status].forEach((item, index) => {
             console.log(`|| ${index} -> ${item.node.title} ${item[key] ? '[x]' : '[]'}`); 
         });
-        console.log('|| ± -> Include/Exclude all');
-        console.log('|| e -> Go back\n||');             
+        console.log('||\n|| ± -> Include/Exclude all');
+        console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 

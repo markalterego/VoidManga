@@ -32,7 +32,7 @@ async function rootMenu() {
         console.log('|| 0 -> MyAnimeList');
         console.log('|| 1 -> Log Mangadex');
         console.log(`|| 2 -> Fetch Mangadex`);
-        console.log('|| s -> Settings');
+        console.log('||\n|| s -> Settings');
         console.log('|| e -> Exit\n||');
 
         m = await takeUserInput(); // get user input
@@ -80,20 +80,12 @@ async function settingsMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Update MAL...`);
-        console.log('|| e -> Return to main menu\n||');
+        console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
         switch (m) 
         {
-            case 0: 
-                await testFetching(); 
-                // let cloned_entry = structuredClone(lists[1][4][0]); // 
-                // cloned_entry.list_status.status = mangaStatus[0]; // reading
-                // lists = await updateMAL(lists, cloned_entry);
-                // filehandle('mal', lists);
-                break;
             case 'e':
                 break;
             default:

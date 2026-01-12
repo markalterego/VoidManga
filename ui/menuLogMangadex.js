@@ -138,7 +138,7 @@ async function mangaOptionsMenu (selectedManga) {
         console.log('|| 1 -> Log MAL progress');
         console.log('|| 2 -> Traverse chapters');
         console.log('|| 3 -> Search for chapter');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -281,7 +281,7 @@ async function findChapterOfManga (title, selectedManga) {
         console.log('|| 1 -> Lowest chapter number');
         console.log('|| 2 -> Highest chapter number');
         console.log('|| 3 -> Specific chapter number');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput();
         
@@ -376,7 +376,7 @@ async function chapterOptionsMenu (selectedChapter, mangaTitle) {
         console.log(`\n||\n|| ${formattedTitle}\n||`);
         console.log('|| 0 -> Log chapter data');
         console.log('|| 1 -> Open chapter in browser');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -410,7 +410,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
                 console.log(`|| ${index++} -> ${capitalFirstLetterString(key)}`);
             }
         }
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
         const highestSelectableIndex = index - 1;
         
         m = await takeUserInput(true); // get user input

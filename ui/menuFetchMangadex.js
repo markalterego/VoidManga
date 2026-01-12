@@ -25,7 +25,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         console.log('|| 2 -> Filter MAL titles');
         console.log('|| 3 -> Reset default options');
         console.log(`|| 4 -> Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`);
-        console.log('|| e -> Return to menu\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -137,7 +137,7 @@ async function fetchOptionsMenu (options) {
         console.log('|| 0 -> Manga options');
         console.log(`|| 1 -> Chapter options`);
         console.log('|| 2 -> Content ratings');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
         
@@ -165,7 +165,7 @@ async function mangaOptionsMenu (options) {
         console.log('\n||\n|| Manga options:\n||');
         console.log('|| 0 -> Manga fetch size');
         console.log('|| 1 -> Manga order');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
         
@@ -189,7 +189,7 @@ async function optionMangaLimit (options) {
         
         console.log(`\n||\n|| Manga fetch size:\n||`);
         console.log('|| ? -> Input a value between 0-100');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -222,7 +222,7 @@ async function optionMangaOrder (options) {
             console.log(`|| ${index++} -> ${orderType.at(0).toUpperCase() + orderType.slice(1)}`); // first letter to uppercase
         });
         console.log(`|| ${index} -> Toggle direction`); 
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input 
 
@@ -252,7 +252,7 @@ async function chapterOptionsMenu (options) {
         console.log('|| 1 -> Chapter order');
         console.log('|| 2 -> Chapter offset');
         console.log('|| 3 -> Chapter languages');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -280,7 +280,7 @@ async function optionChapterLimit (options) {
         
         console.log(`\n||\n|| Chapter fetch size:\n||`);
         console.log('|| ? -> Input a value between 0-100');
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -313,7 +313,7 @@ async function optionChapterOrder (options) {
             console.log(`|| ${index++} -> ${orderType.at(0).toUpperCase() + orderType.slice(1)}`); // first letter to uppercase
         });
         console.log(`|| ${index} -> Toggle direction`); 
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input 
 
@@ -346,7 +346,7 @@ async function optionChapterOffset (options) {
 
         console.log(`\n||\n|| Chapter offset:\n||`);
         console.log(`|| ? -> Input a value between 0-${maxOffset}`);
-        console.log('|| e -> Go back\n||');
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
@@ -385,7 +385,7 @@ async function optionChapterLanguages (options) {
         chapterTranslatedLanguages.forEach((language, index) => { 
             console.log(`|| ${index} -> ${language.at(0).toUpperCase() + language.slice(1)}`); // first letter to uppercase
         });
-        console.log(`|| c -> Clear filters`);
+        console.log(`||\n|| c -> Clear filters`);
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
@@ -421,7 +421,7 @@ async function optionContentRatings (options) {
             console.log(`|| ${index} -> ${contentRating.at(0).toUpperCase() + contentRating.slice(1)}`); // first letter to uppercase
         });
         console.log(`|| ${contentRatings.length} -> Select all`);
-        console.log(`|| c -> Clear ratings`);
+        console.log(`||\n|| c -> Clear ratings`);
         console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
