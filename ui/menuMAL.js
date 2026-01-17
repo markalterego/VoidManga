@@ -168,6 +168,8 @@ async function updateEntryMenu (entry) {
                                               'not set';          // 0
         const progress = getType(list_status) === ANIME ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : // if anime 
                                                           (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);     // if manga
+        const startDate = list_status.start_date?.length > 0 ? list_status.start_date : 'not set';    // yyyy-mm-dd
+        const finishDate = list_status.finish_date?.length > 0 ? list_status.finish_date : 'not set'; // - || - 
         const isRe = getType(list_status) === ANIME ? (list_status.is_rewatching ? 'yes' : 'no') : // if anime - isrewatching
                                                       (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
         const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
@@ -177,8 +179,8 @@ async function updateEntryMenu (entry) {
         console.log(`|| 0 -> Status (${status})`);
         console.log(`|| 1 -> Score (${score})`);
         console.log(`|| 2 -> Progress (${progress})`);
-        console.log(`|| 3 -> Start date ()`);
-        console.log(`|| 4 -> Finish date ()`);
+        console.log(`|| 3 -> Start date (${startDate})`);
+        console.log(`|| 4 -> Finish date (${finishDate})`);
         console.log(`|| 5 -> ${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'} (${isRe})`);
         console.log(`|| 6 -> Comments (${comments})`);
         console.log('||\n|| e -> Go back\n||');
