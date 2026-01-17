@@ -9,26 +9,27 @@ const ANIME = 0, MANGA = 1;
 let lists;
 
 async function menuMAL (l) {
-    const LOGLISTS = 0, UPDATELISTS = 1, FETCHLISTS = 2;
+    const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_TITLE = 2, FETCHLISTS = 3;
     let m = 0;
     lists = l; // reference to lists
 
     while (m !== 'e') 
     {
         console.log('\n||\n|| MyAnimeList options\n||');
-        console.log('|| 0 -> Log lists');
-        console.log('|| 1 -> Update lists');
-        console.log('|| 2 -> Fetch lists');
+        console.log('|| 0 -> Anime list');
+        console.log('|| 1 -> Manga list');
+        console.log('|| 2 -> Search title');
+        console.log('|| 3 -> Fetch lists');
         console.log('||\n|| e -> Go back\n||');
         
         m = await takeUserInput(true); // take userInput whole numbers
         
-        if (m === LOGLISTS) {
-            // await logMALMenu();
-            const listsAsObject = formatListsToObject(lists);
-            await logDataDeepMenu(listsAsObject, 'MyAnimeList', false, true);
-        } else if (m === UPDATELISTS) {
-            await updateMALMenu();
+        if (m === TRAVERSE_ANIME) {
+            await traverseStatus(ANIME); // anime list
+        } else if (m === TRAVERSE_MANGA) {
+            await traverseStatus(MANGA); // manga list
+        } else if (m === SEARCH_TITLE) {
+            // <-- searchTitles function here
         } else if (m === FETCHLISTS) {
             lists = await fetchMAL(lists); // searches and returns MAL lists
             filehandle('mal', lists);
@@ -56,44 +57,13 @@ function formatListsToObject (lists_array) {
     return lists_object;
 }
 
-async function updateMALMenu() {
-    const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_TITLE = 2;
-    let m = 0;
-
-    // TODO: 
-    // - remove call to traverseType and instead just user 
-    //   selects anime/manga list straight from this functions 
-    //   menu
-
-    while (m !== 'e') 
-    {
-        console.log('\n||\n|| Update MyAnimeList\n||');
-        console.log('|| 0 -> Traverse anime');
-        console.log('|| 1 -> Traverse manga');
-        console.log('|| 2 -> Search title');
-        console.log('||\n|| e -> Go back\n||');
-
-        m = await takeUserInput(true); // take user input as whole num
-
-        if (m === TRAVERSE_ANIME) {
-            await traverseStatus(ANIME); // anime list
-        } else if (m === TRAVERSE_MANGA) {
-            await traverseStatus(MANGA); // manga list
-        } else if (m === SEARCH_TITLE) {
-            // <-- searchTitles function here
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
-        }
-    }
-}
-
 async function traverseStatus (typeIndex) {
     const statuses = typeIndex === ANIME ? animeStatus : mangaStatus; // list of statuses for type
     let m = 0; 
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Select status\n||');
+        console.log(`\n||\n|| Type: ${typeIndex === ANIME ? 'Anime' : 'Manga'}\n||`);
         statuses.forEach((status, statusIndex) => {
             console.log(`|| ${statusIndex} -> ${capitalFirstLetterString(status)}`);
         });
@@ -183,7 +153,8 @@ async function updateEntryMenu (entry) {
         console.log(`|| 4 -> Finish date (${finishDate})`);
         console.log(`|| 5 -> ${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'} (${isRe})`);
         console.log(`|| 6 -> Comments (${comments})`);
-        console.log('||\n|| e -> Go back\n||');
+        console.log('||\n|| l -> Log entry');
+        console.log('|| e -> Go back\n||');
 
         m = await takeUserInput(true); // take user input as whole num
 
@@ -220,6 +191,8 @@ async function updateEntryMenu (entry) {
             }
         } else if (m === COMMENTS) {
             await updateCommentsMenu(list_status);
+        } else if (m === 'l') {
+            await logDataDeepMenu(entry, entryTitle, false, true);
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
