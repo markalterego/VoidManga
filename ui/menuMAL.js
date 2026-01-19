@@ -342,8 +342,8 @@ async function updateStartDateMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : NOT_SET}` : 
-                                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : NOT_SET}` })\n||`);
+        console.log(`\n||\n|| Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` : 
+                                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` })\n||`);
         console.log('|| ? -> Input date (year-mm-dd)');
         console.log('|| c -> Clear date');
         console.log('||\n|| e -> Go back\n||');
@@ -366,8 +366,8 @@ async function updateFinishDateMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : NOT_SET}` : 
-                                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : NOT_SET}` })\n||`);
+        console.log(`\n||\n|| Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` : 
+                                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` })\n||`);
         console.log('|| ? -> Input date (\"year-mm-dd\")');
         console.log('|| c -> Clear date');
         console.log('||\n|| e -> Go back\n||');
