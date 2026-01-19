@@ -110,9 +110,9 @@ async function traverseEntry (typeIndex, statusIndex) {
 }
 
 async function updateEntryMenu (entry) {
-    // const PADSTART = 10, PADEND = 12, BLANK = ' ';
     const entry_clone = structuredClone(entry);
     const STATUS = 0, SCORE = 1, PROGRESS = 2, START_DATE = 3, FINISH_DATE = 4, ISRE = 5, COMMENTS = 6;
+    const PADEND = 12, PADSTART = 0, NOT_SET = 'Not set';
     let m = 0, changedFields = {};
 
     // TODO: 
@@ -133,26 +133,49 @@ async function updateEntryMenu (entry) {
 
         const entryTitle = entry_clone.node.title; // anime/manga title
         const list_status = entry_clone.list_status; // list_status
-        const status = list_status.status; // watching/reading etc...
-        const score = list_status.score > 0 ? list_status.score : // 1 - 10 
-                                              'not set';          // 0
-        const progress = getType(list_status) === ANIME ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes}`) : // if anime 
-                                                          (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters}`);     // if manga
-        const startDate = list_status.start_date?.length > 0 ? list_status.start_date : 'not set';    // yyyy-mm-dd
-        const finishDate = list_status.finish_date?.length > 0 ? list_status.finish_date : 'not set'; // - || - 
-        const isRe = getType(list_status) === ANIME ? (list_status.is_rewatching ? 'yes' : 'no') : // if anime - isrewatching
-                                                      (list_status.is_rereading  ? 'yes' : 'no');  // if manga - isrereading
-        const comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : // has comment
-                                                           'no comment';                              // doesn't have comment
+        
+        // <-- formatting menu options START
+        const s1_status = 'Status';
+        const s2_status = capitalFirstLetterString(list_status.status);                             // watching/reading etc...
+        const status    = s1_status.padEnd(PADEND, ' ') + ': ' + s2_status.padStart(PADSTART, ' '); // status with padding
+
+        const s1_score = 'Score';
+        const s2_score = `${list_status.score > 0 ? list_status.score : NOT_SET }`;              // 0 - 10 || 0
+        const score    = s1_score.padEnd(PADEND, ' ') + ': ' + s2_score.padStart(PADSTART, ' '); // score with padding
+
+        const s1_progress = 'Progress';
+        const s2_progress = getType(list_status) === ANIME ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes > 0 ? entry_clone.node.num_episodes : '?'}`) : // anime = num_episodes_watched
+                                                             (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters > 0 ? entry_clone.node.num_chapters : '?'}`);     // manga = num_chapters_read
+        const progress    = s1_progress.padEnd(PADEND, ' ') + ': ' + s2_progress.padStart(PADSTART, ' '); // progress with padding
+
+        const s1_startDate = 'Start date';
+        const s2_startDate = `${list_status.start_date?.length > 0 ? list_status.start_date : NOT_SET}`;     // yyyy-mm-dd
+        const startDate    = s1_startDate.padEnd(PADEND, ' ') + ': ' + s2_startDate.padStart(PADSTART, ' '); // start date with padding
+        
+        const s1_finishDate = 'Finish date';
+        const s2_finishDate = `${list_status.finish_date?.length > 0 ? list_status.finish_date : NOT_SET}`;     // yyyy-mm-dd
+        const finishDate    = s1_finishDate.padEnd(PADEND, ' ') + ': ' + s2_finishDate.padStart(PADSTART, ' '); // finish date with padding
+
+        const s1_isRe = `${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'}`;
+        const s2_isRe = getType(list_status) === ANIME ? `${list_status.is_rewatching ? 'Yes' : 'No'}` : // anime = is_rewatching
+                                                         `${list_status.is_rereading  ? 'Yes' : 'No'}`;  // manga = is_rereading
+        const isRe    = s1_isRe.padEnd(PADEND, ' ') + ': ' + s2_isRe.padStart(PADSTART, ' ');            // isRe(watching/reading) with padding
+        
+        const s1_comments = 'Comments';
+        const s2_comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : NOT_SET; // list_status.comment || 'no comment'
+        const comments    = s1_comments.padEnd(PADEND, ' ') + ': ' + s2_comments.padStart(PADSTART, ' ');         // comments with padding
+        // <-- formatting menu options END
 
         console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
-        console.log(`|| 0 -> Status (${status})`);
-        console.log(`|| 1 -> Score (${score})`);
-        console.log(`|| 2 -> Progress (${progress})`);
-        console.log(`|| 3 -> Start date (${startDate})`);
-        console.log(`|| 4 -> Finish date (${finishDate})`);
-        console.log(`|| 5 -> ${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'} (${isRe})`);
-        console.log(`|| 6 -> Comments (${comments})`);
+        console.log('|| --------------------\n||');
+        console.log(`|| 0 -> ${status}`);
+        console.log(`|| 1 -> ${score}`);
+        console.log(`|| 2 -> ${progress}`);
+        console.log(`|| 3 -> ${startDate}`);
+        console.log(`|| 4 -> ${finishDate}`);
+        console.log(`|| 5 -> ${isRe}`);
+        console.log(`|| 6 -> ${comments}`);
+        console.log('||\n|| --------------------');
         console.log('||\n|| l -> Log entry');
         console.log('|| e -> Go back\n||');
 
@@ -319,8 +342,8 @@ async function updateStartDateMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'not set'}` : 
-                                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'not set'}` })\n||`);
+        console.log(`\n||\n|| Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : NOT_SET}` : 
+                                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : NOT_SET}` })\n||`);
         console.log('|| ? -> Input date (year-mm-dd)');
         console.log('|| c -> Clear date');
         console.log('||\n|| e -> Go back\n||');
@@ -343,8 +366,8 @@ async function updateFinishDateMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'not set'}` : 
-                                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'not set'}` })\n||`);
+        console.log(`\n||\n|| Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : NOT_SET}` : 
+                                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : NOT_SET}` })\n||`);
         console.log('|| ? -> Input date (\"year-mm-dd\")');
         console.log('|| c -> Clear date');
         console.log('||\n|| e -> Go back\n||');
