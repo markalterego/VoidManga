@@ -350,13 +350,11 @@ async function updateStartDateMenu (list_status) {
         
         m = await takeUserInput(); // take user input
 
-        if (isValidDate(m)) { // is valid date
+        if (m !== 'c' && m !== 'e' && isValidDate(m)) { // is valid date
             list_status.start_date = m; 
         } else if (m === 'c') { // clear date
             list_status.start_date = '0000-00-00';
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
-        }
+        } 
     }
 }
 
@@ -374,22 +372,29 @@ async function updateFinishDateMenu (list_status) {
         
         m = await takeUserInput(); // take user input
 
-        if (isValidDate(m)) { // is valid date
+        if (m !== 'c' && m !== 'e' && isValidDate(m)) { // is valid date
             list_status.finish_date = m; 
         } else if (m === 'c') { // clear date
             list_status.finish_date = '0000-00-00';
-        } else if (m !== 'e') {
-            console.log('\n|| Please input a valid option');
-        }
+        } 
     }
 }
 
 function isValidDate (date) {
-    // year-mm-dd including the dashes --- e.g. '2024-07-12'
-    // allows year = 1996-2999
+    // a valid date is in the format of year-mm-dd 
+    // including the dashes e.g. '2024-07-12'
+
+    // year OR mm OR dd is allowed to be set to zero when
+    // the number before that is higher than zero e.g. 2000-01-00,
+    // this will set the date to be 2000-01 at you MAL entry 
+
+    // allows year = 1000-2999
     // allows mm   = 01-12
     // allows dd   = 01-31
-    // currently does not take in account leap years or month lengths
+
+    // setting the year below 1996 or above the current year is valid
+    // but won't show up when checking an entry in your list through EDIT,
+    // however the date still is valid + exists AND can be fetched normally
     
     // HOX!
     // Although pushing dates such as 0000-01-00 is allowed by the 
@@ -412,15 +417,62 @@ function isValidDate (date) {
     // to be set to 'null' instead of retaining the old date. But again, doing something
     // like 2000-02-00 is completely allowed and will return 2000-02 when you fetch
     // an entry containing that specific date.
-    // 
-    // Thanks for coming into my TED talk!!!
 
-    // TODO: 
-    // - make it so that leap years and correct month lenghts are taken into 
-    //   account e.g. current system allows dates such as yyyy-02-31 although
-    //   february is never 31 days of length 
+    if (typeof date !== 'string' || date.length !== 10 || date.split('-').length !== 3) { // wrong format
+        console.log(`\n||\n|| Date expected in the format "year-mm-dd"\n||`);
+        return false;
+    }
 
-    return /^(199[6-9]{1}|2[0-1]{1}[0-9]{2})-(0[1-9]{1}|1[0-2]{1}|00)-(0[1-9]{1}|[1-2]{1}[0-9]{1}|3[0-1]{1}|00)$/.test(date); 
+    const date_split = date.split('-'); // takes first three parts
+    const yyyy = Number(date_split[0]);
+    const mm   = Number(date_split[1]);
+    const dd   = Number(date_split[2]);
+    const daysByMonth = [
+        31, // JAN
+        (isLeapYear(yyyy) ? 29 : 28), // FEB
+        31, // MARCH
+        30, // APRIL
+        31, // MAY
+        30, // JUN 
+        31, // JUL
+        31, // AUG
+        30, // SEP
+        31, // OCT
+        30, // NOV
+        31  // DEC
+    ];
+    
+    // date doesn't follow Year -> Month -> Day order
+    if (yyyy === 0 && mm > 0) { 
+        console.log(`\n||\n|| Given year can't be set to 0 when given month is over 0\n||`);
+        return false;
+    } else if (mm === 0 && dd > 0) { 
+        console.log(`\n||\n|| Given month can't be set to 0 when given day is over 0\n||`);
+        return false;
+    } 
+
+    // check date normally
+    if (mm > 0 && dd > 0) {
+        if (yyyy < 1000 || yyyy > 2999) { // year 1000 - 2999
+            console.log('\n||\n|| Given year has to be between 1000 - 2999\n||');
+            return false;
+        } else if (mm > 12) { // month > 12
+            console.log('\n||\n|| Given month has to be between 1 - 12\n||');
+            return false;
+        } else if (dd > 31) { // day > 31
+            console.log('\n||\n|| Given day has to be between 1 - 31\n||');
+            return false;
+        } else if (dd > daysByMonth[mm-1]) { // invalid day for month
+            console.log('\n||\n|| Given date is invalid for given month\n||');
+            return false;
+        } 
+    }
+
+    return true; // given date is valid
+}
+
+function isLeapYear (year) {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
 
 async function updateIsReMenu (list_status) {
