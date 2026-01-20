@@ -41,11 +41,6 @@ function customFetchMangadexDisplay (options) {
     console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n||`);
 }
 
-function menuLogMALDisplay (anime, manga) {
-    console.log(`\n||\n|| anime: [${anime.map(item => animeStatus[item])}]`);
-    console.log(`|| manga: [${manga.map(item => mangaStatus[item])}]\n||`);
-}
-
 function menuLogMangadexDisplay (mangadexData, indexedList, enablePageFooter, pageDetails) {
     console.log('\n||\n|| --- Select manga ---\n||');
     if (!mangadexData.length) {
@@ -115,7 +110,6 @@ export {
     takeUserInput, 
     clearScreen, 
     customFetchMangadexDisplay, 
-    menuLogMALDisplay, 
     menuFetchFiltersDisplay,
     menuLogMangadexDisplay, 
     capitalFirstLetterString, 
