@@ -200,11 +200,17 @@ async function updateEntryMenu (entry) {
         } else if (m === START_DATE) {
             const oldStartDate = list_status.start_date; // start date before update
             await updateStartDateMenu(list_status);      // update start date menu
-            if (oldStartDate !== list_status.start_date) changedFields.start_date = list_status.start_date;
+            if (oldStartDate !== list_status.start_date) {
+                changedFields.start_date = list_status.start_date;
+                if (list_status.start_date === '0000-00-00') delete list_status.start_date;
+            }
         } else if (m === FINISH_DATE) {
             const oldFinishDate = list_status.finish_date; // finish date before update
             await updateFinishDateMenu(list_status);       // update finish date menu
-            if (oldFinishDate !== list_status.finish_date) changedFields.finish_date = list_status.finish_date;
+            if (oldFinishDate !== list_status.finish_date) {
+                changedFields.finish_date = list_status.finish_date;
+                if (list_status.finish_date === '0000-00-00') delete list_status.finish_date;
+            }
         } else if (m === ISRE) {
             const oldIsRe = getIsRe(list_status); // isRe(reading/watching) before update
             await updateIsReMenu(list_status);    // update isRe
@@ -219,12 +225,13 @@ async function updateEntryMenu (entry) {
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
-    }
-    
-    // update changes
-    if (Object.keys(changedFields).length > 0) {
-        lists = await updateMAL(lists, changedFields, entry);
-        filehandle('mal', lists);
+
+        // update changes
+        if (Object.keys(changedFields).length > 0) {
+            lists = await updateMAL(lists, changedFields, entry);
+            filehandle('mal', lists);
+            changedFields = {}; // clear changedFields
+        }
     }
 }
 
@@ -352,7 +359,7 @@ async function updateStartDateMenu (list_status) {
 
         if (m !== 'c' && m !== 'e' && isValidDate(m)) { // is valid date
             list_status.start_date = m; 
-        } else if (m === 'c') { // clear date
+        } else if (m === 'c' && list_status.start_date) { // clear date
             list_status.start_date = '0000-00-00';
         } 
     }
@@ -374,7 +381,7 @@ async function updateFinishDateMenu (list_status) {
 
         if (m !== 'c' && m !== 'e' && isValidDate(m)) { // is valid date
             list_status.finish_date = m; 
-        } else if (m === 'c') { // clear date
+        } else if (m === 'c' && list_status.finish_date) { // clear date
             list_status.finish_date = '0000-00-00';
         } 
     }
@@ -442,6 +449,18 @@ function isValidDate (date) {
         31  // DEC
     ];
     
+    // check for NaN values
+    if (Number.isNaN(yyyy)) {
+        console.log('\n||\n|| The given year is not a number\n||');
+        return false;
+    } else if (Number.isNaN(mm)) {
+        console.log('\n||\n|| The given month is not a number\n||');
+        return false;
+    } else if (Number.isNaN(dd)) {
+        console.log('\n||\n|| The given day is not a number\n||');
+        return false;
+    }
+
     // date doesn't follow Year -> Month -> Day order
     if (yyyy === 0 && mm > 0) { 
         console.log(`\n||\n|| Given year can't be set to 0 when given month is over 0\n||`);
@@ -449,14 +468,14 @@ function isValidDate (date) {
     } else if (mm === 0 && dd > 0) { 
         console.log(`\n||\n|| Given month can't be set to 0 when given day is over 0\n||`);
         return false;
-    } 
+    } else if (yyyy > 0 && (yyyy < 1000 || yyyy > 2999)) {
+        console.log('\n||\n|| Given year has to be between 1000 - 2999\n||');
+        return false;
+    }
 
     // check date normally
     if (mm > 0 && dd > 0) {
-        if (yyyy < 1000 || yyyy > 2999) { // year 1000 - 2999
-            console.log('\n||\n|| Given year has to be between 1000 - 2999\n||');
-            return false;
-        } else if (mm > 12) { // month > 12
+        if (mm > 12) { // month > 12
             console.log('\n||\n|| Given month has to be between 1 - 12\n||');
             return false;
         } else if (dd > 31) { // day > 31
