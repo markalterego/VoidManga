@@ -219,7 +219,9 @@ async function updateEntryMenu (entry) {
                 else changedFields.is_rereading = list_status.is_rereading;                         // manga
             }
         } else if (m === COMMENTS) {
-            await updateCommentsMenu(list_status);
+            const oldComments = list_status.comments; // comments before update
+            await updateCommentsMenu(list_status);    // update comments
+            if (oldComments !== list_status.comments) changedFields.comments = list_status.comments;
         } else if (m === 'l') {
             await logDataDeepMenu(entry, entryTitle, false, true);
         } else if (m !== 'e') {
@@ -530,8 +532,29 @@ function setIsRe (list_status, value) {
     }
 }
 
-async function updateCommentsMenu (entry) {
+async function updateCommentsMenu (list_status) {
+    const commentsBeforeChange = list_status.comments;
+    const MIN_LENGTH = 3; // min required length for comment
+    let m = 0;
 
+    while (m !== 'e') 
+    {
+        console.log(`\n||\n|| Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
+                                                                                                (`update to: "${list_status.comments}" - from: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set` }`)})\n||`);         // has been updated
+        console.log(`|| ? -> Input comment (minimum ${MIN_LENGTH} characters)`);
+        console.log('|| c -> Clear comment');
+        console.log('||\n|| e -> Go back\n||');
+
+        m = await takeUserInput(); // take user input
+        
+        if (m === 'c') { // clear comment
+            list_status.comments = ''; 
+        } else if (m !== 'e' && (m === undefined || String(m).length < 3)) { // comment is too short
+            console.log(`\n||\n|| Minimum required comment length: ${MIN_LENGTH} characters\n||`);
+        } else if (m !== 'e' && m !== commentsBeforeChange) { // comment is valid
+            list_status.comments = String(m); // update comments
+        }
+    }
 }
 
 async function searchMALMenu() {
