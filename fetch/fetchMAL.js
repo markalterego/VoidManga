@@ -3,6 +3,7 @@ import { setTimeout } from "timers/promises";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { checkAndUpdateTokens } from './fetchMALTokens.js';
 import { logErrorDetails } from '../helpers/errorLogger.js';
+import he from "he";
 
 // TODO:
 // - re-arrange this file into smaller/clearer functions
@@ -37,8 +38,9 @@ async function fetchMALUserLists (old_lists) {
         console.log(`\n||\n|| Now fetching MAL lists\n||`);
         const animelist = await fetchAnimeList(); // fetch Anime endpoint
         const mangalist = await fetchMangaList(); // fetch Manga endpoint
-        const formattedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
-        return formattedLists; // return formatted lists
+        const sortedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
+        const finalLists = decodeComments(sortedLists); // encode each list_status.comments properly
+        return finalLists; // return formatted lists
     } catch (error) {
         logErrorDetails(error);
     }
@@ -132,6 +134,22 @@ function handleFilters (animeOrManga, title, old_lists) {
         }
     }
     return result;
+}
+
+function decodeComments (lists) {
+    // API tends to improperly replace some characters
+    // to make them safe to use for websites - HTML entity
+    // encoding. This causes some characters such as 'ä' and 'ö'
+    // to be replace with '&auml;' and '&ouml;'. This function
+    // manually decodes all comments with he librarys decode function.
+    for (const type of lists) { // anime/manga
+        for (const status of type) { // status
+            for (const entry of status) { // entry
+                entry.list_status.comments = he.decode(entry.list_status.comments);
+            }
+        }
+    }
+    return lists;
 }
 
 async function updateListEntry (changedFields, entry) {
