@@ -551,7 +551,7 @@ async function updateCommentsMenu (list_status) {
             list_status.comments = ''; 
         } else if (m !== 'e' && (m === undefined || String(m).length < 3)) { // comment is too short
             console.log(`\n||\n|| Minimum required comment length: ${MIN_LENGTH} characters\n||`);
-        } else if (m !== 'e' && m !== commentsBeforeChange) { // comment is valid
+        } else if (m !== 'e') { // comment is valid
             list_status.comments = String(m); // update comments
         }
     }
