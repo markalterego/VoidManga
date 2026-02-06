@@ -82,6 +82,9 @@ export const logMangadexOptions = {
     filterChapterLanguages: [], // true, false
     enablePagingChapter: true // true, false
 };
+export const menuMALOptions = {
+    fetchMALOnMenuOpen: true // true, false
+};
 /*
     Options for Mangadex's fetchChapters() custom search:
         -limit_manga: 0-100, undefined for default behavior (10)
