@@ -2,7 +2,7 @@ import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { fetchMangadexOptions, logMangadexOptions } from "./helpers/export.js";
+import { fetchMangadexOptions, logMangadexOptions, menuMALOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
@@ -29,7 +29,7 @@ dotenv.config(); // load .env file to process.env
         // setting initial menu preference
         config = { 
             ...config,  
-            logMALOptions: { anime: [], manga: [] },
+            menuMALOptions: menuMALOptions,
             fetchMangadexOptions: fetchMangadexOptions,
             logMangadexOptions: logMangadexOptions 
         }; 
