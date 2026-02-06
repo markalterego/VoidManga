@@ -40,7 +40,7 @@ async function rootMenu() {
         switch (m) 
         {
             case 0: 
-                lists = await menuMAL(lists);
+                lists = await menuMAL(lists, config);
                 filehandle('mal', lists);
                 // const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
                 // config = { ...config, logMALOptions: returnArr[0] };
