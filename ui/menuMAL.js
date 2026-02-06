@@ -6,12 +6,19 @@ import { fetchMAL } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
 
 const ANIME = 0, MANGA = 1;
-let lists;
+let lists, options;
 
-async function menuMAL (l) {
+async function menuMAL (l, config) {
     const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_TITLE = 2, FETCHLISTS = 3;
     let m = 0;
-    lists = l; // reference to lists
+    options = config.menuMALOptions; // reference to config.menuMALOptions
+    
+    if (!options.fetchMALOnMenuOpen) {
+        lists = l; // reference to lists
+    } else {
+        lists = await fetchMAL(l); // searches and returns MAL lists
+        filehandle('mal', lists);
+    }
 
     while (m !== 'e') 
     {
