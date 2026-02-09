@@ -239,8 +239,17 @@ async function optionMangaOrder (options) {
 }
 
 async function chapterOptionsMenu (options) {
-    const CHAPTERFETCHSIZE = 0, CHAPTERORDER = 1, CHAPTEROFFSET = 2, CHAPTERLANGUAGES = 3;
+    const CHAPTERFETCHSIZE = options.fetchAllChapters ? null : 0, 
+          CHAPTERORDER = options.fetchAllChapters ? null : 1, 
+          CHAPTEROFFSET = options.fetchAllChapters ? null : 2, 
+          CHAPTERLANGUAGES = options.fetchAllChapters ? 0 : 3;
     let m = 0;
+
+    // some menu options are hidden + made inaccessible on purpose
+    // when the user has set options.fetchAllChapters = true, as the 
+    // options limit_chapter && chapterOrderType && chapterOrderDirection &&
+    // offset_chapter are not used at all when fetching with options.fetchAllChapters
+    // set to true
 
     while (m !== 'e') 
     {
@@ -248,19 +257,23 @@ async function chapterOptionsMenu (options) {
         customFetchMangadexDisplay(options);
 
         console.log('\n||\n|| Chapter options:\n||');
-        console.log('|| 0 -> Chapter fetch size');
-        console.log('|| 1 -> Chapter order');
-        console.log('|| 2 -> Chapter offset');
-        console.log('|| 3 -> Chapter languages');
+        if (!options.fetchAllChapters) {
+            console.log('|| 0 -> Chapter fetch size');
+            console.log('|| 1 -> Chapter order');
+            console.log('|| 2 -> Chapter offset');
+            console.log('|| 3 -> Chapter languages');
+        } else {
+            console.log('|| 0 -> Chapter languages');
+        }
         console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
-        if (m === CHAPTERFETCHSIZE) { // limit_chapter
+        if (!options.fetchAllChapters && m === CHAPTERFETCHSIZE) { // limit_chapter
             await optionChapterLimit(options);
-        } else if (m === CHAPTERORDER) { // chapterOrderType && chapterOrderDirection
+        } else if (!options.fetchAllChapters && m === CHAPTERORDER) { // chapterOrderType && chapterOrderDirection
             await optionChapterOrder(options);
-        } else if (m === CHAPTEROFFSET) { // offset_chapter
+        } else if (!options.fetchAllChapters && m === CHAPTEROFFSET) { // offset_chapter
             await optionChapterOffset(options);
         } else if (m === CHAPTERLANGUAGES) { // chapterTranslatedLanguage
             await optionChapterLanguages(options);
