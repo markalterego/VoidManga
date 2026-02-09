@@ -59,7 +59,8 @@ async function rootMenu() {
                 filehandle('mangadex', mangadexData); // save data to file
                 break; }
             case 's':
-                await settingsMenu();  
+                await settingsMenu();
+                filehandle('config', config); // save config to file
                 r = true; m = 'e'; // goes out of loop and refreshes menu
                 break;
             case 'e': // exit
@@ -72,6 +73,7 @@ async function rootMenu() {
 }
 
 async function settingsMenu() {
+    const FETCHMALONMENUOPEN = 0;
     let m = 0;
     
     // TODO: 
@@ -80,12 +82,17 @@ async function settingsMenu() {
     while (m !== 'e') 
     {
         console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log('|| e -> Go back\n||');
+        console.log(`|| 0 -> Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`);
+        console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
         switch (m) 
         {
+            case FETCHMALONMENUOPEN:
+                if (config.menuMALOptions.fetchMALOnMenuOpen) config.menuMALOptions.fetchMALOnMenuOpen = false;
+                else config.menuMALOptions.fetchMALOnMenuOpen = true;
+                break;
             case 'e':
                 break;
             default:
