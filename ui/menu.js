@@ -40,11 +40,8 @@ async function rootMenu() {
         switch (m) 
         {
             case 0: 
-                lists = await menuMAL(lists, config);
-                filehandle('mal', lists);
-                // const returnArr = await menuLogMAL(lists, config); // log anime and/or manga by status
-                // config = { ...config, logMALOptions: returnArr[0] };
-                // filehandle('config', config); 
+                lists = await menuMAL(lists, config); // menuMAL options
+                filehandle('mal', lists); // saving lists to file
                 break; 
             case 1: {
                 const options = await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
