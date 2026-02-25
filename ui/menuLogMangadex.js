@@ -1,5 +1,5 @@
 import open from 'open';
-import { takeUserInput, menuLogMangadexDisplay, capitalFirstLetterString, longStringToArray } from '../helpers/functions.js';
+import { takeUserInput, menuLogMangadexMangaDisplay, menuLogMangadexChapterDisplay, capitalFirstLetterString, longStringToArray } from '../helpers/functions.js';
 import { logMangadexOptions } from '../helpers/export.js';
 
 // TODO:
@@ -23,10 +23,10 @@ async function menuLogMangadex (mangadexData, l, config) {
         // sort/filter mangadexData + handle paging
         let sortedMangas = sortMangas(mangadexData, pageDetails); 
         // page mangas
-        let pagedMangas = pageMangas(sortedMangas, pageDetails.currentPage); 
+        let pagedMangas = pageContent(sortedMangas, pageDetails.currentPage); 
 
-        // display selected manga
-        menuLogMangadexDisplay(pagedMangas, true, options.enablePagingManga, pageDetails); // true for indexed list
+        // display selecable manga(s)
+        menuLogMangadexMangaDisplay(pagedMangas, true, options.enablePagingManga, pageDetails); // true for indexed list
 
         console.log(`\n||\n|| s -> Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`);
         console.log(`|| h -> Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`);
@@ -92,39 +92,6 @@ function sortMangas (mangadexData, pageDetails) {
     return sortedMangas;
 }
 
-function updatePageDetails (pageDetails, sortedMangas) {
-    // HOX! remember to use Math.ceil instead of Math.floor. Calling Math.floor on e.g. 10.3
-    // would turn it into 10, hence making it impossible for an odd numbered lastPage to exist. 
-    // <-- actually this might not be correct... I forgot that paging starts from 0 as well...
-    // ...I did -1 to the calculatedLastPage upon assigning it and shit started working
-
-    // update pageDetails.lastPage if the amount of items at sortedMangas has changed 
-    // e.g. user called 'Hide manga with no chapters'
-    const calculatedLastPage = Math.ceil(sortedMangas.length / 10);
-    if (calculatedLastPage !== pageDetails.lastPage) { // calculatedLastPage differs 
-        pageDetails.lastPage = calculatedLastPage - 1; // assign calculatedLastPage to lastPage
-    }
-    // check that currentPage is in bounds
-    const isAllowedPage = pageDetails.currentPage <= pageDetails.lastPage;
-    if (!isAllowedPage) pageDetails.currentPage = pageDetails.lastPage;
-    return pageDetails;
-}
-
-function pageMangas (sortedMangas, currentPage) {
-    // page mangas
-    if (options.enablePagingManga) { 
-        // page is always of 10 length, unless 
-        // there's not enough items to fill it
-        let startIndex = currentPage > 0 ? currentPage * 10 : 0; // 0, 10, 20
-        let endIndex = startIndex + 9; // 0 -> 9, 10 -> 19, 20 -> 30
-        // filter 10 mangas from sortedMangas by range of startIndex - endIndex 
-        return sortedMangas.filter((_, mangaIndex) => {
-            return mangaIndex >= startIndex && mangaIndex <= endIndex;
-        });
-    } 
-    return sortedMangas;
-}
-
 async function mangaOptionsMenu (selectedManga) {
     const LOGDATA = 0, MALPROGRESS = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
     let m = 0;
@@ -161,34 +128,22 @@ async function traverseChapters (mangaTitle, selectedManga) {
     const foundManga = lists[1] // manga list
                        ?.flatMap(status => status) // combines all entries from all statuses to one arr
                        .find(entry => entry.node.id === parseInt(selectedManga.manga.attributes.links?.mal)); // return first entry where id is the same
-    let m = 0, index = 0;
-
-    // TODO:
-    // - add paging so that results are easier to read
+    let m = 0, pageDetails = { currentPage: 0, lastPage: 0 };
 
     while (m !== 'e') 
     {
         // sort chapters by options
-        let sortedChapters = sortChapters(chapters, foundManga);
-        
-        console.log(`\n||\n|| ${mangaTitle}:\n||`);
-        if (sortedChapters?.length === 0) {
-            console.log('|| - No chapters found\n||');
-        } else {
-            for (const chapter of sortedChapters) {
-                const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
-                const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
-                const vlNum = chapter.attributes.volume !== null ? chapter.attributes.volume : 'N/A'; // volume number
-                const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-                const unreadChapterFlag = parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
-                console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} - ` : `Volume: ${vlNum} - `}${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
-                if (index === sortedChapters.length) console.log('||');
-            }
-        }
-        const highestSelectableIndex = index - 1; index = 0; 
+        let sortedChapters = sortChapters(chapters, foundManga, pageDetails);
+        // page chapters
+        let pagedChapters = pageContent(sortedChapters, pageDetails.currentPage);
+        // display selectedManga chapters
+        menuLogMangadexChapterDisplay(mangaTitle, pagedChapters, foundManga, options.enablePagingChapter, pageDetails);
+
         console.log(`\n||\n|| s -> Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
         console.log(`|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
         console.log(`|| ? -> Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`);
+        console.log(`|| t -> Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`);
+        if (options.enablePagingChapter) console.log('|| ± -> Next/Previous page');
         console.log('|| e -> Go back\n||');
         
         m = await takeUserInput(true); // get user input 
@@ -196,8 +151,8 @@ async function traverseChapters (mangaTitle, selectedManga) {
         const isValidLangCode = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // test lang-code 
 
         // handle user input
-        if (m >= 0 && m <= highestSelectableIndex) { 
-            await chapterOptionsMenu(sortedChapters[m], mangaTitle);
+        if (m >= 0 && m < pagedChapters.length) { 
+            await chapterOptionsMenu(pagedChapters[m], mangaTitle);
         } else if (m === 's') { // toggle SORTDIRECTION = asc/desc
             if (options.logChapterDirection === 'asc') options.logChapterDirection = 'desc';
             else options.logChapterDirection = 'asc';
@@ -209,13 +164,36 @@ async function traverseChapters (mangaTitle, selectedManga) {
         } else if (isValidLangCode) { // add lang-code
             options.filterChapterLanguages.push(m); // add lang-code
             options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
+        } else if (m === 't') { // toggle paging on/off
+            if (options.enablePagingChapter) options.enablePagingChapter = false;
+            else options.enablePagingChapter = true;
+        } else if (m === '+') { // next page
+            // if next page is not out of bounds
+            if (options.enablePagingChapter && (pageDetails.currentPage + 1) <= pageDetails.lastPage) {
+                pageDetails.currentPage++; // increment currentPage
+            } 
+        } else if (m === '-') { // previous page
+            // if previous page is not out of bounds
+            if (options.enablePagingChapter && (pageDetails.currentPage - 1) >= 0) {
+                pageDetails.currentPage--; // decrement currentPage
+            }
+        } else if (m === '++') { // last page
+            // navigate to last page
+            if (options.enablePagingChapter) {
+                pageDetails.currentPage = pageDetails.lastPage;
+            }
+        } else if (m === '--') { // first page
+            // navigate to first page
+            if (options.enablePagingChapter) {
+                pageDetails.currentPage = 0;
+            }
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
-function sortChapters (chapters, foundManga) {
+function sortChapters (chapters, foundManga, pageDetails) {
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
     if (options.hideReadChapters && foundManga) { // don't hide if foundManga undefined
@@ -251,7 +229,42 @@ function sortChapters (chapters, foundManga) {
         return logDirection === 'asc' ? numA - numB : // sort ascending e.g. 1-999
                                         numB - numA ; // sort descending e.g. 999-1
     });  
+    // update page details if necessary
+    pageDetails = updatePageDetails(pageDetails, sortedChapters);
     return sortedChapters;
+}
+
+function updatePageDetails (pageDetails, sortedMangas) {
+    // HOX! remember to use Math.ceil instead of Math.floor. Calling Math.floor on e.g. 10.3
+    // would turn it into 10, hence making it impossible for an odd numbered lastPage to exist. 
+    // <-- actually this might not be correct... I forgot that paging starts from 0 as well...
+    // ...I did -1 to the calculatedLastPage upon assigning it and shit started working
+
+    // update pageDetails.lastPage if the amount of items at sortedMangas has changed 
+    // e.g. user called 'Hide manga with no chapters'
+    const calculatedLastPage = Math.ceil(sortedMangas.length / 10);
+    if (calculatedLastPage !== pageDetails.lastPage) { // calculatedLastPage differs 
+        pageDetails.lastPage = calculatedLastPage - 1; // assign calculatedLastPage to lastPage
+    }
+    // check that currentPage is in bounds
+    const isAllowedPage = pageDetails.currentPage <= pageDetails.lastPage;
+    if (!isAllowedPage) pageDetails.currentPage = pageDetails.lastPage;
+    return pageDetails;
+}
+
+function pageContent (sortedContent, currentPage) {
+    // page content (sortedMangas/sortedChapters)
+    if (options.enablePagingManga) { 
+        // page is always of 10 length, unless 
+        // there's not enough items to fill it
+        let startIndex = currentPage > 0 ? currentPage * 10 : 0; // 0, 10, 20
+        let endIndex = startIndex + 9; // 0 -> 9, 10 -> 19, 20 -> 30
+        // filter 10 mangas from sortedMangas by range of startIndex - endIndex 
+        return sortedContent.filter((_, index) => {
+            return index >= startIndex && index <= endIndex;
+        });
+    } 
+    return sortedContent;
 }
 
 function logSeriesProgress (manga) {
