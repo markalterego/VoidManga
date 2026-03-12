@@ -22,7 +22,7 @@ async function menuLogMangadex (mangadexData, l, config) {
         // sort/filter mangadexData + handle paging
         let sortedMangas = sortMangas(mangadexData, pageDetails); 
         // page mangas
-        let pagedMangas = pageContent(sortedMangas, pageDetails.currentPage); 
+        let pagedMangas = pageContent(sortedMangas, pageDetails.currentPage, options.enablePagingManga); 
 
         // display selecable manga(s)
         menuLogMangadexMangaDisplay(pagedMangas, true, options.enablePagingManga, pageDetails); // true for indexed list
@@ -48,22 +48,22 @@ async function menuLogMangadex (mangadexData, l, config) {
             else options.enablePagingManga = true;
         } else if (m === '+') { // next page
             // if next page is not out of bounds
-            if (options.enablePagingManga && (pageDetails.currentPage + 1) <= pageDetails.lastPage) {
+            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPage + 1) <= pageDetails.lastPage) {
                 pageDetails.currentPage++; // increment currentPage
             } 
         } else if (m === '-') { // previous page
             // if previous page is not out of bounds
-            if (options.enablePagingManga && (pageDetails.currentPage - 1) >= 0) {
+            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPage - 1) >= 0) {
                 pageDetails.currentPage--; // decrement currentPage
             }
         } else if (m === '++') { // last page
             // navigate to last page
-            if (options.enablePagingManga) {
+            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) ) {
                 pageDetails.currentPage = pageDetails.lastPage;
             }
         } else if (m === '--') { // first page
             // navigate to first page
-            if (options.enablePagingManga) {
+            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) ) {
                 pageDetails.currentPage = 0;
             }
         } else if (m !== 'e') { 
@@ -134,7 +134,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
         // sort chapters by options
         let sortedChapters = sortChapters(chapters, foundManga, pageDetails);
         // page chapters
-        let pagedChapters = pageContent(sortedChapters, pageDetails.currentPage);
+        let pagedChapters = pageContent(sortedChapters, pageDetails.currentPage, options.enablePagingChapter);
         // display selectedManga chapters
         menuLogMangadexChapterDisplay(mangaTitle, pagedChapters, foundManga, options.enablePagingChapter, pageDetails);
 
@@ -168,22 +168,22 @@ async function traverseChapters (mangaTitle, selectedManga) {
             else options.enablePagingChapter = true;
         } else if (m === '+') { // next page
             // if next page is not out of bounds
-            if (options.enablePagingChapter && (pageDetails.currentPage + 1) <= pageDetails.lastPage) {
+            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPage + 1) <= pageDetails.lastPage) {
                 pageDetails.currentPage++; // increment currentPage
             } 
         } else if (m === '-') { // previous page
             // if previous page is not out of bounds
-            if (options.enablePagingChapter && (pageDetails.currentPage - 1) >= 0) {
+            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPage - 1) >= 0) {
                 pageDetails.currentPage--; // decrement currentPage
             }
         } else if (m === '++') { // last page
             // navigate to last page
-            if (options.enablePagingChapter) {
+            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0)) {
                 pageDetails.currentPage = pageDetails.lastPage;
             }
         } else if (m === '--') { // first page
             // navigate to first page
-            if (options.enablePagingChapter) {
+            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0)) {
                 pageDetails.currentPage = 0;
             }
         } else if (m !== 'e') {
@@ -233,16 +233,17 @@ function sortChapters (chapters, foundManga, pageDetails) {
     return sortedChapters;
 }
 
-function updatePageDetails (pageDetails, sortedMangas) {
+function updatePageDetails (pageDetails, sortedContent) {
     // HOX! remember to use Math.ceil instead of Math.floor. Calling Math.floor on e.g. 10.3
     // would turn it into 10, hence making it impossible for an odd numbered lastPage to exist. 
     // <-- actually this might not be correct... I forgot that paging starts from 0 as well...
     // ...I did -1 to the calculatedLastPage upon assigning it and shit started working
 
-    // update pageDetails.lastPage if the amount of items at sortedMangas has changed 
+    // update pageDetails.lastPage if the amount of items at sortedContent has changed 
     // e.g. user called 'Hide manga with no chapters'
-    const calculatedLastPage = Math.ceil(sortedMangas.length / 10);
-    if (calculatedLastPage !== pageDetails.lastPage) { // calculatedLastPage differs 
+    const calculatedLastPage = Math.ceil(sortedContent.length / 10);
+    if (calculatedLastPage > 0 && calculatedLastPage !== pageDetails.lastPage) { // calculatedLastPage differs 
+        // the -1 is included in the calculation of lastPage due to pages starting from 0 and not from 1
         pageDetails.lastPage = calculatedLastPage - 1; // assign calculatedLastPage to lastPage
     }
     // check that currentPage is in bounds
@@ -251,9 +252,9 @@ function updatePageDetails (pageDetails, sortedMangas) {
     return pageDetails;
 }
 
-function pageContent (sortedContent, currentPage) {
+function pageContent (sortedContent, currentPage, enablePaging) {
     // page content (sortedMangas/sortedChapters)
-    if (options.enablePagingManga) { 
+    if (enablePaging) { 
         // page is always of 10 length, unless 
         // there's not enough items to fill it
         let startIndex = currentPage > 0 ? currentPage * 10 : 0; // 0, 10, 20
