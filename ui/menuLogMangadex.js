@@ -4,7 +4,6 @@ import { logMangadexOptions } from '../helpers/export.js';
 
 // TODO:
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
-// - implement paging for traverseChapters!!!!! <-- next thing to do?
 // - make it possible to LOG chapters from range. Make sure the user only 
 //   has to provide a lower and upper limit and everything else is handled
 //   automatically 
