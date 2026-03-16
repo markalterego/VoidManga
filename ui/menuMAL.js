@@ -116,11 +116,14 @@ async function traverseEntry (typeIndex, statusIndex) {
     }
 }
 
-async function updateEntryMenu (entry) {
+async function updateEntryMenu (entry, l) {
+    // second parameter for function is supposed to be used
+    // when calling updateEntryMenu from outside (l = reference to 
+    // lists from outside the function)
     const entry_clone = structuredClone(entry);
     const STATUS = 0, SCORE = 1, PROGRESS = 2, START_DATE = 3, FINISH_DATE = 4, ISRE = 5, COMMENTS = 6;
     const PADEND = 12, PADSTART = 0, NOT_SET = 'Not set';
-    let m = 0, changedFields = {};
+    let m = 0, changedFields = {}, listsReference = l === undefined ? lists : l;
 
     // TODO: 
     // - make it so that start/finish dates are automatically applied
@@ -237,8 +240,8 @@ async function updateEntryMenu (entry) {
 
         // update changes
         if (Object.keys(changedFields).length > 0) {
-            lists = await updateMAL(lists, changedFields, entry);
-            filehandle('mal', lists);
+            listsReference = await updateMAL(listsReference, changedFields, entry);
+            filehandle('mal', listsReference);
             changedFields = {}; // clear changedFields
         }
     }
@@ -573,4 +576,4 @@ async function searchMALMenu() {
     }
 }
 
-export { menuMAL };
+export { menuMAL, updateEntryMenu };
