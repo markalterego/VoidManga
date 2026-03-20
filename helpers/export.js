@@ -74,6 +74,7 @@ export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
 export const expectedFilters = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
 export const logMangadexOptions = {
+    sortMangasAlphabetical: false, // true, false
     logMangaDirection: 'asc', // 'asc', 'desc'
     hideZeroLengthManga: false, // true, false
     enablePagingManga: true, // true, false
