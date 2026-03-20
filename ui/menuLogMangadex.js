@@ -14,14 +14,20 @@ let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
 
 async function menuLogMangadex (mangadexData, l, config) {
-    let m = 0, pageDetails = { currentPage: 0, lastPage: 0 }; 
+    let m = null, pageDetails = { currentPage: 0, lastPage: 0 }, sortedMangas; 
     options = !config?.logMangadexOptions ? JSON.parse(JSON.stringify(logMangadexOptions)) : config.logMangadexOptions;
     lists = Array.isArray(l) ? l : []; 
 
+    // TODO: 
+    // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
+    //   to the end of that specific title
+    // - make it so that if user inputs 'p21' the current page is set to '21' (consider
+    //   making this a thing at traverseChapters as well) 
+
     while (m !== 'e') 
     {
-        // sort/filter mangadexData + handle paging
-        let sortedMangas = sortMangas(mangadexData, pageDetails); 
+        // sort/filter mangadexData + update pageDetails
+        sortedMangas = m === 's' || m === 'h' || m === 'o' || m === null ? sortMangas(mangadexData, pageDetails) : sortedMangas; 
         // page mangas
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPage, options.enablePagingManga); 
 
@@ -29,6 +35,7 @@ async function menuLogMangadex (mangadexData, l, config) {
         menuLogMangadexMangaDisplay(pagedMangas, true, options.enablePagingManga, pageDetails); // true for indexed list
 
         console.log(`\n||\n|| s -> Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`);
+        console.log(`|| o -> Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`);
         console.log(`|| h -> Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`);
         console.log(`|| t -> Toggle paging [${options.enablePagingManga ? 'x' : ''}]`);
         if (options.enablePagingManga) console.log('|| ± -> Next/Previous page');
@@ -41,6 +48,9 @@ async function menuLogMangadex (mangadexData, l, config) {
         } else if (m === 's') { // toggle ascending/descending
             if (options.logMangaDirection === 'asc') options.logMangaDirection = 'desc';
             else options.logMangaDirection = 'asc';
+        } else if (m === 'o') { // order alphabetical/chapter count
+            if (options.sortMangasAlphabetical) options.sortMangasAlphabetical = false;
+            else options.sortMangasAlphabetical = true;
         } else if (m === 'h') { // toggle hide/show zero length manga
             if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
             else options.hideZeroLengthManga = true;
@@ -81,11 +91,25 @@ function sortMangas (mangadexData, pageDetails) {
     if (options.hideZeroLengthManga) { 
         sortedMangas = sortedMangas.filter(obj => obj.chapters.length > 0);    
     } 
-    // sort ascending (0-999) / descending (999-0) - chapters amount
-    if (options.logMangaDirection === 'asc') { 
-        sortedMangas.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
-    } else { 
-        sortedMangas.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
+    // sorting methods used
+    if (options.sortMangasAlphabetical) { // sort ascending (A-Z) / descending (Z-A) - alphabetical
+        if (options.logMangaDirection === 'asc') { 
+            sortedMangas.sort((a, b) => 
+                Object.values(a.manga.attributes.title)[0]
+                .localeCompare(Object.values(b.manga.attributes.title)[0])
+            );
+        } else { // sort descending (Z-A) / ascending (A-Z) - alphabetical
+            sortedMangas.sort((a, b) => 
+                Object.values(b.manga.attributes.title)[0]
+                .localeCompare(Object.values(a.manga.attributes.title)[0])
+            );
+        }
+    } else { // sort ascending (0-999) / descending (999-0) - chapters amount
+        if (options.logMangaDirection === 'asc') { 
+            sortedMangas.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
+        } else { 
+            sortedMangas.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
+        }
     }
     // update page details if necessary
     pageDetails = updatePageDetails(pageDetails, sortedMangas);
