@@ -26,7 +26,8 @@ function writeEnv (input) {
     try {
         const folderDestination = path.resolve(import.meta.dirname, '..'); // refers to pollManga folder
         const destination = path.resolve(folderDestination, '.env'); // refers to .env file
-        const env = readFileSync(destination, 'utf-8').split('\n'); // env = [ "key1=value1", "key2=value2" ]
+        if (!existsSync(destination)) writeFileSync(destination, ''); // creates empty .env file if not found
+        const env = readFileSync(destination, 'utf-8').split('\n').filter(line => line !== ''); // env = [ "key1=value1", "key2=value2" ]
         for (const key in input) {
             const index = env.findIndex(line => line.startsWith(`${key}=`)); // find existing index of key
             const value = `${key}=${input[key]}`; // key=value pair as string
