@@ -116,7 +116,7 @@ async function updateAPIKeyMenu () {
         const isValidAPIKey = (typeof m === 'string' && m.length === 32); // API key expected length is 32 characters
 
         if (isValidAPIKey) {
-            writeEnv({ MAL_API_CLIENT_ID: m }); // write MAL_API_CLIENT_ID to .env
+            writeEnv({ MAL_API_CLIENT_ID: m }, true); // write MAL_API_CLIENT_ID to .env
             console.log('\n||\n|| MAL_API_CLIENT_ID updated successfully\n||');
         } else if (m !== 'e') {
             console.log('\n||\n|| MAL_API_CLIENT_ID needs to be 32 characters in length\n||');
