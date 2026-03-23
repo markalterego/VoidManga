@@ -1,5 +1,5 @@
 import { menuMAL } from "./menuMAL.js";
-import { filehandle } from "../filehandling/filehandle.js";
+import { filehandle, writeEnv } from "../filehandling/filehandle.js";
 import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput } from "../helpers/functions.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
@@ -70,7 +70,7 @@ async function rootMenu() {
 }
 
 async function settingsMenu() {
-    const FETCHMALONMENUOPEN = 0;
+    const UPDATEMALAPIKEY = 0, FETCHMALONMENUOPEN = 1;
     let m = 0;
     
     // TODO: 
@@ -78,14 +78,18 @@ async function settingsMenu() {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Settings (+experimental)\n||');
-        console.log(`|| 0 -> Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`);
+        console.log('\n||\n|| Settings\n||');
+        console.log(`|| 0 -> Update MAL_API_CLIENT_ID`);
+        console.log(`|| 1 -> Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`);
         console.log('||\n|| e -> Go back\n||');
 
         m = await takeUserInput(); // get user input
 
         switch (m) 
         {
+            case UPDATEMALAPIKEY:
+                await updateAPIKeyMenu();
+                break;
             case FETCHMALONMENUOPEN:
                 if (config.menuMALOptions.fetchMALOnMenuOpen) config.menuMALOptions.fetchMALOnMenuOpen = false;
                 else config.menuMALOptions.fetchMALOnMenuOpen = true;
@@ -94,6 +98,28 @@ async function settingsMenu() {
                 break;
             default:
                 console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function updateAPIKeyMenu () {
+    let m = 0;
+    
+    while (m !== 'e') 
+    {
+        console.log('\n||\n|| Input MAL_API_CLIENT_ID\n||');
+        console.log('|| ? -> https://myanimelist.net/apiconfig');
+        console.log('||\n|| e -> Go Back\n||');
+        
+        m = await takeUserInput(); // get user input
+
+        const isValidAPIKey = (typeof m === 'string' && m.length === 32); // API key expected length is 32 characters
+
+        if (isValidAPIKey) {
+            writeEnv({ MAL_API_CLIENT_ID: m }); // write MAL_API_CLIENT_ID to .env
+            console.log('\n||\n|| MAL_API_CLIENT_ID updated successfully\n||');
+        } else if (m !== 'e') {
+            console.log('\n||\n|| MAL_API_CLIENT_ID needs to be 32 characters in length\n||');
         }
     }
 }
