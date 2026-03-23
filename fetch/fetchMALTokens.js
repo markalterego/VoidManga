@@ -20,12 +20,12 @@ async function checkAndUpdateTokens() {
     const isValidRefreshToken = Date.now() < process.env.REFRESH_TOKEN_EXPIRES_AT;
     // decide what to do
     if (!isValidAccessToken && isValidRefreshToken) { // refresh tokens
-        const tokens = await refreshTokens(process.env.REFRESH_TOKEN); // returns tokens
+        const tokens = await refreshTokens(process.env.REFRESH_TOKEN); // returns tokens as obj (e.g. access_token = '1234')
         writeEnv(tokens); // write found tokens to env
     } else if (!isValidAccessToken && !isValidRefreshToken) { // start OAuth again
         const code_verifier = generateCodeVerifier(); // used for code_challenge
         const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
-        const tokens = await fetchTokens(code_verifier, authorization_code); // returns tokens
+        const tokens = await fetchTokens(code_verifier, authorization_code); // returns tokens as obj (e.g. access_token = '1234')
         writeEnv(tokens); // write found tokens to env
     }
 }
