@@ -28,22 +28,22 @@ async function fetchMAL (lists) {
     // // into user's MAL lists as well
 
     // manga = await updateListEntry(manga);
-    
-    return await fetchMALUserLists(lists);
-}
-
-async function fetchMALUserLists (old_lists) {
     try {
-        await checkAndUpdateTokens(); // check token validity + update if necessary
-        console.log(`\n||\n|| Now fetching MAL lists\n||`);
-        const animelist = await fetchAnimeList(); // fetch Anime endpoint
-        const mangalist = await fetchMangaList(); // fetch Manga endpoint
-        const sortedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
-        const finalLists = decodeComments(sortedLists); // encode each list_status.comments properly
-        return finalLists; // return formatted lists
+        lists = await fetchMALUserLists(lists);
     } catch (error) {
         logErrorDetails(error);
     }
+    return lists;
+}
+
+async function fetchMALUserLists (old_lists) {
+    await checkAndUpdateTokens(); // check token validity + update if necessary
+    console.log(`\n||\n|| Now fetching MAL lists\n||`);
+    const animelist = await fetchAnimeList(); // fetch Anime endpoint
+    const mangalist = await fetchMangaList(); // fetch Manga endpoint
+    const sortedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists
+    const finalLists = decodeComments(sortedLists); // encode each list_status.comments properly
+    return finalLists; // return formatted lists
 }
 
 async function fetchAnimeList() {
@@ -60,7 +60,7 @@ async function fetchAnimeList() {
         }).then(await setTimeout(100)); // avoid rate-limit
         return malResponseAnime.data.data;
     } catch (error) {
-        logErrorDetails(error);
+        throw error;
     }
 }
 
@@ -78,7 +78,7 @@ async function fetchMangaList() {
         }).then(await setTimeout(100)); // avoid rate-limit
         return malResponseManga.data.data; 
     } catch (error) {
-        logErrorDetails(error);
+        throw error;
     }
 }
 
@@ -160,6 +160,7 @@ async function updateListEntry (changedFields, entry) {
         return { ...entry, ...updatedListStatus };
     } catch (error) {
         logErrorDetails(error);
+        throw new Error('Failed to update MAL entry');
     }
 }
 
@@ -175,8 +176,7 @@ async function putListEntry (entry_id, type, data_fields) {
         }).then(await setTimeout(100)); // avoid rate-limit;
         return response.data; // updated entry
     } catch (error) {
-        logErrorDetails(error);
-        throw new Error('failed to update MAL entry');
+        throw error;
     }   
 }
 
