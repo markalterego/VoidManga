@@ -245,6 +245,10 @@ async function updateEntryMenu (entry, l) {
             listsReference = await updateMAL(listsReference, changedFields, entry); // update MAL entry
             filehandle('mal', listsReference); // save updates to file
             changedFields = {}; // clear changedFields
+            // re-find entry reference
+            entry = listsReference[getType(list_status)]                    // type
+                                  .flatMap(s => s)                          // status
+                                  .find(e =>  e.node.id === entry.node.id); // entry
         }
     }
 }
