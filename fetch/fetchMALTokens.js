@@ -16,10 +16,13 @@ async function checkAndUpdateTokens() {
     //    the whole OAuth 2.0 process from the start
 
     // check if tokens are still valid
+    const isValidAPIKey = process.env?.MAL_API_CLIENT_ID?.length > 0;
     const isValidAccessToken = Date.now() < process.env.ACCESS_TOKEN_EXPIRES_AT;
     const isValidRefreshToken = Date.now() < process.env.REFRESH_TOKEN_EXPIRES_AT;
     // decide what to do
-    if (!isValidAccessToken && isValidRefreshToken) { // refresh tokens
+    if (!isValidAPIKey) { // MAL_API_CLIENT_ID not found
+        throw new Error('Missing MAL_API_CLIENT_ID. Configure it in settings.');
+    } else if (!isValidAccessToken && isValidRefreshToken) { // refresh tokens
         const tokens = await refreshTokens(process.env.REFRESH_TOKEN); // returns tokens as obj (e.g. access_token = '1234')
         writeEnv(tokens); // write found tokens to env
     } else if (!isValidAccessToken && !isValidRefreshToken) { // start OAuth again
