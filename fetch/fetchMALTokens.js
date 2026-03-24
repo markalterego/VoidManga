@@ -84,8 +84,8 @@ async function waitForCallback() {
     return await new Promise((resolve, reject) => {
         // assign 60s timeout on server
         const timeout = globalThis.setTimeout(() => {  
-            server.close(() => reject(new Error('timeout 60s')));
-        }, 60000);
+            server.close(() => reject(new Error('timeout 30s')));
+        }, 30000);
         // route definition
         app.get('/callback', (req, res) => {
             const query = req.query; // received data
