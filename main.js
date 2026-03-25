@@ -1,7 +1,7 @@
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { fetchMangadexOptions, logMangadexOptions, menuMALOptions } from "./helpers/export.js";
+import { animeStatus, mangaStatus, fetchMangadexOptions, logMangadexOptions, menuMALOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
@@ -17,9 +17,15 @@ dotenv.config(); // load .env file to process.env
 (async () => {
     clearScreen(); // starting app on a fresh screen
 
-    if (existsSync('./data/mal.file')) {
+    if (!existsSync('./data/mal.file')) {
+        // initializing lists
+        lists = [ 
+            Array(animeStatus.length).fill(null).map(() => []), // animelist
+            Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
+        ];
+    } else {
         lists = filehandle('mal'); // reads mal.file
-    } 
+    }
 
     if (!existsSync('./data/config.file')) {
         // setting initial menu preference
