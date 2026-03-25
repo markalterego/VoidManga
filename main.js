@@ -1,4 +1,3 @@
-import { fetchMAL } from "./fetch/fetchMAL.js";
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
@@ -18,12 +17,9 @@ dotenv.config(); // load .env file to process.env
 (async () => {
     clearScreen(); // starting app on a fresh screen
 
-    if (!existsSync('./data/mal.file')) {
-        lists = await fetchMAL(); // searches and returns MAL lists
-        filehandle('mal', lists); // writes mal.file
-    } else { 
+    if (existsSync('./data/mal.file')) {
         lists = filehandle('mal'); // reads mal.file
-    }
+    } 
 
     if (!existsSync('./data/config.file')) {
         // setting initial menu preference
