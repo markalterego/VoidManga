@@ -24,12 +24,19 @@ In order to fetch and update your personal Anime- and Mangalist at MyAnimeList, 
 e.g.
 
 App Name: `VoidManga` 
+
 App Type: `Other` - **must be exactly this** 
+
 App Description: *copy-paste the first paragraph after VoidManga above*
+
 App Redirect URL: `http://localhost:3000/callback` - **must be exactly this** 
+
 Homepage URL: *link to this GitHub page or link to your MyAnimeList profile*
+
 Commercial / Non-Commercial: `Non-commercial`
+
 Name / Company Name: `VoidManga`
+
 Purpose of Use: `Hobbyist`
 
 4. Accept terms of use & Submit
