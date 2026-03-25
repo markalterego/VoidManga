@@ -21,23 +21,16 @@ In order to fetch and update your personal Anime- and Mangalist at MyAnimeList, 
 2. Select `Create ID` next to `Clients Accessing the MAL API`
 3. Fill form to apply for an API key
 
-e.g.
-
-App Name: `VoidManga` 
-
-App Type: `Other` - **must be exactly this** 
-
-App Description: *copy-paste the first paragraph after VoidManga above*
-
-App Redirect URL: `http://localhost:3000/callback` - **must be exactly this** 
-
-Homepage URL: *link to this GitHub page or link to your MyAnimeList profile*
-
-Commercial / Non-Commercial: `Non-commercial`
-
-Name / Company Name: `VoidManga`
-
-Purpose of Use: `Hobbyist`
+| Field | Value |
+| --- | --- |
+| App Name | `VoidManga` |
+| App Type | `Other` - **must be exactly this** |
+| App Description | *copy-paste the first paragraph after VoidManga above* |
+| App Redirect URL | `http://localhost:3000/callback` - **must be exactly this** |
+| Homepage URL | *link to this GitHub page or link to your MyAnimeList profile* |
+| Commercial / Non-Commercial | `Non-commercial` |
+| Name / Company Name | `VoidManga` |
+| Purpose of Use | `Hobbyist` | 
 
 4. Accept terms of use & Submit
 5. Go back to https://myanimelist.net/apiconfig
