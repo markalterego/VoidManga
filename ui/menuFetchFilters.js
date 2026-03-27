@@ -1,5 +1,6 @@
 import { takeUserInput, menuFetchFiltersDisplay, capitalFirstLetterString } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters } from '../helpers/export.js';
+import { filehandle } from '../filehandling/filehandle.js';
 
 const ANIME = 0, MANGA = 1;
 let lists = null;
@@ -14,6 +15,8 @@ async function filterEntriesFromFetch (l, k) {
         console.log(`\n||\n|| The received value '${key}' is not valid\n||`);
     } else { // function parameter is an expected value
         await filterTypeMenu();
+        // save updated lists to file
+        filehandle('mal', lists);
     } 
 }
 
