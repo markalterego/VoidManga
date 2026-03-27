@@ -3,9 +3,10 @@ import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings,
          mangaOrderTypes, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
+import { filehandle } from "../filehandling/filehandle.js";
 
 async function menuFetchMangadex (lists, config, mangadexData) {
-    const options = !config?.fetchMangadexOptions ? JSON.parse(JSON.stringify(fetchMangadexOptions)) : config.fetchMangadexOptions;
+    const options = config.fetchMangadexOptions;
     let m = 0;
 
     // TODO: 
@@ -57,7 +58,6 @@ async function menuFetchMangadex (lists, config, mangadexData) {
                 console.log('\n|| Please input a valid option');
         }
     }
-    return {options: options};
 }
 
 async function fetchWithOptions (lists, options, mangadexData) {
@@ -105,6 +105,9 @@ async function fetchWithOptions (lists, options, mangadexData) {
             mangadexData.push({ manga: search.manga, chapters: search.chapters});
         } 
     });
+    // save fetched data to file
+    filehandle('mangadex', mangadexData);
+    // log successful fetch
     console.log('\n||\n|| Mangedex fetch was successful\n||');
 }
 
