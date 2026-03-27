@@ -1,6 +1,5 @@
 import open from 'open';
 import { takeUserInput, menuLogMangadexMangaDisplay, menuLogMangadexChapterDisplay, capitalFirstLetterString, longStringToArray } from '../helpers/functions.js';
-import { logMangadexOptions } from '../helpers/export.js';
 import { updateEntryMenu } from './menuMAL.js';
 
 // TODO:
@@ -15,8 +14,7 @@ let options = null; // config.logMangadexOptions
 
 async function menuLogMangadex (mangadexData, l, config) {
     let m = null, pageDetails = { currentPage: 0, lastPage: 0 }, sortedMangas; 
-    options = !config?.logMangadexOptions ? JSON.parse(JSON.stringify(logMangadexOptions)) : config.logMangadexOptions;
-    lists = Array.isArray(l) ? l : []; 
+    options = config.logMangadexOptions, lists = l; 
 
     // TODO: 
     // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
@@ -81,7 +79,6 @@ async function menuLogMangadex (mangadexData, l, config) {
             console.log('\n|| Please input a valid option');
         }
     }    
-    return options;
 }
 
 function sortMangas (mangadexData, pageDetails) {
