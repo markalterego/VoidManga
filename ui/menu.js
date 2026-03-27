@@ -9,14 +9,11 @@ import { logErrorDetails } from "../helpers/errorLogger.js";
 let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
 let config = null; // holds user specific options
 let mangadexData = null; // holds mangas and chapters fetched from Mangadex
-let refresh = true; // loops through menu while set to true
 
 async function menu (l, c, m) {
     try {
         lists = l, config = c, mangadexData = m; // assigning lists, config and mangadexData
-        while (refresh) {
-            refresh = await rootMenu(); // displays rootMenu
-        }
+        await rootMenu(); // displays rootMenu
     } catch (error) {
         if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
         logErrorDetails(error);
@@ -24,7 +21,8 @@ async function menu (l, c, m) {
 }
 
 async function rootMenu() {
-    let m = 0, r = false; // m = menu, r = refresh
+    const MYANIMELIST = 0, LOGMANGADEX = 1, FETCHMANGADEX = 2;
+    let m = 0; 
     
     while (m !== 'e') 
     {
@@ -39,34 +37,27 @@ async function rootMenu() {
 
         switch (m) 
         {
-            case 0: 
+            case MYANIMELIST: 
                 lists = await menuMAL(lists, config); // menuMAL options
-                filehandle('mal', lists); // saving lists to file
                 break; 
-            case 1: {
-                const options = await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
-                config = { ...config, logMangadexOptions: options };
+            case LOGMANGADEX: 
+                await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
                 filehandle('config', config);
-                break; } 
-            case 2: {
-                const fetchMangadexData = await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
-                config = { ...config, fetchMangadexOptions: fetchMangadexData.options }; // append options to config
+                break;
+            case FETCHMANGADEX:
+                await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
                 filehandle('config', config); // save config file
-                filehandle('mal', lists); // save lists to file
-                filehandle('mangadex', mangadexData); // save data to file
-                break; }
+                break;
             case 's':
                 await settingsMenu();
                 filehandle('config', config); // save config to file
-                r = true; m = 'e'; // goes out of loop and refreshes menu
                 break;
-            case 'e': // exit
+            case 'e': 
                 break;                 
             default:
                 console.log('\n|| Please input a valid option');
         }
     }
-    return r;
 }
 
 async function settingsMenu() {
