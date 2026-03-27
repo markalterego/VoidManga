@@ -17,20 +17,25 @@ dotenv.config(); // load .env file to process.env
 (async () => {
     clearScreen(); // starting app on a fresh screen
 
+    // prior to running menu.js, lists, config and mangadexData are
+    // either initialized and saved to file or simply retrieved from 
+    // their respective files (lists = mal.file, config = config.file, 
+    // mangadexData = mangadex.file)
+
     if (!existsSync('./data/mal.file')) {
         // initializing lists
         lists = [ 
             Array(animeStatus.length).fill(null).map(() => []), // animelist
             Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
         ];
+        filehandle('mal', lists); // writes mal.file
     } else {
         lists = filehandle('mal'); // reads mal.file
     }
 
     if (!existsSync('./data/config.file')) {
         // setting initial menu preference
-        config = { 
-            ...config,  
+        config = {  
             menuMALOptions: menuMALOptions,
             fetchMangadexOptions: fetchMangadexOptions,
             logMangadexOptions: logMangadexOptions 
@@ -43,6 +48,7 @@ dotenv.config(); // load .env file to process.env
     if (!existsSync('./data/mangadex.file')) {
         // initializing mangadexData with an empty array
         mangadexData = [];
+        filehandle('mangadex', mangadexData); // writes mangadex.file
     } else {
         mangadexData = filehandle('mangadex'); // reads mangadex.file
     }
