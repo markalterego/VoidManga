@@ -25,16 +25,17 @@ async function menuLogMangadex (mangadexData, l, config) {
     while (m !== 'e') 
     {
         // sort/filter mangadexData + update pageDetails
-        sortedMangas = m === 's' || m === 'h' || m === 'o' || m === null ? sortMangas(mangadexData, pageDetails) : sortedMangas; 
+        sortedMangas = m === 's' || m === 'h' || m === 'o' || m === 'f' || m === null ? sortMangas(mangadexData, pageDetails) : sortedMangas; 
         // page mangas
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPage, options.enablePagingManga); 
 
         // display selecable manga(s)
         menuLogMangadexMangaDisplay(pagedMangas, true, options.enablePagingManga, pageDetails); // true for indexed list
 
-        console.log(`\n||\n|| s -> Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`);
-        console.log(`|| o -> Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`);
+        console.log(`\n||\n|| f -> Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`);
         console.log(`|| h -> Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`);
+        console.log(`|| s -> Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`);
+        console.log(`|| o -> Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`);
         console.log(`|| t -> Toggle paging [${options.enablePagingManga ? 'x' : ''}]`);
         if (options.enablePagingManga) console.log('|| ± -> Next/Previous page');
         console.log('|| e -> Go back\n||');
@@ -43,16 +44,19 @@ async function menuLogMangadex (mangadexData, l, config) {
         
         if (m >= 0 && m < pagedMangas.length) {
             await mangaOptionsMenu(pagedMangas[m]); // input selected manga
+        } else if (m === 'f') { // filter mangas found at user's MAL mangalist
+            if (options.filterByMangasFoundAtMangalist) options.filterByMangasFoundAtMangalist = false;
+            else options.filterByMangasFoundAtMangalist = true;
+        } else if (m === 'h') { // toggle hide/show zero length manga
+            if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
+            else options.hideZeroLengthManga = true;
         } else if (m === 's') { // toggle ascending/descending
             if (options.logMangaDirection === 'asc') options.logMangaDirection = 'desc';
             else options.logMangaDirection = 'asc';
         } else if (m === 'o') { // order alphabetical/chapter count
             if (options.sortMangasAlphabetical) options.sortMangasAlphabetical = false;
             else options.sortMangasAlphabetical = true;
-        } else if (m === 'h') { // toggle hide/show zero length manga
-            if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
-            else options.hideZeroLengthManga = true;
-        } else if (m === 't') { // toggle paging on/off
+        }  else if (m === 't') { // toggle paging on/off
             if (options.enablePagingManga) options.enablePagingManga = false;
             else options.enablePagingManga = true;
         } else if (m === '+') { // next page
@@ -84,6 +88,10 @@ async function menuLogMangadex (mangadexData, l, config) {
 function sortMangas (mangadexData, pageDetails) {
     // shallow copy of mangadexData
     let sortedMangas = [...mangadexData];
+    // filter by mangas found at user's mangalist
+    if (options.filterByMangasFoundAtMangalist) {
+        sortedMangas = sortedMangas.filter(obj => findEntryAtLists(obj.manga));
+    }
     // filter mangas with no chapters
     if (options.hideZeroLengthManga) { 
         sortedMangas = sortedMangas.filter(obj => obj.chapters.length > 0);    
@@ -158,7 +166,7 @@ async function traverseChapters (mangaTitle, selectedManga) {
         // display selectedManga chapters
         menuLogMangadexChapterDisplay(mangaTitle, pagedChapters, foundManga, options.enablePagingChapter, pageDetails);
 
-        console.log(`\n||\n|| s -> Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
+        console.log(`\n||\n|| s -> Sort chapters ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
         console.log(`|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
         console.log(`|| ? -> Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`);
         console.log(`|| t -> Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`);
