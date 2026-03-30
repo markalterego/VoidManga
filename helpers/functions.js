@@ -56,8 +56,8 @@ function menuLogMangadexMangaDisplay (mangadexData, indexedList, enablePageFoote
         });
         if (enablePageFooter) {
             console.log('|| --------------------\n||');
-            const currentPageString = String(pageDetails.currentPage);
-            const lastPageString = String(pageDetails.lastPage);
+            const currentPageString = String(pageDetails.currentPageIndex + 1);
+            const lastPageString = String(pageDetails.lastPageIndex + 1);
             const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
             const label = `Page: `.padEnd(10, ' ');
             console.log(`|| ${label} ${pageProgressString}\n||`);
@@ -65,8 +65,7 @@ function menuLogMangadexMangaDisplay (mangadexData, indexedList, enablePageFoote
     }
 }
 
-function menuLogMangadexChapterDisplay (mangaTitle, sortedChapters, foundManga, enablePageFooter, pageDetails) {
-    // console.log(`\n||\n|| --- ${mangaTitle} ---\n||`);
+function menuLogMangadexChapterDisplay (sortedChapters, foundManga, enablePageFooter, pageDetails) {
     console.log('\n||\n|| --- Select chapt ---\n||');
     if (sortedChapters?.length === 0) {
         console.log('|| - No chapters found\n||');
@@ -82,8 +81,8 @@ function menuLogMangadexChapterDisplay (mangaTitle, sortedChapters, foundManga, 
         });
         if (enablePageFooter) {
             console.log('|| --------------------\n||');
-            const currentPageString = String(pageDetails.currentPage);
-            const lastPageString = String(pageDetails.lastPage);
+            const currentPageString = String(pageDetails.currentPageIndex + 1);
+            const lastPageString = String(pageDetails.lastPageIndex + 1);
             const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
             const label = `Page: `.padEnd(10, ' ');
             console.log(`|| ${label} ${pageProgressString}\n||`);
