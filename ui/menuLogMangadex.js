@@ -154,11 +154,12 @@ async function mangaOptionsMenu (selectedManga) {
 
 async function traverseChapters (mangaTitle, selectedManga) {
     const chapters = selectedManga.chapters;
-    const foundManga = findEntryAtLists(selectedManga.manga);
     let m = 0, pageDetails = { currentPage: 0, lastPage: 0 };
 
     while (m !== 'e') 
     {
+        // reference to manga at mangalist
+        const foundManga = findEntryAtLists(selectedManga.manga);
         // sort chapters by options
         let sortedChapters = sortChapters(chapters, foundManga, pageDetails);
         // page chapters
