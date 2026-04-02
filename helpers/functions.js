@@ -1,4 +1,5 @@
 import { rl } from '../main.js'
+import { logErrorDetails } from './errorLogger.js';
 import { animeStatus, mangaStatus, mangaOrderTypes, chapterOrderTypes } from './export.js';
 
 async function takeUserInput (useWhole, skipClear) {
@@ -131,6 +132,58 @@ function truncateString (string, maxLengthOfString) {
     return string.length > maxLengthOfString ? `${string.slice(0, maxLengthOfString).trim()}...`: string;
 }
 
+function printMenuOptions (header, optionsArray, specialOptionsArray) {
+    // creates a simple menu in a standardized format
+    // header = string
+    // optionsArray = array of strings
+    // specialOptionsArray = array of objects
+
+    const emptyLine = '_'; 
+    
+    try {
+        // handle invalid parameters
+        if (!header) {
+            throw new Error ('Failed to log menu. Header is not defined.');
+        } else if (!optionsArray && !specialOptionsArray) {
+            throw new Error ('Failed to log menu. Neither optionsArray nor specialOptionsArray are defined.');
+        } 
+        
+        // header
+        console.log(`\n||\n|| ${header}\n||`);
+
+        // optionsArray
+        if (optionsArray?.length) {
+            let i = 0, selectableIndex = 0; // i = optionsArray index, selectableIndex = menu option index
+            while (i < optionsArray?.length) { 
+                const val = optionsArray[i++]?.trim();
+                if (val === emptyLine) {
+                    console.log('||');
+                } else {
+                    console.log(`|| ${selectableIndex++} -> ${val}`);
+                }
+            }
+        }
+        
+        // specialOptionsArray
+        if (specialOptionsArray?.length) {
+            // e.g. "s -> Settings"
+            for (let i = 0; i < specialOptionsArray?.length; i++) {
+                if (specialOptionsArray[i] === emptyLine) {
+                    console.log('||');
+                } else {
+                    const [[key, val]] = Object.entries(specialOptionsArray[i]);
+                    console.log(`|| ${key} -> ${val}`);
+                }
+            }
+        } 
+
+        // end of print
+        console.log('|| e -> Go back\n||');
+    } catch (error) {
+        logErrorDetails(error);
+    }
+}
+
 export { 
     takeUserInput, 
     clearScreen, 
@@ -140,5 +193,6 @@ export {
     menuLogMangadexChapterDisplay,
     capitalFirstLetterString, 
     longStringToArray,
-    truncateString
+    truncateString,
+    printMenuOptions
 };
