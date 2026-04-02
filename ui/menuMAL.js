@@ -1,16 +1,15 @@
 import { filehandle } from "../filehandling/filehandle.js";
-import { takeUserInput, truncateString, capitalFirstLetterString } from "../helpers/functions.js";
+import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logDataDeepMenu } from "./menuLogMangadex.js";
 import { fetchMAL } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
-import { logErrorDetails } from "../helpers/errorLogger.js";
 
 const ANIME = 0, MANGA = 1;
 let lists, options;
 
 async function menuMAL (l, config) {
-    const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_TITLE = 2, FETCHLISTS = 3;
+    const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_LISTS = 2, FETCHLISTS = 3;
     let m = 0;
     options = config.menuMALOptions; // reference to config.menuMALOptions
     
@@ -23,21 +22,19 @@ async function menuMAL (l, config) {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| MyAnimeList options\n||');
-        console.log('|| 0 -> Anime list');
-        console.log('|| 1 -> Manga list');
-        console.log('|| 2 -> Search title');
-        console.log('|| 3 -> Fetch lists');
-        console.log('||\n|| e -> Go back\n||');
-        
+        printMenuOptions(
+            'MyAnimeList options', 
+            ['Anime list', 'Manga list', 'Search lists', 'Fetch lists', '_']
+        );
+
         m = await takeUserInput(true); // take userInput whole numbers
         
         if (m === TRAVERSE_ANIME) {
             await traverseStatus(ANIME); // anime list
         } else if (m === TRAVERSE_MANGA) {
             await traverseStatus(MANGA); // manga list
-        } else if (m === SEARCH_TITLE) {
-            // <-- searchTitles function here
+        } else if (m === SEARCH_LISTS) {
+            await searchListsMenu(); // search lists
         } else if (m === FETCHLISTS) {
             lists = await fetchMAL(lists); // searches and returns MAL lists
             filehandle('mal', lists);
@@ -71,11 +68,10 @@ async function traverseStatus (typeIndex) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Type: ${typeIndex === ANIME ? 'Anime' : 'Manga'}\n||`);
-        statuses.forEach((status, statusIndex) => {
-            console.log(`|| ${statusIndex} -> ${capitalFirstLetterString(status)}`);
-        });
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Type: ${typeIndex === ANIME ? 'Anime' : 'Manga'}`,
+            [...statuses.map(capitalFirstLetterString), '_']
+        );  
 
         m = await takeUserInput(true); // take user input as whole num
 
@@ -89,27 +85,22 @@ async function traverseStatus (typeIndex) {
 }
 
 async function traverseEntry (typeIndex, statusIndex) {
+    const status = typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex];
+    const entries = lists[typeIndex][statusIndex];
     let m = 0; 
 
     while (m !== 'e') 
     {
-        const status = typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex];
-        console.log(`\n||\n|| Status: ${capitalFirstLetterString(status)}\n||`);
-        lists[typeIndex][statusIndex].forEach((entry, entryIndex) => {
-            const entryTitle = entry.node.title;
-            console.log(`|| ${entryIndex} -> ${entryTitle}`);
-            if (entryIndex === lists[typeIndex][statusIndex].length - 1) console.log('||');
-        });
-        if (!lists[typeIndex][statusIndex].length) {
-            console.log('|| ? -> No entries found\n||');
-        }
-        console.log('|| e -> Go back\n||');
+        printMenuOptions(
+            `Status: ${capitalFirstLetterString(status)}`,
+            entries.map(entry => entry.node.title),
+            (entries.length ? ['_'] : [{'?': 'No entries found'}, '_'])
+        );
 
         m = await takeUserInput(true); // take user input as whole num
         
-        if (m >= 0 && m < lists[typeIndex][statusIndex].length) {
-            const entryIndex = m; // selected entry index
-            const entry = lists[typeIndex][statusIndex][entryIndex]; // reference to selected entry
+        if (m >= 0 && m < entries.length) {
+            const entry = entries[m]; // reference to selected entry
             await updateEntryMenu(entry); // update stuff related to selected entry
         } else if (m !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -260,12 +251,11 @@ async function updateStatusMenu (list_status) {
     
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Pick from available statuses (${statusBeforeChange === list_status.status ? `current: ${list_status.status}` : 
-                                                                                                          `update to: ${list_status.status} - from: ${statusBeforeChange}`})\n||`);
-        statuses.forEach((status, statusIndex) => { // anime/manga statuses
-            console.log(`|| ${statusIndex} -> ${capitalFirstLetterString(status)}`);
-        });
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Pick from available statuses (${statusBeforeChange === list_status.status ? `current: ${list_status.status}` : 
+                                                                                         `update to: ${list_status.status} - from: ${statusBeforeChange}`})`,
+            [...statuses.map(status => capitalFirstLetterString(status)), '_']
+        )
         
         m = await takeUserInput(true); // take whole num as user input
 
@@ -283,10 +273,12 @@ async function updateScoreMenu (list_status) {
     
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Pick a score (${scoreBeforeChange === list_status.score ? `current: ${list_status.score}` :
-                                                                                        `update to: ${list_status.score} - from: ${scoreBeforeChange}`})\n||`);
-        console.log('|| ? -> Input a value between 0-10');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Pick a score (${scoreBeforeChange === list_status.score ? `current: ${list_status.score}` :
+                                                                       `update to: ${list_status.score} - from: ${scoreBeforeChange}`})`,
+            null,
+            [{'?': 'Input a value between 0-10'}, '_']
+        );
 
         m = await takeUserInput(true); // take whole num as user input
 
@@ -310,11 +302,12 @@ async function updateProgressMenu (entry) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update progress (${progressBeforeChange === getProgress(list_status) ? `current: ${getProgress(list_status)} / ${getTotal(entry)}` :
-                                                                                                     `update to: ${getProgress(list_status)} / ${getTotal(entry)} - from: ${progressBeforeChange} / ${getTotal(entry)}`})\n||`);      
-        console.log('|| ± -> Increase/Decrease progress'); // + = increase by one, ++ = set max || - = decrease by one, -- = set min
-        console.log(`|| ? -> Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`);
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Update progress (${progressBeforeChange === getProgress(list_status) ? `current: ${getProgress(list_status)} / ${getTotal(entry)}` :
+                                                                                    `update to: ${getProgress(list_status)} / ${getTotal(entry)} - from: ${progressBeforeChange} / ${getTotal(entry)}`})`,
+            null,
+            [{'±': 'Increase/Decrease progress'}, {'?': `Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`}, '_']
+        );
 
         m = await takeUserInput(true); // take whole num as user input
 
@@ -367,11 +360,12 @@ async function updateStartDateMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` : 
-                                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` })\n||`);
-        console.log('|| ? -> Input date (year-mm-dd)');
-        console.log('|| c -> Clear date');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` : 
+                                                                                     `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` })`,
+            null,
+            [{'?': 'Input date (year-mm-dd)'}, {'c': 'Clear date'}, '_']
+        );  
         
         m = await takeUserInput(); // take user input
 
@@ -389,11 +383,12 @@ async function updateFinishDateMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` : 
-                                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` })\n||`);
-        console.log('|| ? -> Input date (\"year-mm-dd\")');
-        console.log('|| c -> Clear date');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` : 
+                                                                                        `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` })`,
+            null,
+            [{'?': 'Input date (\"year-mm-dd\")'}, {'c': 'Clear date'}, '_']
+        );
         
         m = await takeUserInput(); // take user input
 
@@ -518,11 +513,11 @@ async function updateIsReMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
-                                                                                                                                               `update to: ${getIsRe(list_status) ? 'yes' : 'no'} - from: ${isReBeforeChange ? 'yes' : 'no'}`})\n||`);
-        console.log('|| 0 -> no');
-        console.log('|| 1 -> yes');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
+                                                                                                                          `update to: ${getIsRe(list_status) ? 'yes' : 'no'} - from: ${isReBeforeChange ? 'yes' : 'no'}`})`,
+            ['no', 'yes', '_']
+        );
 
         m = await takeUserInput(true); // take user input as whole number
         
@@ -555,11 +550,12 @@ async function updateCommentsMenu (list_status) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
-                                                                                                (`update to: "${list_status.comments}" - from: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set` }`)})\n||`);         // has been updated
-        console.log(`|| ? -> Input comment (minimum ${MIN_LENGTH} characters)`);
-        console.log('|| c -> Clear comment');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
+                                                                               (`update to: "${list_status.comments}" - from: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set` }`)})`,
+            null,
+            [{'?': `Input comment (minimum ${MIN_LENGTH} characters)`}, {'c': 'Clear comment'}, '_']
+        );
 
         m = await takeUserInput(); // take user input
         
@@ -573,12 +569,45 @@ async function updateCommentsMenu (list_status) {
     }
 }
 
-async function searchMALMenu() {
-    let m = 0;
+async function searchListsMenu() {
+    const SEARCH_BY_TITLE = 0;
+    let m = null;
 
     while (m !== 'e') 
     {
+        printMenuOptions(
+            'Search for entry', 
+            ['Search by title', '_']
+        );
+
+        m = await takeUserInput(true); // take user input
         
+        if (m === SEARCH_BY_TITLE) {
+            await searchListsByTitleMenu(); // search lists by title
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function searchListsByTitleMenu() {
+    let m = null;
+
+    while (m !== 'e') 
+    {
+        printMenuOptions(
+            'Search lists by title', 
+            null, 
+            [{'?': 'Input title'}, '_']
+        );
+
+        m = await takeUserInput(false); // take user input
+        
+        if (typeof m === 'string') {
+            console.log('\n||\n|| This has not been implemented yet (sowwy... </3)\n||');
+        } else if (m !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
     }
 }
 
