@@ -174,6 +174,7 @@ async function putListEntry (entry_id, type, data_fields) {
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
         }).then(await setTimeout(100)); // avoid rate-limit;
+        response.data.comments = he.decode(response.data.comments); // decode comments
         return response.data; // updated entry
     } catch (error) {
         throw error;
