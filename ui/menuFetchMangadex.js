@@ -1,4 +1,4 @@
-import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay } from "../helpers/functions.js";
+import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay, printMenuOptions, capitalFirstLetterString } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
@@ -20,15 +20,13 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
-        console.log('\n||\n|| Custom fetch Mangadex\n||');
-        console.log('|| 0 -> Fetch with options');
-        console.log('|| 1 -> Change options');
-        console.log('|| 2 -> Filter MAL titles');
-        console.log('|| 3 -> Reset default options');
-        console.log(`|| 4 -> Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`);
-        console.log('||\n|| e -> Go back\n||');
+        // logs menu
+        printMenuOptions(
+            'Custom fetch Mangadex',
+            ['Fetch with options', 'Change options', 'Filter MAL titles', 'Reset default options', `Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`, '_']
+        );
 
-        m = await takeUserInput(); // get user input
+        m = await takeUserInput(true); // get user input
 
         switch (m)
         {
@@ -136,13 +134,12 @@ async function fetchOptionsMenu (options) {
         customFetchMangadexDisplay(options);
 
         // lists options that can be changed 
-        console.log('\n||\n|| Change fetch options:\n||');
-        console.log('|| 0 -> Manga options');
-        console.log(`|| 1 -> Chapter options`);
-        console.log('|| 2 -> Content ratings');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            'Change fetch options',
+            ['Manga options', 'Chapter options', 'Content ratings', '_']
+        );
 
-        m = await takeUserInput(); // get user input
+        m = await takeUserInput(true); // get user input
         
         if (m === MANGAFETCH) { // manga fetch options
             await mangaOptionsMenu(options);
@@ -165,10 +162,11 @@ async function mangaOptionsMenu (options) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
-        console.log('\n||\n|| Manga options:\n||');
-        console.log('|| 0 -> Manga fetch size');
-        console.log('|| 1 -> Manga order');
-        console.log('||\n|| e -> Go back\n||');
+        // logs menu
+        printMenuOptions(
+            'Manga options',
+            ['Manga fetch size', 'Manga order', '_']
+        );
 
         m = await takeUserInput(); // get user input
         
@@ -190,9 +188,12 @@ async function optionMangaLimit (options) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
         
-        console.log(`\n||\n|| Manga fetch size:\n||`);
-        console.log('|| ? -> Input a value between 0-100');
-        console.log('||\n|| e -> Go back\n||');
+        // logs menu
+        printMenuOptions(
+            'Manga fetch size',
+            null,
+            [{'?': 'Input a value between 0-100'}, '_']
+        );
 
         m = await takeUserInput(); // get user input
 
@@ -210,29 +211,27 @@ async function optionMangaLimit (options) {
 async function optionMangaOrder (options) {
     let m = 0;
 
+    // order types: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
+    // order directions: 'asc', 'desc'    
+
     while (m !== 'e') 
     {
-        // order types: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
-        // order directions: 'asc', 'desc'
-        let index = 0; 
-
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
-        console.log('\n||\n|| Manga order:\n||');
-        // go through all types
-        Object.keys(mangaOrderTypes).forEach((orderType) => {
-            console.log(`|| ${index++} -> ${orderType.at(0).toUpperCase() + orderType.slice(1)}`); // first letter to uppercase
-        });
-        console.log(`|| ${index} -> Toggle direction`); 
-        console.log('||\n|| e -> Go back\n||');
+        // print order types
+        printMenuOptions(
+            'Manga order',
+            [...Object.keys(mangaOrderTypes).map(orderType => capitalFirstLetterString(orderType)), '_'],
+            [{'t': 'Toggle direction'}]
+        );
 
         m = await takeUserInput(); // get user input 
 
         // handle user choice
-        if (m >= 0 && m <= index - 1) { // selected type option
+        if (m >= 0 && m < Object.keys(mangaOrderTypes).length) { // selected type option
             options.mangaOrderType = Object.keys(mangaOrderTypes)[m];
-        } else if (m === index) { // toggle order direction -- highest selectable index
+        } else if (m === 't') { // toggle order direction -- highest selectable index
             if (options.mangaOrderDirection === 'asc') options.mangaOrderDirection = 'desc';
             else options.mangaOrderDirection = 'asc';
         } else if (m !== 'e') { // invalid input
@@ -259,16 +258,12 @@ async function chapterOptionsMenu (options) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
-        console.log('\n||\n|| Chapter options:\n||');
-        if (!options.fetchAllChapters) {
-            console.log('|| 0 -> Chapter fetch size');
-            console.log('|| 1 -> Chapter order');
-            console.log('|| 2 -> Chapter offset');
-            console.log('|| 3 -> Chapter languages');
-        } else {
-            console.log('|| 0 -> Chapter languages');
-        }
-        console.log('||\n|| e -> Go back\n||');
+        // print menu options
+        printMenuOptions(
+            'Chapter options',
+            (!options.fetchAllChapters ? ['Chapter fetch size', 'Chapter order', 'Chapter offset', 'Chapter languages', '_'] : 
+                                         ['Chapter languages', '_'])
+        );
 
         m = await takeUserInput(); // get user input
 
@@ -294,9 +289,12 @@ async function optionChapterLimit (options) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
         
-        console.log(`\n||\n|| Chapter fetch size:\n||`);
-        console.log('|| ? -> Input a value between 0-100');
-        console.log('||\n|| e -> Go back\n||');
+        // print menu
+        printMenuOptions(
+            'Chapter fetch size',
+            null,
+            [{'?': 'Input a value between 0-100'}, '_']
+        );
 
         m = await takeUserInput(); // get user input
 
@@ -314,29 +312,27 @@ async function optionChapterLimit (options) {
 async function optionChapterOrder (options) {
     let m = 0;
 
+    // order types: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
+    // order directions: 'asc', 'desc'
+
     while (m !== 'e') 
     {
-        // order types: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
-        // order directions: 'asc', 'desc'
-        let index = 0; 
-
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
-        console.log('\n||\n|| Chapter order:\n||');
-        // go through all types
-        Object.keys(chapterOrderTypes).forEach((orderType) => {
-            console.log(`|| ${index++} -> ${orderType.at(0).toUpperCase() + orderType.slice(1)}`); // first letter to uppercase
-        });
-        console.log(`|| ${index} -> Toggle direction`); 
-        console.log('||\n|| e -> Go back\n||');
+        // print order types
+        printMenuOptions(
+            'Chapter order',
+            [...Object.keys(chapterOrderTypes).map(orderType => capitalFirstLetterString(orderType)), '_'],
+            [{'t': 'Toggle direction'}]
+        );
 
         m = await takeUserInput(); // get user input 
 
         // handle user choice
-        if (m >= 0 && m <= index - 1) { // selected type option
+        if (m >= 0 && m < Object.keys(chapterOrderTypes).length) { // selected type option
             options.chapterOrderType = Object.keys(chapterOrderTypes)[m];
-        } else if (m === index) { // toggle order direction -- highest selectable index
+        } else if (m === 't') { // toggle order direction -- highest selectable index
             if (options.chapterOrderDirection === 'asc') options.chapterOrderDirection = 'desc';
             else options.chapterOrderDirection = 'asc';
         } else if (m !== 'e') { // invalid input
@@ -360,9 +356,11 @@ async function optionChapterOffset (options) {
         // therefore maxOffset can be at maximum the difference of 10000 and limit_chapter 
         const maxOffset = 10000 - options.limit_chapter; 
 
-        console.log(`\n||\n|| Chapter offset:\n||`);
-        console.log(`|| ? -> Input a value between 0-${maxOffset}`);
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            'Chapter offset',
+            null,
+            [{'?': `Input a value between 0-${maxOffset}`}, '_']
+        );
 
         m = await takeUserInput(); // get user input
 
@@ -380,31 +378,34 @@ async function optionChapterOffset (options) {
 async function optionChapterLanguages (options) {
     let m = 0;
 
-    while (m !== 'e') 
-    {
-        // logs currently selected options
-        customFetchMangadexDisplay(options);
-        /*
+    /*
         When changing the option for chapterTranslatedLanguage the user has two options:
         
         1. Select from one of the pre-defined language options by inputting 
             the corresponding number next to desired option
 
             e.g. || 0 -> en
-                    || 1 -> pl
+                 || 1 -> pl
         
         2. Input a custom language code option in one of two formats
 
             'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
-        */
-        console.log(`\n||\n|| Select chapter languages (or enter custom code)\n||`);
-        chapterTranslatedLanguages.forEach((language, index) => { 
-            console.log(`|| ${index} -> ${language.at(0).toUpperCase() + language.slice(1)}`); // first letter to uppercase
-        });
-        console.log(`||\n|| c -> Clear filters`);
-        console.log('|| e -> Go back\n||');
+    */
+
+    while (m !== 'e') 
+    {
+        // logs currently selected options
+        customFetchMangadexDisplay(options);
+        
+        // print selectable languages
+        printMenuOptions(
+            'Select chapter languages (or enter custom code)',
+            [...chapterTranslatedLanguages.map(lang => capitalFirstLetterString(lang)), '_'],
+            [{'c': 'Clear filters'}]
+        );
 
         m = await takeUserInput(); // get user input
+
         // regex tests for manually inputted language codes and allows:
         // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
         const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
@@ -432,13 +433,12 @@ async function optionContentRatings (options) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
-        console.log(`\n||\n|| Choose content ratings\n||`);
-        contentRatings.forEach((contentRating, index) => {
-            console.log(`|| ${index} -> ${contentRating.at(0).toUpperCase() + contentRating.slice(1)}`); // first letter to uppercase
-        });
-        console.log(`|| ${contentRatings.length} -> Select all`);
-        console.log(`||\n|| c -> Clear ratings`);
-        console.log('|| e -> Go back\n||');
+        // log content ratings
+        printMenuOptions(
+            'Choose content ratings',
+            [...contentRatings.map(contentRating => capitalFirstLetterString(contentRating)), 'Select all', '_'],
+            [{'c': 'Clear ratings'}]
+        );
 
         m = await takeUserInput(); // get user input
 
