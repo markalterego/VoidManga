@@ -4,7 +4,7 @@ An interactive Node.js CLI application that can be used to update your Anime- an
 
 ## Requirements
 
-- Developed and tested on Windows. Linux/Mac should work but is untested.
+- Developed and tested on Windows. Linux/Mac should work but is untested
 - Node.js: https://nodejs.org/en/download
 - A MyAnimeList account
 
@@ -12,8 +12,8 @@ An interactive Node.js CLI application that can be used to update your Anime- an
 
 1. Clone or download repository
 2. Start the app:
-- Windows: Run `VoidManga.bat`. 
-- Linux/Mac (untested): Run `npm install` then `node main.js` at project directory.
+- Windows: Run `VoidManga.bat`
+- Linux/Mac (untested): Run `npm install` then `node main.js` at project directory
 
 ## Setup - MyAnimeList API Key
 
