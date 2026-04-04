@@ -1,6 +1,5 @@
 import { menuMAL } from "./menuMAL.js";
 import { filehandle, writeEnv } from "../filehandling/filehandle.js";
-import { testFetching } from "../fetch/testFetching.js";
 import { takeUserInput } from "../helpers/functions.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
