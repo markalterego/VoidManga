@@ -1,6 +1,6 @@
 # VoidManga
 
-An interactive Node.js CLI application for Windows that can be used to update your Anime- and Mangalist at MyAnimeList and fetch manga/chapter info from MangaDex.
+An interactive Node.js CLI application that can be used to update your Anime- and Mangalist at MyAnimeList and fetch manga/chapter info from MangaDex.
 
 ## Requirements
 
@@ -11,7 +11,9 @@ An interactive Node.js CLI application for Windows that can be used to update yo
 ## Setup - Download & Install
 
 1. Clone or download repository
-2. Windows: Run `VoidManga.bat` to start the app. Linux/Mac: manually run `npm install` then `node main.js` at project directory.
+2. Start the app:
+- Windows: Run `VoidManga.bat`. 
+- Linux/Mac (untested): Run `npm install` then `node main.js` at project directory.
 
 ## Setup - MyAnimeList API Key
 
