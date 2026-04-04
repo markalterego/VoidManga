@@ -1,6 +1,6 @@
 import { menuMAL } from "./menuMAL.js";
 import { filehandle, writeEnv } from "../filehandling/filehandle.js";
-import { takeUserInput } from "../helpers/functions.js";
+import { printMenuOptions, takeUserInput } from "../helpers/functions.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
@@ -25,12 +25,11 @@ async function rootMenu() {
     
     while (m !== 'e') 
     {
-        console.log('\n||\n|| What would you like to do?\n||');
-        console.log('|| 0 -> MyAnimeList');
-        console.log('|| 1 -> Log Mangadex');
-        console.log(`|| 2 -> Fetch Mangadex`);
-        console.log('||\n|| s -> Settings');
-        console.log('|| e -> Exit\n||');
+        printMenuOptions(
+            'What would you like to do?',
+            ['MyAnimeList', 'Log Mangadex', 'Fetch Mangadex', '_'],
+            [{'s': 'Settings'}]
+        );
 
         m = await takeUserInput(); // get user input
 
@@ -68,10 +67,10 @@ async function settingsMenu() {
 
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Settings\n||');
-        console.log(`|| 0 -> Update MAL_API_CLIENT_ID`);
-        console.log(`|| 1 -> Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`);
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            'Settings',
+            ['Update MAL_API_CLIENT_ID', `Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`, '_']
+        );
 
         m = await takeUserInput(); // get user input
 
@@ -97,9 +96,11 @@ async function updateAPIKeyMenu () {
     
     while (m !== 'e') 
     {
-        console.log('\n||\n|| Input MAL_API_CLIENT_ID\n||');
-        console.log('|| ? -> https://myanimelist.net/apiconfig');
-        console.log('||\n|| e -> Go Back\n||');
+        printMenuOptions(
+            'Input MAL_API_CLIENT_ID',
+            null,
+            [{'?': 'https://myanimelist.net/apiconfig'}, '_']
+        );
         
         m = await takeUserInput(); // get user input
 
