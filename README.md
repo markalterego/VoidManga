@@ -4,14 +4,14 @@ An interactive Node.js CLI application for Windows that can be used to update yo
 
 ## Requirements
 
-- Windows
+- Developed and tested on Windows. Linux/Mac should work but is untested.
 - Node.js: https://nodejs.org/en/download
 - A MyAnimeList account
 
 ## Setup - Download & Install
 
 1. Clone or download repository
-2. Run `VoidManga.bat` to start the app (or manually run `npm install` then `node main.js` at project directory)
+2. Windows: Run `VoidManga.bat` to start the app. Linux/Mac: manually run `npm install` then `node main.js` at project directory.
 
 ## Setup - MyAnimeList API Key
 
