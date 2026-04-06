@@ -601,7 +601,7 @@ async function searchListsByTitleMenu() {
             [{'?': 'Input title'}, '_']
         );
 
-        m = await takeUserInput(false); // take user input
+        m = await takeUserInput(false, true); // take user input
         
         if (typeof m === 'string') {
             console.log('\n||\n|| This has not been implemented yet (sowwy... </3)\n||');
