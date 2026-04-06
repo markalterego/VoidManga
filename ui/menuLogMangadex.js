@@ -1,5 +1,6 @@
 import open from 'open';
-import { takeUserInput, menuLogMangadexMangaDisplay, menuLogMangadexChapterDisplay, capitalFirstLetterString, longStringToArray } from '../helpers/functions.js';
+import { takeUserInput, menuLogMangadexMangaDisplay, menuLogMangadexChapterDisplay, capitalFirstLetterString, 
+         longStringToArray, printMenuOptions } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
 
 // TODO:
@@ -127,14 +128,13 @@ async function mangaOptionsMenu (selectedManga) {
     while (m !== 'e') 
     {
         const title = Object.values(selectedManga.manga.attributes.title)[0]; // first title of titles
-        console.log(`\n||\n|| Select an option for ${title}\n||`);
-        console.log('|| 0 -> Log manga data');
-        console.log('|| 1 -> Log MAL progress');
-        console.log('|| 2 -> Traverse chapters');
-        console.log('|| 3 -> Search for chapter');
-        console.log('||\n|| e -> Go back\n||');
+        
+        printMenuOptions(
+            `Select an option for ${title}`,
+            ['Log manga data', 'Log MAL progress', 'Traverse chapters', 'Search for chapter', '_']
+        );
 
-        m = await takeUserInput(); // get user input
+        m = await takeUserInput(true); // get user input
 
         if (m === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
@@ -305,14 +305,12 @@ async function findChapterOfManga (title, selectedManga) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Search ${title}\n||`);
-        console.log('|| 0 -> Next un-read chapter');
-        console.log('|| 1 -> Lowest chapter number');
-        console.log('|| 2 -> Highest chapter number');
-        console.log('|| 3 -> Specific chapter number');
-        console.log('||\n|| e -> Go back\n||');
+        printMenuOptions(
+            `Search ${title}`,
+            ['Next un-read chapter', 'Lowest chapter number', 'Highest chapter number', 'Specific chapter number', '_']
+        );
 
-        m = await takeUserInput();
+        m = await takeUserInput(true);
         
         if (m === NEXTUNREADCHAPTER) {
             const foundChapter = findNextUnreadChapter(selectedManga);
@@ -371,8 +369,10 @@ async function findChapterByChapterNumber (chapters, manga) {
 
     while (m !== 'e') 
     {
-        console.log(`\n||\n|| Input a chapter number:\n||`);
-        console.log('|| e -> Go back\n||');
+        printMenuOptions(
+            'Input a chapter number:',
+            []
+        );
 
         m = await takeUserInput();
         
@@ -395,18 +395,19 @@ async function chapterOptionsMenu (selectedChapter, manga) {
 
     while (m !== 'e') 
     {
-        const chapterTitle = selectedChapter.attributes.title ? selectedChapter.attributes.title : ''; // title
-        const chNum = selectedChapter.attributes.chapter !== null ? selectedChapter.attributes.chapter : -1; // chapter number 
-        const vlNum = selectedChapter.attributes.volume !== null ? selectedChapter.attributes.volume : -1; // volume number
-        const transLang = selectedChapter.attributes.translatedLanguage ? selectedChapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
+        const attributes = selectedChapter.attributes; // chapter attributes
+        const chapterTitle = attributes.title ? attributes.title : ''; // title
+        const chNum = attributes.chapter !== null ? attributes.chapter : -1; // chapter number 
+        const vlNum = attributes.volume !== null ? attributes.volume : -1; // volume number
+        const transLang = attributes.translatedLanguage ? attributes.translatedLanguage : 'No Translated Language'; // translated language
         const mangaTitle = Object.values(manga.attributes.title)[0]; // title
         const formattedTitle = `${chapterTitle.length > 0 ? chapterTitle.trim() : mangaTitle.trim() }${chNum >= 0 ? ` (ch: ${chNum})` : (vlNum >= 0 ? ` (vol: ${vlNum})` : '' )}${transLang.length > 0 ? ` (${transLang})` : ''}`;
-        console.log(`\n||\n|| ${formattedTitle}\n||`);
-        console.log('|| 0 -> Log chapter data');
-        console.log('|| 1 -> Open chapter in browser');
-        console.log('|| 2 -> Find manga at lists');
-        console.log('||\n|| e -> Go back\n||');
-
+        
+        printMenuOptions(
+            formattedTitle,
+            ['Log chapter data', 'Open chapter in browser', 'Find manga at lists', '_']
+        );
+        
         m = await takeUserInput(); // get user input
 
         if (m === LOGDATA) {
