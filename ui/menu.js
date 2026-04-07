@@ -9,9 +9,9 @@ let lists = null; // holds animelist and mangalist, more info regarding syntax a
 let config = null; // holds user specific options
 let mangadexData = null; // holds mangas and chapters fetched from Mangadex
 
-async function menu (l, c, m) {
+async function menu (l, c, input) {
     try {
-        lists = l, config = c, mangadexData = m; // assigning lists, config and mangadexData
+        lists = l, config = c, mangadexData = input; // assigning lists, config and mangadexData
         await rootMenu(); // displays rootMenu
     } catch (error) {
         if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
@@ -21,9 +21,9 @@ async function menu (l, c, m) {
 
 async function rootMenu() {
     const MYANIMELIST = 0, LOGMANGADEX = 1, FETCHMANGADEX = 2;
-    let m = 0; 
+    let input = 0; 
     
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'What would you like to do?',
@@ -31,9 +31,9 @@ async function rootMenu() {
             [{'s': 'Settings'}]
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
-        switch (m) 
+        switch (input) 
         {
             case MYANIMELIST: 
                 lists = await menuMAL(lists, config); // menuMAL options
@@ -60,21 +60,21 @@ async function rootMenu() {
 
 async function settingsMenu() {
     const UPDATEMALAPIKEY = 0, FETCHMALONMENUOPEN = 1;
-    let m = 0;
+    let input = 0;
     
     // TODO: 
     // - make an option for clearing all MAL/Mangadex data
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'Settings',
             ['Update MAL_API_CLIENT_ID', `Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`, '_']
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
-        switch (m) 
+        switch (input) 
         {
             case UPDATEMALAPIKEY:
                 await updateAPIKeyMenu();
@@ -92,9 +92,9 @@ async function settingsMenu() {
 }
 
 async function updateAPIKeyMenu () {
-    let m = 0;
+    let input = 0;
     
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'Input MAL_API_CLIENT_ID',
@@ -102,14 +102,14 @@ async function updateAPIKeyMenu () {
             [{'?': 'https://myanimelist.net/apiconfig'}, '_']
         );
         
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
-        const isValidAPIKey = (typeof m === 'string' && m.length === 32); // API key expected length is 32 characters
+        const isValidAPIKey = (typeof input === 'string' && input.length === 32); // API key expected length is 32 characters
 
         if (isValidAPIKey) {
-            writeEnv({ MAL_API_CLIENT_ID: m }, true); // write MAL_API_CLIENT_ID to .env
+            writeEnv({ MAL_API_CLIENT_ID: input }, true); // write MAL_API_CLIENT_ID to .env
             console.log('\n||\n|| MAL_API_CLIENT_ID updated successfully\n||');
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n||\n|| MAL_API_CLIENT_ID needs to be 32 characters in length\n||');
         }
     }

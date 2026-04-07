@@ -7,12 +7,12 @@ import { filehandle } from "../filehandling/filehandle.js";
 
 async function menuFetchMangadex (lists, config, mangadexData) {
     const options = config.fetchMangadexOptions;
-    let m = 0;
+    let input = 0;
 
     // TODO: 
     // - log to user how much stuff was fetched etc... after a succesful fetch
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected MAL titles to be used in fetch
         menuFetchFiltersDisplay(lists, 'includeInMangadexFetch');
@@ -26,9 +26,9 @@ async function menuFetchMangadex (lists, config, mangadexData) {
             ['Fetch with options', 'Change options', 'Filter MAL titles', 'Reset default options', `Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`, '_']
         );
 
-        m = await takeUserInput(true); // get user input
+        input = await takeUserInput(true); // get user input
 
-        switch (m)
+        switch (input)
         {
             case 0: // fetching with given options
                 await fetchWithOptions(lists, options, mangadexData);
@@ -126,9 +126,9 @@ function anySelectedTitles (lists) {
 
 async function fetchOptionsMenu (options) {
     const MANGAFETCH = 0, CHAPTERFETCH = 1, CHANGECONTENTRATING = 2;
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -139,15 +139,15 @@ async function fetchOptionsMenu (options) {
             ['Manga options', 'Chapter options', 'Content ratings', '_']
         );
 
-        m = await takeUserInput(true); // get user input
+        input = await takeUserInput(true); // get user input
         
-        if (m === MANGAFETCH) { // manga fetch options
+        if (input === MANGAFETCH) { // manga fetch options
             await mangaOptionsMenu(options);
-        } else if (m === CHAPTERFETCH) { // chapter fetch options
+        } else if (input === CHAPTERFETCH) { // chapter fetch options
             await chapterOptionsMenu(options);
-        } else if (m === CHANGECONTENTRATING) { // change content ratings (manga && chapter both use the same content rating option)
+        } else if (input === CHANGECONTENTRATING) { // change content ratings (manga && chapter both use the same content rating option)
             await optionContentRatings(options);
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option'); // invalid input
         }
     }
@@ -155,9 +155,9 @@ async function fetchOptionsMenu (options) {
 
 async function mangaOptionsMenu (options) {
     const MANGAFETCHSIZE = 0, MANGAORDER = 1;
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -168,22 +168,22 @@ async function mangaOptionsMenu (options) {
             ['Manga fetch size', 'Manga order', '_']
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
         
-        if (m === MANGAFETCHSIZE) { // limit_manga
+        if (input === MANGAFETCHSIZE) { // limit_manga
             await optionMangaLimit(options);
-        } else if (m === MANGAORDER) { // mangaOrderType && mangaOrderDirection
+        } else if (input === MANGAORDER) { // mangaOrderType && mangaOrderDirection
             await optionMangaOrder(options);
-        } else if (m !== 'e') { // invalid input
+        } else if (input !== 'e') { // invalid input
             console.log('\n|| Please input a valid option')
         }
     }
 }
 
 async function optionMangaLimit (options) {
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -195,26 +195,26 @@ async function optionMangaLimit (options) {
             [{'?': 'Input a value between 0-100'}, '_']
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
         // setting the given option
-        if (m >= 0 && m <= 100) {
-            options.limit_manga = m;
-        } else if (m > 100 || m < 0) {
+        if (input >= 0 && input <= 100) {
+            options.limit_manga = input;
+        } else if (input > 100 || input < 0) {
             console.log('\n|| The given value has to be be between 0-100');
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
 async function optionMangaOrder (options) {
-    let m = 0;
+    let input = 0;
 
     // order types: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
     // order directions: 'asc', 'desc'    
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -226,15 +226,15 @@ async function optionMangaOrder (options) {
             [{'t': 'Toggle direction'}]
         );
 
-        m = await takeUserInput(); // get user input 
+        input = await takeUserInput(); // get user input 
 
         // handle user choice
-        if (m >= 0 && m < Object.keys(mangaOrderTypes).length) { // selected type option
-            options.mangaOrderType = Object.keys(mangaOrderTypes)[m];
-        } else if (m === 't') { // toggle order direction -- highest selectable index
+        if (input >= 0 && input < Object.keys(mangaOrderTypes).length) { // selected type option
+            options.mangaOrderType = Object.keys(mangaOrderTypes)[input];
+        } else if (input === 't') { // toggle order direction -- highest selectable index
             if (options.mangaOrderDirection === 'asc') options.mangaOrderDirection = 'desc';
             else options.mangaOrderDirection = 'asc';
-        } else if (m !== 'e') { // invalid input
+        } else if (input !== 'e') { // invalid input
             console.log('\n|| Please input a valid option'); // invalid input
         }
     }
@@ -245,7 +245,7 @@ async function chapterOptionsMenu (options) {
           CHAPTERORDER = options.fetchAllChapters ? null : 1, 
           CHAPTEROFFSET = options.fetchAllChapters ? null : 2, 
           CHAPTERLANGUAGES = options.fetchAllChapters ? 0 : 3;
-    let m = 0;
+    let input = 0;
 
     // some menu options are hidden + made inaccessible on purpose
     // when the user has set options.fetchAllChapters = true, as the 
@@ -253,7 +253,7 @@ async function chapterOptionsMenu (options) {
     // offset_chapter are not used at all when fetching with options.fetchAllChapters
     // set to true
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -265,26 +265,26 @@ async function chapterOptionsMenu (options) {
                                          ['Chapter languages', '_'])
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
-        if (!options.fetchAllChapters && m === CHAPTERFETCHSIZE) { // limit_chapter
+        if (!options.fetchAllChapters && input === CHAPTERFETCHSIZE) { // limit_chapter
             await optionChapterLimit(options);
-        } else if (!options.fetchAllChapters && m === CHAPTERORDER) { // chapterOrderType && chapterOrderDirection
+        } else if (!options.fetchAllChapters && input === CHAPTERORDER) { // chapterOrderType && chapterOrderDirection
             await optionChapterOrder(options);
-        } else if (!options.fetchAllChapters && m === CHAPTEROFFSET) { // offset_chapter
+        } else if (!options.fetchAllChapters && input === CHAPTEROFFSET) { // offset_chapter
             await optionChapterOffset(options);
-        } else if (m === CHAPTERLANGUAGES) { // chapterTranslatedLanguage
+        } else if (input === CHAPTERLANGUAGES) { // chapterTranslatedLanguage
             await optionChapterLanguages(options);
-        } else if (m !== 'e') { // invalid input
+        } else if (input !== 'e') { // invalid input
             console.log('\n|| Please input a valid option')
         }
     }
 }
 
 async function optionChapterLimit (options) {
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -296,26 +296,26 @@ async function optionChapterLimit (options) {
             [{'?': 'Input a value between 0-100'}, '_']
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
         // setting the given option
-        if (m >= 0 && m <= 100) {
-            options.limit_chapter = m;
-        } else if (m > 100 || m < 0) {
+        if (input >= 0 && input <= 100) {
+            options.limit_chapter = input;
+        } else if (input > 100 || input < 0) {
             console.log('\n|| The given value has to be be between 0-100');
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
 async function optionChapterOrder (options) {
-    let m = 0;
+    let input = 0;
 
     // order types: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
     // order directions: 'asc', 'desc'
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -327,27 +327,27 @@ async function optionChapterOrder (options) {
             [{'t': 'Toggle direction'}]
         );
 
-        m = await takeUserInput(); // get user input 
+        input = await takeUserInput(); // get user input 
 
         // handle user choice
-        if (m >= 0 && m < Object.keys(chapterOrderTypes).length) { // selected type option
-            options.chapterOrderType = Object.keys(chapterOrderTypes)[m];
-        } else if (m === 't') { // toggle order direction -- highest selectable index
+        if (input >= 0 && input < Object.keys(chapterOrderTypes).length) { // selected type option
+            options.chapterOrderType = Object.keys(chapterOrderTypes)[input];
+        } else if (input === 't') { // toggle order direction -- highest selectable index
             if (options.chapterOrderDirection === 'asc') options.chapterOrderDirection = 'desc';
             else options.chapterOrderDirection = 'asc';
-        } else if (m !== 'e') { // invalid input
+        } else if (input !== 'e') { // invalid input
             console.log('\n|| Please input a valid option'); // invalid input
         }
     }
 }
 
 async function optionChapterOffset (options) {
-    let m = 0;
+    let input = 0;
 
     // TODO:
     // - make possible to add the current fetch size to offset by inputting e.g. 0/1
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -362,21 +362,21 @@ async function optionChapterOffset (options) {
             [{'?': `Input a value between 0-${maxOffset}`}, '_']
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
         // setting the given option
-        if (m >= 0 && m <= maxOffset) {
-            options.offset_chapter = m;
-        } else if (m < 0 || m > maxOffset) {
+        if (input >= 0 && input <= maxOffset) {
+            options.offset_chapter = input;
+        } else if (input < 0 || input > maxOffset) {
             console.log(`\n|| The given value has to be between 0 and ${maxOffset}`);
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     } 
 }
 
 async function optionChapterLanguages (options) {
-    let m = 0;
+    let input = 0;
 
     /*
         When changing the option for chapterTranslatedLanguage the user has two options:
@@ -392,7 +392,7 @@ async function optionChapterLanguages (options) {
             'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
     */
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -404,31 +404,31 @@ async function optionChapterLanguages (options) {
             [{'c': 'Clear filters'}]
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
         // regex tests for manually inputted language codes and allows:
         // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
-        const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // validating language code
+        const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(input); // validating language code
 
         // handling menu choice
-        if (m >= 0 && m < chapterTranslatedLanguages.length) { // pre-defined language options
-            options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[m]);
+        if (input >= 0 && input < chapterTranslatedLanguages.length) { // pre-defined language options
+            options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[input]);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
-        } else if (m === 'c') { // clear current translatedLanguage options 
+        } else if (input === 'c') { // clear current translatedLanguage options 
             options.chapterTranslatedLanguage = []; 
         } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
-            options.chapterTranslatedLanguage.push(m);
+            options.chapterTranslatedLanguage.push(input);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
 async function optionContentRatings (options) {
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // logs currently selected options
         customFetchMangadexDisplay(options);
@@ -440,26 +440,26 @@ async function optionContentRatings (options) {
             [{'c': 'Clear ratings'}]
         );
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
         // setting option / clearing options
-        if (m > -1 && m < contentRatings.length) {
-            options.contentRating.push(contentRatings[m]); 
+        if (input > -1 && input < contentRatings.length) {
+            options.contentRating.push(contentRatings[input]); 
             options.contentRating = [...new Set(options.contentRating)]; // get rid of duplicate values
-        } else if (m === contentRatings.length) {
+        } else if (input === contentRatings.length) {
             options.contentRating = [...contentRatings];
-        } else if (m === 'c') {
+        } else if (input === 'c') {
             options.contentRating = [];
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
 async function selectMangasFromFetchResults (mangaSearches) {
-    let m = 0, index = 0, highestSelectableIndex = 0, selectedMangas = [];
+    let input = 0, index = 0, highestSelectableIndex = 0, selectedMangas = [];
 
-    while (m !== 's' && m !== 'e') 
+    while (input !== 's' && input !== 'e') 
     {
         // log search results
         mangaSearches.forEach((mangaSearch, mangaSearchIndex) => {
@@ -503,14 +503,14 @@ async function selectMangasFromFetchResults (mangaSearches) {
         console.log('|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
         
         // handle user choice
-        if (m >= 0 && m <= highestSelectableIndex) { // adding to search
+        if (input >= 0 && input <= highestSelectableIndex) { // adding to search
             mangaSearches.forEach((mangaSearch) => { // manga search
                 const searchResults = mangaSearch.searchResults;
                 searchResults.forEach((searchResult) => { // results for search
-                    if (index === m) { // index matches user given choice
+                    if (index === input) { // index matches user given choice
                         const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
                         if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
                     }
@@ -518,12 +518,12 @@ async function selectMangasFromFetchResults (mangaSearches) {
                 }); 
             });
             index = 0;
-        } else if (m === 's') { 
+        } else if (input === 's') { 
             if (selectedMangas.length === 0) {
                 console.log('\n||\n|| Select at least one title to perform a search\n||');
-                m = 0;
+                input = 0;
             }
-        } else if (m === 'p') { // select all perfect matches
+        } else if (input === 'p') { // select all perfect matches
             mangaSearches.forEach((mangaSearch) => {
                 const searchResults = mangaSearch.searchResults;
                 searchResults.forEach((searchResult) => {
@@ -536,7 +536,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
                     }
                 });
             }); 
-        } else if (m === '+') {
+        } else if (input === '+') {
             // including all Manga titles to fetch
             mangaSearches.forEach((mangaSearch) => {
                 const searchResults = mangaSearch.searchResults;
@@ -545,7 +545,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
                     if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
                 });
             });
-        } else if (m === '-' || m === 'e') { // clear current selection
+        } else if (input === '-' || input === 'e') { // clear current selection
             selectedMangas = [];
         } else {
             console.log('\n|| Please input a valid option');

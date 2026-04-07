@@ -13,7 +13,7 @@ let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
 
 async function menuLogMangadex (mangadexData, l, config) {
-    let m = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
+    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
     options = config.logMangadexOptions, lists = l; 
 
     // TODO: 
@@ -22,10 +22,10 @@ async function menuLogMangadex (mangadexData, l, config) {
     // - make it so that if user inputs 'p21' the current page is set to '21' (consider
     //   making this a thing at traverseChapters as well) 
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // sort/filter mangadexData + update pageDetails
-        sortedMangas = m === 's' || m === 'h' || m === 'o' || m === 'f' || m === null ? sortMangas(mangadexData, pageDetails) : sortedMangas; 
+        sortedMangas = input === 's' || input === 'h' || input === 'o' || input === 'f' || input === null ? sortMangas(mangadexData, pageDetails) : sortedMangas; 
         // page mangas
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
@@ -40,46 +40,46 @@ async function menuLogMangadex (mangadexData, l, config) {
         if (options.enablePagingManga) console.log('|| ± -> Next/Previous page');
         console.log('|| e -> Go back\n||');
 
-        m = await takeUserInput(true); // get user input - true for whole numbers
+        input = await takeUserInput(true); // get user input - true for whole numbers
         
-        if (m >= 0 && m < pagedMangas.length) {
-            await mangaOptionsMenu(pagedMangas[m]); // input selected manga
-        } else if (m === 'f') { // filter mangas found at user's MAL mangalist
+        if (input >= 0 && input < pagedMangas.length) {
+            await mangaOptionsMenu(pagedMangas[input]); // input selected manga
+        } else if (input === 'f') { // filter mangas found at user's MAL mangalist
             if (options.filterByMangasFoundAtMangalist) options.filterByMangasFoundAtMangalist = false;
             else options.filterByMangasFoundAtMangalist = true;
-        } else if (m === 'h') { // toggle hide/show zero length manga
+        } else if (input === 'h') { // toggle hide/show zero length manga
             if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
             else options.hideZeroLengthManga = true;
-        } else if (m === 's') { // toggle ascending/descending
+        } else if (input === 's') { // toggle ascending/descending
             if (options.logMangaDirection === 'asc') options.logMangaDirection = 'desc';
             else options.logMangaDirection = 'asc';
-        } else if (m === 'o') { // order alphabetical/chapter count
+        } else if (input === 'o') { // order alphabetical/chapter count
             if (options.sortMangasAlphabetical) options.sortMangasAlphabetical = false;
             else options.sortMangasAlphabetical = true;
-        }  else if (m === 't') { // toggle paging on/off
+        }  else if (input === 't') { // toggle paging on/off
             if (options.enablePagingManga) options.enablePagingManga = false;
             else options.enablePagingManga = true;
-        } else if (m === '+') { // next page
+        } else if (input === '+') { // next page
             // if next page is not out of bounds
             if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
                 pageDetails.currentPageIndex++; // increment currentPage
             } 
-        } else if (m === '-') { // previous page
+        } else if (input === '-') { // previous page
             // if previous page is not out of bounds
             if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
                 pageDetails.currentPageIndex--; // decrement currentPage
             }
-        } else if (m === '++') { // last page
+        } else if (input === '++') { // last page
             // navigate to last page
             if (options.enablePagingManga && (sortedMangas.length / 10 > 0) ) {
                 pageDetails.currentPageIndex = pageDetails.lastPageIndex;
             }
-        } else if (m === '--') { // first page
+        } else if (input === '--') { // first page
             // navigate to first page
             if (options.enablePagingManga && (sortedMangas.length / 10 > 0) ) {
                 pageDetails.currentPageIndex = 0;
             }
-        } else if (m !== 'e') { 
+        } else if (input !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
     }    
@@ -123,9 +123,9 @@ function sortMangas (mangadexData, pageDetails) {
 
 async function mangaOptionsMenu (selectedManga) {
     const LOGDATA = 0, MALPROGRESS = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         const title = Object.values(selectedManga.manga.attributes.title)[0]; // first title of titles
         
@@ -134,17 +134,17 @@ async function mangaOptionsMenu (selectedManga) {
             ['Log manga data', 'Log MAL progress', 'Traverse chapters', 'Search for chapter', '_']
         );
 
-        m = await takeUserInput(true); // get user input
+        input = await takeUserInput(true); // get user input
 
-        if (m === LOGDATA) {
+        if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
-        } else if (m === MALPROGRESS) { 
+        } else if (input === MALPROGRESS) { 
             logSeriesProgress(selectedManga.manga);
-        } else if (m === TRAVERSECHAPTERS) { 
+        } else if (input === TRAVERSECHAPTERS) { 
             await traverseChapters(selectedManga); 
-        } else if (m === FINDCHAPTEROFMANGA) { 
+        } else if (input === FINDCHAPTEROFMANGA) { 
             await findChapterOfManga(title, selectedManga);
-        } else if (m !== 'e') { 
+        } else if (input !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
     }
@@ -152,9 +152,9 @@ async function mangaOptionsMenu (selectedManga) {
 
 async function traverseChapters (selectedManga) {
     const chapters = selectedManga.chapters;
-    let m = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
+    let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // reference to manga at mangalist
         const foundManga = findEntryAtLists(selectedManga.manga);
@@ -172,48 +172,48 @@ async function traverseChapters (selectedManga) {
         if (options.enablePagingChapter) console.log('|| ± -> Next/Previous page');
         console.log('|| e -> Go back\n||');
         
-        m = await takeUserInput(true); // get user input 
+        input = await takeUserInput(true); // get user input 
 
-        const isValidLangCode = /^[a-z]{2}(-[a-z]{2})?$/i.test(m); // test lang-code 
+        const isValidLangCode = /^[a-z]{2}(-[a-z]{2})?$/i.test(input); // test lang-code 
 
         // handle user input
-        if (m >= 0 && m < pagedChapters.length) { 
-            await chapterOptionsMenu(pagedChapters[m], selectedManga.manga);
-        } else if (m === 's') { // toggle SORTDIRECTION = asc/desc
+        if (input >= 0 && input < pagedChapters.length) { 
+            await chapterOptionsMenu(pagedChapters[input], selectedManga.manga);
+        } else if (input === 's') { // toggle SORTDIRECTION = asc/desc
             if (options.logChapterDirection === 'asc') options.logChapterDirection = 'desc';
             else options.logChapterDirection = 'asc';
-        } else if (m === 'h') { // toggle hide read chapters
+        } else if (input === 'h') { // toggle hide read chapters
             if (options.hideReadChapters) options.hideReadChapters = false;
             else options.hideReadChapters = true;
-        } else if (m === 'l') { // clear lang-codes
+        } else if (input === 'l') { // clear lang-codes
             options.filterChapterLanguages = [];
         } else if (isValidLangCode) { // add lang-code
-            options.filterChapterLanguages.push(m); // add lang-code
+            options.filterChapterLanguages.push(input); // add lang-code
             options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
-        } else if (m === 't') { // toggle paging on/off
+        } else if (input === 't') { // toggle paging on/off
             if (options.enablePagingChapter) options.enablePagingChapter = false;
             else options.enablePagingChapter = true;
-        } else if (m === '+') { // next page
+        } else if (input === '+') { // next page
             // if next page is not out of bounds
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
                 pageDetails.currentPageIndex++; // increment currentPage
             } 
-        } else if (m === '-') { // previous page
+        } else if (input === '-') { // previous page
             // if previous page is not out of bounds
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
                 pageDetails.currentPageIndex--; // decrement currentPage
             }
-        } else if (m === '++') { // last page
+        } else if (input === '++') { // last page
             // navigate to last page
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0)) {
                 pageDetails.currentPageIndex = pageDetails.lastPageIndex;
             }
-        } else if (m === '--') { // first page
+        } else if (input === '--') { // first page
             // navigate to first page
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0)) {
                 pageDetails.currentPageIndex = 0;
             }
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -296,34 +296,34 @@ function logSeriesProgress (manga) {
 
 async function findChapterOfManga (title, selectedManga) {
     const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3; 
-    let m = 0; 
+    let input = 0; 
 
     // TODO: 
     // - if multiple chapters found, give user the option to pick a specific one
     //   e.g. could try something like if multiple chapters found, run traverseChapters
     //   with the array of found chapters etc...
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Search ${title}`,
             ['Next un-read chapter', 'Lowest chapter number', 'Highest chapter number', 'Specific chapter number', '_']
         );
 
-        m = await takeUserInput(true);
+        input = await takeUserInput(true);
         
-        if (m === NEXTUNREADCHAPTER) {
+        if (input === NEXTUNREADCHAPTER) {
             const foundChapter = findNextUnreadChapter(selectedManga);
             if (foundChapter) await chapterOptionsMenu(foundChapter, selectedManga.manga);
-        } else if (m === LOWESTCHAPTER) {
+        } else if (input === LOWESTCHAPTER) {
             const foundChapter = findLowestChapterNumber(selectedManga.chapters);
             if (foundChapter) await chapterOptionsMenu(foundChapter, selectedManga.manga);
-        } else if (m === HIGHESTCHAPTER) {
+        } else if (input === HIGHESTCHAPTER) {
             const foundChapter = findHighestChapterNumber(selectedManga.chapters);
             if (foundChapter) await chapterOptionsMenu(foundChapter, selectedManga.manga);
-        } else if (m === SPECIFICCHAPTER) {
+        } else if (input === SPECIFICCHAPTER) {
             await findChapterByChapterNumber(selectedManga.chapters, selectedManga.manga);
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -365,25 +365,25 @@ function findHighestChapterNumber (chapters) {
 }
 
 async function findChapterByChapterNumber (chapters, manga) {
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'Input a chapter number:',
             []
         );
 
-        m = await takeUserInput();
+        input = await takeUserInput();
         
-        if (m >= 0) {
-            const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === m); // trying to find given chapter number
+        if (input >= 0) {
+            const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === input); // trying to find given chapter number
             if (!foundChapter) {
                 console.log('\n||\n|| Given chapter was not found\n||');
             } else {
                 await chapterOptionsMenu(foundChapter, manga);
             }
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -391,9 +391,9 @@ async function findChapterByChapterNumber (chapters, manga) {
 
 async function chapterOptionsMenu (selectedChapter, manga) {
     const LOGDATA = 0, OPENINBROWSER = 1, OPENATLISTS = 2;
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         const attributes = selectedChapter.attributes; // chapter attributes
         const chapterTitle = attributes.title ? attributes.title : ''; // title
@@ -408,22 +408,22 @@ async function chapterOptionsMenu (selectedChapter, manga) {
             ['Log chapter data', 'Open chapter in browser', 'Find manga at lists', '_']
         );
         
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
-        if (m === LOGDATA) {
+        if (input === LOGDATA) {
             const dataTitle = `${mangaTitle} ${chNum >= 0 ? `(ch: ${chNum})` : // chNum for context
                                 (vlNum >= 0 ? `(vol: ${vlNum})` : '' )}`;       // log neither volume nor chapter// vlNum for context
             await logDataDeepMenu(selectedChapter, dataTitle, true);
-        } else if (m === OPENINBROWSER) {
+        } else if (input === OPENINBROWSER) {
             await open(selectedChapter.link); 
-        } else if (m === OPENATLISTS) {
+        } else if (input === OPENATLISTS) {
             const mangaEntry = findEntryAtLists(manga);
             if (!mangaEntry) {
                 console.log('\n||\n|| Manga is not in your lists\n||');
             } else {
                 await updateEntryMenu(mangaEntry, lists);
             }
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -436,13 +436,13 @@ function findEntryAtLists (manga) {
 }
 
 async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSkipSorting) {
-    let m = 0;
+    let input = 0;
 
     if (!forceSkipSorting && sortByKeysAlphabetical) {
         data = sortObjectByKeysAlphabetical(data, 'asc'); // sort by keys a-z
     }
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {   
         let index = 0;
         console.log(`\n||\n|| LOG - ${capitalFirstLetterString(dataTitle)}\n||`);
@@ -456,7 +456,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
         console.log('||\n|| e -> Go back\n||');
         const highestSelectableIndex = index - 1;
         
-        m = await takeUserInput(true); // get user input
+        input = await takeUserInput(true); // get user input
 
         // 1. display selectable keys of data
         // 2. handle user input
@@ -465,11 +465,11 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
         //    - else if data[selected] is array of primitives, log --> key\n -value\n -value etc...
         //    - else data[selected] is array of object(s) / object of objects, call function again with data[selected]
 
-        if (m >= 0 && m <= highestSelectableIndex) { 
-            // data[m] is an object: 
-            // -> key = key of data[m]
-            // -> value = value of data[m]
-            const key = Object.keys(data)[m], value = Object.values(data)[m]; 
+        if (input >= 0 && input <= highestSelectableIndex) { 
+            // data[input] is an object: 
+            // -> key = key of data[input]
+            // -> value = value of data[input]
+            const key = Object.keys(data)[input], value = Object.values(data)[input]; 
             const dataTypeOfValue = getDataTypeOfValue(value);
             if (!dataTypeOfValue) { // unknown datatype of value
                 console.log('\n||\n|| Data type of value couldn\'t be resolved\n||')
@@ -484,7 +484,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
                 const object = isFlattenable ? flattenArrayOfObjects(value) : reformatArrayObjectsToObject(value, key);
                 await logDataDeepMenu(object, key, isFlattenable, forceSkipSorting); // isFlattenable triggers alphabetical sorting if true
             }
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -607,14 +607,14 @@ function sortObjectByKeysAlphabetical (object, direction) {
 }
 
 async function openChaptersInBrowserMenu (fetchResults) {
-    let m = null;
+    let input = null;
     // console.dir(fetchResults, {depth: null});
 
     // TODO:
     // - consider formatting stuff earlier in code e.g. separate formatting function
     //   for taking first mangatitle's etc.etc.....
 
-    while (m !== 'e') {   
+    while (input !== 'e') {   
         console.log('\n||\n|| Open chapter in browser:');
         let searchIndex = 0, selectableIndex = 0; // used for formatting
         for (const search of fetchResults) {
@@ -635,20 +635,20 @@ async function openChaptersInBrowserMenu (fetchResults) {
         }
         console.log('\n||\n|| e -> Go back\n||');
         
-        m = await takeUserInput(); // get user input
+        input = await takeUserInput(); // get user input
 
         // handle user input
-        if (m >= 0 && m <= selectableIndex - 1) {
+        if (input >= 0 && input <= selectableIndex - 1) {
             let i = 0; 
             for (const search of fetchResults) { // searches
                 for (const chapter of search.chapters) { // chapters
-                    if (i === m) { // highest selectable index
+                    if (i === input) { // highest selectable index
                         await open(chapter.link) // open chapter in browser
                     }
                     i++;
                 }
             }
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }    
         selectableIndex = 0;
