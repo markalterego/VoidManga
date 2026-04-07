@@ -10,7 +10,7 @@ let lists, options;
 
 async function menuMAL (l, config) {
     const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_LISTS = 2, FETCHLISTS = 3;
-    let m = 0;
+    let input = 0;
     options = config.menuMALOptions; // reference to config.menuMALOptions
     
     if (!options.fetchMALOnMenuOpen) {
@@ -20,25 +20,25 @@ async function menuMAL (l, config) {
         filehandle('mal', lists);
     }
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'MyAnimeList options', 
             ['Anime list', 'Manga list', 'Search lists', 'Fetch lists', '_']
         );
 
-        m = await takeUserInput(true); // take userInput whole numbers
+        input = await takeUserInput(true); // take userInput whole numbers
         
-        if (m === TRAVERSE_ANIME) {
+        if (input === TRAVERSE_ANIME) {
             await traverseStatus(ANIME); // anime list
-        } else if (m === TRAVERSE_MANGA) {
+        } else if (input === TRAVERSE_MANGA) {
             await traverseStatus(MANGA); // manga list
-        } else if (m === SEARCH_LISTS) {
+        } else if (input === SEARCH_LISTS) {
             await searchListsMenu(); // search lists
-        } else if (m === FETCHLISTS) {
+        } else if (input === FETCHLISTS) {
             lists = await fetchMAL(lists); // searches and returns MAL lists
             filehandle('mal', lists);
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -64,45 +64,45 @@ function formatListsToObject (lists_array) {
 
 async function traverseStatus (typeIndex) {
     const statuses = typeIndex === ANIME ? animeStatus : mangaStatus; // list of statuses for type
-    let m = 0; 
+    let input = 0; 
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Type: ${typeIndex === ANIME ? 'Anime' : 'Manga'}`,
             [...statuses.map(capitalFirstLetterString), '_']
         );  
 
-        m = await takeUserInput(true); // take user input as whole num
+        input = await takeUserInput(true); // take user input as whole num
 
-        if (m >= 0 && m < statuses.length) {
-            const statusIndex = m; // selected status
+        if (input >= 0 && input < statuses.length) {
+            const statusIndex = input; // selected status
             await traverseEntry(typeIndex, statusIndex); // traverse entries for lists[typeIndex][statusIndex]
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
-async function traverseEntry (typeIndex, statusIndex) {
-    const status = typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex];
-    const entries = lists[typeIndex][statusIndex];
-    let m = 0; 
+async function traverseEntry (typeIndex, statusIndex, entryArr) {
+    const status = !entryArr ? (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]) : null;
+    const entries = !entryArr ? lists[typeIndex][statusIndex] : entryArr;
+    let input = 0; 
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
-            `Status: ${capitalFirstLetterString(status)}`,
+            (!entryArr ? `Status: ${capitalFirstLetterString(status)}` : 'Search results'),
             entries.map(entry => entry.node.title),
             (entries.length ? ['_'] : [{'?': 'No entries found'}, '_'])
         );
 
-        m = await takeUserInput(true); // take user input as whole num
+        input = await takeUserInput(true); // take user input as whole num
         
-        if (m >= 0 && m < entries.length) {
-            const entry = entries[m]; // reference to selected entry
+        if (input >= 0 && input < entries.length) {
+            const entry = entries[input]; // reference to selected entry
             await updateEntryMenu(entry); // update stuff related to selected entry
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -114,7 +114,7 @@ async function updateEntryMenu (entry, l) {
     // lists from outside the function)
     const STATUS = 0, SCORE = 1, PROGRESS = 2, START_DATE = 3, FINISH_DATE = 4, ISRE = 5, COMMENTS = 6;
     const PADEND = 12, PADSTART = 0, NOT_SET = 'Not set';
-    let m = 0, changedFields = {}, listsReference = l === undefined ? lists : l;
+    let input = 0, changedFields = {}, listsReference = l === undefined ? lists : l;
 
     // TODO: 
     // - make it so that start/finish dates are automatically applied
@@ -125,7 +125,7 @@ async function updateEntryMenu (entry, l) {
     //   also naturally includes integrating updating num_times_re...
     //   etc. key-value pairs to the mix
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         // 1. I need original reference to entry + clone of entry
         // 2. inside the loop I will only change data of the clone
@@ -182,17 +182,17 @@ async function updateEntryMenu (entry, l) {
         console.log('||\n|| l -> Log entry');
         console.log('|| e -> Go back\n||');
 
-        m = await takeUserInput(true); // take user input as whole num
+        input = await takeUserInput(true); // take user input as whole num
 
-        if (m === STATUS) {
+        if (input === STATUS) {
             const oldStatus = list_status.status; // status before update
             await updateStatusMenu(list_status);  // update status menu 
             if (oldStatus !== list_status.status) changedFields.status = list_status.status; 
-        } else if (m === SCORE) {
+        } else if (input === SCORE) {
             const oldScore = list_status.score; // score before update
             await updateScoreMenu(list_status); // update score menu
             if (oldScore !== list_status.score) changedFields.score = list_status.score;
-        } else if (m === PROGRESS) {
+        } else if (input === PROGRESS) {
             const oldProgress = getProgress(list_status); // progress before update
             await updateProgressMenu(entry_clone);        // update progress menu
             if (oldProgress !== getProgress(list_status)) {
@@ -200,34 +200,34 @@ async function updateEntryMenu (entry, l) {
                 if (!getType(list_status)) changedFields.num_watched_episodes = list_status.num_episodes_watched; // anime
                 else changedFields.num_chapters_read = list_status.num_chapters_read;                             // manga
             }
-        } else if (m === START_DATE) {
+        } else if (input === START_DATE) {
             const oldStartDate = list_status.start_date; // start date before update
             await updateStartDateMenu(list_status);      // update start date menu
             if (oldStartDate !== list_status.start_date) {
                 changedFields.start_date = list_status.start_date;
                 if (list_status.start_date === '0000-00-00') delete list_status.start_date;
             }
-        } else if (m === FINISH_DATE) {
+        } else if (input === FINISH_DATE) {
             const oldFinishDate = list_status.finish_date; // finish date before update
             await updateFinishDateMenu(list_status);       // update finish date menu
             if (oldFinishDate !== list_status.finish_date) {
                 changedFields.finish_date = list_status.finish_date;
                 if (list_status.finish_date === '0000-00-00') delete list_status.finish_date;
             }
-        } else if (m === ISRE) {
+        } else if (input === ISRE) {
             const oldIsRe = getIsRe(list_status); // isRe(reading/watching) before update
             await updateIsReMenu(list_status);    // update isRe
             if (oldIsRe !== getIsRe(list_status)) {
                 if (!getType(list_status)) changedFields.is_rewatching = list_status.is_rewatching; // anime
                 else changedFields.is_rereading = list_status.is_rereading;                         // manga
             }
-        } else if (m === COMMENTS) {
+        } else if (input === COMMENTS) {
             const oldComments = list_status.comments; // comments before update
             await updateCommentsMenu(list_status);    // update comments
             if (oldComments !== list_status.comments) changedFields.comments = list_status.comments;
-        } else if (m === 'l') {
+        } else if (input === 'l') {
             await logDataDeepMenu(entry, entryTitle, false, true);
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
 
@@ -247,9 +247,9 @@ async function updateEntryMenu (entry, l) {
 async function updateStatusMenu (list_status) {
     const statuses = list_status.num_episodes_watched !== undefined ? animeStatus : mangaStatus; // arr of available statuses
     const statusBeforeChange = list_status.status;
-    let m = 0;
+    let input = 0;
     
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Pick from available statuses (${statusBeforeChange === list_status.status ? `current: ${list_status.status}` : 
@@ -257,11 +257,11 @@ async function updateStatusMenu (list_status) {
             [...statuses.map(status => capitalFirstLetterString(status)), '_']
         )
         
-        m = await takeUserInput(true); // take whole num as user input
+        input = await takeUserInput(true); // take whole num as user input
 
-        if (m >= 0 && m < statuses.length) {
-            list_status.status = statuses[m]; // update entry_clone status
-        } else if (m !== 'e') {
+        if (input >= 0 && input < statuses.length) {
+            list_status.status = statuses[input]; // update entry_clone status
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -269,9 +269,9 @@ async function updateStatusMenu (list_status) {
 
 async function updateScoreMenu (list_status) {
     const scoreBeforeChange = list_status.score;
-    let m = 0;
+    let input = 0;
     
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Pick a score (${scoreBeforeChange === list_status.score ? `current: ${list_status.score}` :
@@ -280,11 +280,11 @@ async function updateScoreMenu (list_status) {
             [{'?': 'Input a value between 0-10'}, '_']
         );
 
-        m = await takeUserInput(true); // take whole num as user input
+        input = await takeUserInput(true); // take whole num as user input
 
-        if (m >= 0 && m <= 10) {
-            list_status.score = m; // save user input
-        } else if (m !== 'e') {
+        if (input >= 0 && input <= 10) {
+            list_status.score = input; // save user input
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
@@ -294,13 +294,13 @@ async function updateProgressMenu (entry) {
     // episodes watched/chapters read
     const list_status = entry.list_status;
     const progressBeforeChange = getProgress(list_status);
-    let m = 0;
+    let input = 0;
 
     // TODO:
     // - if changing progress to max doesn't update status of series to completed
     //   consider giving the user the option to update status to completed after 
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Update progress (${progressBeforeChange === getProgress(list_status) ? `current: ${getProgress(list_status)} / ${getTotal(entry)}` :
@@ -309,26 +309,26 @@ async function updateProgressMenu (entry) {
             [{'±': 'Increase/Decrease progress'}, {'?': `Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`}, '_']
         );
 
-        m = await takeUserInput(true); // take whole num as user input
+        input = await takeUserInput(true); // take whole num as user input
 
-        if ((m >= 0 && m <= getTotal(entry)) || (!getTotal(entry) && m >= 0)) { // update progress by given user input
-            setProgress(list_status, m); 
-        } else if (m === '+') { // progress++
+        if ((input >= 0 && input <= getTotal(entry)) || (!getTotal(entry) && input >= 0)) { // update progress by given user input
+            setProgress(list_status, input); 
+        } else if (input === '+') { // progress++
             // if total = 0 -- allows incrementing indefinitely
             // if total > 0 -- allows incrementing until getTotal(entry) [episode count]
             if (!getTotal(entry) || getProgress(list_status) < getTotal(entry)) {
                 const amount = getProgress(list_status) + 1;
                 setProgress(list_status, amount);
             }
-        } else if (m === '-' && getProgress(list_status) > 0) { // progress--
+        } else if (input === '-' && getProgress(list_status) > 0) { // progress--
             const amount = getProgress(list_status) - 1;
             setProgress(list_status, amount);
-        } else if (m === '++' && getTotal(entry)) { // progress = max (only works when max > 0)
+        } else if (input === '++' && getTotal(entry)) { // progress = max (only works when max > 0)
             const amount = getTotal(entry); 
             setProgress(list_status, amount);
-        } else if (m === '--') { // progress = min (always sets progress to 0)
+        } else if (input === '--') { // progress = min (always sets progress to 0)
             setProgress(list_status, 0);
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }  
@@ -356,9 +356,9 @@ function setProgress (list_status, amount) {
 
 async function updateStartDateMenu (list_status) {
     const startDateBeforeChange = list_status.start_date;
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` : 
@@ -367,11 +367,11 @@ async function updateStartDateMenu (list_status) {
             [{'?': 'Input date (year-mm-dd)'}, {'c': 'Clear date'}, '_']
         );  
         
-        m = await takeUserInput(); // take user input
+        input = await takeUserInput(); // take user input
 
-        if (m !== 'c' && m !== 'e' && isValidDate(m)) { // is valid date
-            list_status.start_date = m; 
-        } else if (m === 'c' && list_status.start_date) { // clear date
+        if (input !== 'c' && input !== 'e' && isValidDate(input)) { // is valid date
+            list_status.start_date = input; 
+        } else if (input === 'c' && list_status.start_date) { // clear date
             list_status.start_date = '0000-00-00';
         } 
     }
@@ -379,9 +379,9 @@ async function updateStartDateMenu (list_status) {
 
 async function updateFinishDateMenu (list_status) {
     const finishDateBeforeChange = list_status.finish_date;
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` : 
@@ -390,11 +390,11 @@ async function updateFinishDateMenu (list_status) {
             [{'?': 'Input date (\"year-mm-dd\")'}, {'c': 'Clear date'}, '_']
         );
         
-        m = await takeUserInput(); // take user input
+        input = await takeUserInput(); // take user input
 
-        if (m !== 'c' && m !== 'e' && isValidDate(m)) { // is valid date
-            list_status.finish_date = m; 
-        } else if (m === 'c' && list_status.finish_date) { // clear date
+        if (input !== 'c' && input !== 'e' && isValidDate(input)) { // is valid date
+            list_status.finish_date = input; 
+        } else if (input === 'c' && list_status.finish_date) { // clear date
             list_status.finish_date = '0000-00-00';
         } 
     }
@@ -509,9 +509,9 @@ function isLeapYear (year) {
 
 async function updateIsReMenu (list_status) {
     const isReBeforeChange = getIsRe(list_status);
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
@@ -519,12 +519,12 @@ async function updateIsReMenu (list_status) {
             ['no', 'yes', '_']
         );
 
-        m = await takeUserInput(true); // take user input as whole number
+        input = await takeUserInput(true); // take user input as whole number
         
-        if (m >= 0 && m <= 1) {
-            const value = m === 0 ? false : true; // isRe value
+        if (input >= 0 && input <= 1) {
+            const value = input === 0 ? false : true; // isRe value
             setIsRe(list_status, value);          // update isRe
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         } 
     }
@@ -546,9 +546,9 @@ function setIsRe (list_status, value) {
 async function updateCommentsMenu (list_status) {
     const commentsBeforeChange = list_status.comments;
     const MIN_LENGTH = 3; // min required length for comment
-    let m = 0;
+    let input = 0;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             `Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
@@ -557,43 +557,43 @@ async function updateCommentsMenu (list_status) {
             [{'?': `Input comment (minimum ${MIN_LENGTH} characters)`}, {'c': 'Clear comment'}, '_']
         );
 
-        m = await takeUserInput(); // take user input
+        input = await takeUserInput(); // take user input
         
-        if (m === 'c') { // clear comment
+        if (input === 'c') { // clear comment
             list_status.comments = ''; 
-        } else if (m !== 'e' && (m === undefined || String(m).length < 3)) { // comment is too short
+        } else if (input !== 'e' && (input === undefined || String(input).length < 3)) { // comment is too short
             console.log(`\n||\n|| Minimum required comment length: ${MIN_LENGTH} characters\n||`);
-        } else if (m !== 'e') { // comment is valid
-            list_status.comments = String(m); // update comments
+        } else if (input !== 'e') { // comment is valid
+            list_status.comments = String(input); // update comments
         }
     }
 }
 
 async function searchListsMenu() {
     const SEARCH_BY_TITLE = 0;
-    let m = null;
+    let input = null;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'Search for entry', 
             ['Search by title', '_']
         );
 
-        m = await takeUserInput(true); // take user input
+        input = await takeUserInput(true); // take user input
         
-        if (m === SEARCH_BY_TITLE) {
+        if (input === SEARCH_BY_TITLE) {
             await searchListsByTitleMenu(); // search lists by title
-        } else if (m !== 'e') {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
 }
 
 async function searchListsByTitleMenu() {
-    let m = null;
+    let input = null;
 
-    while (m !== 'e') 
+    while (input !== 'e') 
     {
         printMenuOptions(
             'Search lists by title', 
@@ -601,11 +601,18 @@ async function searchListsByTitleMenu() {
             [{'?': 'Input title'}, '_']
         );
 
-        m = await takeUserInput(false, true); // take user input
+        input = await takeUserInput(false, true); // take user input
         
-        if (typeof m === 'string') {
-            console.log('\n||\n|| This has not been implemented yet (sowwy... </3)\n||');
-        } else if (m !== 'e') {
+        if (typeof input === 'string' && input.length && input !== 'e') {
+            const regex = new RegExp(`\\b${input}`, 'i'); // regex matches input at beginning of each word
+            const matching = lists.flat(2) // arr of entries
+                                  .filter(e => regex.test(e.node.title)); // match title to input
+            if (!matching.length) { // no matching results
+                console.log('\n||\n|| No matches found\n||');
+            } else { // traverse results
+                await traverseEntry(null, null, matching);
+            }
+        } else {
             console.log('\n|| Please input a valid option');
         }
     }
