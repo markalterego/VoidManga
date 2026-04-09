@@ -1,7 +1,7 @@
 import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
-import { logDataDeepMenu } from "./menuLogMangadex.js";
+import { logDataDeepMenu, updatePageDetails, pageContent } from "./menuLogMangadex.js";
 import { fetchMAL } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
 
@@ -87,21 +87,61 @@ async function traverseStatus (typeIndex) {
 async function traverseEntry (typeIndex, statusIndex, entryArr) {
     const status = !entryArr ? (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]) : null;
     const entries = !entryArr ? lists[typeIndex][statusIndex] : entryArr;
-    let input = 0; 
+    let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
+
+    // TODO:
+    // - move paging related options e.g. input === '+' next page etc. to a separate
+    //   function which takes in a key parameter to specify which enablePagingEntries/chapter/manga
+    //   is to be updated
 
     while (input !== 'e') 
     {
+        pageDetails = updatePageDetails(pageDetails, entries);
+
+        let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
+
         printMenuOptions(
             (!entryArr ? `Status: ${capitalFirstLetterString(status)}` : 'Search results'),
-            entries.map(entry => entry.node.title),
-            (entries.length ? ['_'] : [{'?': 'No entries found'}, '_'])
+            [ ...pagedEntries.map(entry => entry.node.title), '_'],
+            (pagedEntries.length ? 
+                [
+                    (options.enablePagingEntries ? 'p' : null), '', '_',
+                    {'t': `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`}, 
+                    (options.enablePagingEntries ? {'±' : 'Next/Previous page'} : null)
+                ] : 
+                [{'?': 'No entries found'}, '_']
+            ), 
+            pageDetails
         );
 
         input = await takeUserInput(true); // take user input as whole num
         
-        if (input >= 0 && input < entries.length) {
-            const entry = entries[input]; // reference to selected entry
+        if (input >= 0 && input < pagedEntries.length) {
+            const entry = pagedEntries[input]; // reference to selected entry
             await updateEntryMenu(entry); // update stuff related to selected entry
+        } else if (input === 't') { // toggle paging on/off
+            if (options.enablePagingEntries) options.enablePagingEntries = false;
+            else options.enablePagingEntries = true;
+        } else if (input === '+') { // next page
+            // if next page is not out of bounds
+            if (options.enablePagingEntries && (entries.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
+                pageDetails.currentPageIndex++; // increment currentPage
+            } 
+        } else if (input === '-') { // previous page
+            // if previous page is not out of bounds
+            if (options.enablePagingEntries && (entries.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
+                pageDetails.currentPageIndex--; // decrement currentPage
+            }
+        } else if (input === '++') { // last page
+            // navigate to last page
+            if (options.enablePagingEntries && (entries.length / 10 > 0) ) {
+                pageDetails.currentPageIndex = pageDetails.lastPageIndex;
+            }
+        } else if (input === '--') { // first page
+            // navigate to first page
+            if (options.enablePagingEntries && (entries.length / 10 > 0) ) {
+                pageDetails.currentPageIndex = 0;
+            }
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
