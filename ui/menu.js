@@ -40,21 +40,19 @@ async function rootMenu() {
                 break; 
             case LOGMANGADEX: 
                 await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
-                filehandle('config', config);
                 break;
             case FETCHMANGADEX:
                 await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
-                filehandle('config', config); // save config file
                 break;
             case 's':
                 await settingsMenu();
-                filehandle('config', config); // save config to file
                 break;
             case 'e': 
                 break;                 
             default:
                 console.log('\n|| Please input a valid option');
         }
+        filehandle('config', config); // save config file
     }
 }
 
