@@ -655,4 +655,4 @@ async function openChaptersInBrowserMenu (fetchResults) {
     }
 }
 
-export { menuLogMangadex, logDataDeepMenu };
+export { menuLogMangadex, logDataDeepMenu, updatePageDetails, pageContent };
