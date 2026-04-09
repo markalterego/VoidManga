@@ -132,13 +132,13 @@ function truncateString (string, maxLengthOfString) {
     return string.length > maxLengthOfString ? `${string.slice(0, maxLengthOfString).trim()}...`: string;
 }
 
-function printMenuOptions (header, optionsArray, specialOptionsArray) {
+function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetails) {
     // creates a simple menu in a standardized format
     // header = string
     // optionsArray = array of strings
     // specialOptionsArray = array of objects
 
-    const emptyLine = '_'; 
+    const emptyLine = '_', skipLine = '', separatorLine = '-', pageFooter = 'p'; 
     
     try {
         // handle invalid parameters
@@ -158,9 +158,22 @@ function printMenuOptions (header, optionsArray, specialOptionsArray) {
                 const val = optionsArray[i++]?.trim();
                 if (val === emptyLine) {
                     console.log('||');
-                } else {
+                } else if (val === skipLine) {
+                    console.log();
+                } else if (val === separatorLine) {
+                    console.log('|| --------------------');
+                } else if (val === pageFooter) {
+                    if (pageDetails) {
+                        console.log('|| --------------------\n||');
+                        const currentPageString = String(pageDetails.currentPageIndex + 1);
+                        const lastPageString = String(pageDetails.lastPageIndex + 1);
+                        const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
+                        const label = `Page: `.padEnd(10, ' ');
+                        console.log(`|| ${label} ${pageProgressString}\n||`);
+                    }
+                } else if (val !== null) {
                     console.log(`|| ${selectableIndex++} -> ${val}`);
-                }
+                } 
             }
         }
         
@@ -170,7 +183,20 @@ function printMenuOptions (header, optionsArray, specialOptionsArray) {
             for (let i = 0; i < specialOptionsArray?.length; i++) {
                 if (specialOptionsArray[i] === emptyLine) {
                     console.log('||');
-                } else {
+                } else if (specialOptionsArray[i] === skipLine) {
+                    console.log();
+                } else if (specialOptionsArray[i] === separatorLine) {
+                    console.log('|| --------------------');
+                } else if (specialOptionsArray[i] === pageFooter) {
+                    if (pageDetails) {
+                        console.log('|| --------------------\n||');
+                        const currentPageString = String(pageDetails.currentPageIndex + 1);
+                        const lastPageString = String(pageDetails.lastPageIndex + 1);
+                        const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
+                        const label = `Page: `.padEnd(10, ' ');
+                        console.log(`|| ${label} ${pageProgressString}\n||`);
+                    }
+                } else if (specialOptionsArray[i] !== null) {
                     const [[key, val]] = Object.entries(specialOptionsArray[i]);
                     console.log(`|| ${key} -> ${val}`);
                 }
