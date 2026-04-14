@@ -45,20 +45,15 @@ async function menuLogMangadex (mangadexData, l, config) {
         if (input >= 0 && input < pagedMangas.length) {
             await mangaOptionsMenu(pagedMangas[input]); // input selected manga
         } else if (input === 'f') { // filter mangas found at user's MAL mangalist
-            if (options.filterByMangasFoundAtMangalist) options.filterByMangasFoundAtMangalist = false;
-            else options.filterByMangasFoundAtMangalist = true;
+            options.filterByMangasFoundAtMangalist = !options.filterByMangasFoundAtMangalist;
         } else if (input === 'h') { // toggle hide/show zero length manga
-            if (options.hideZeroLengthManga) options.hideZeroLengthManga = false;
-            else options.hideZeroLengthManga = true;
+            options.hideZeroLengthManga = !options.hideZeroLengthManga;
         } else if (input === 's') { // toggle ascending/descending
-            if (options.logMangaDirection === 'asc') options.logMangaDirection = 'desc';
-            else options.logMangaDirection = 'asc';
+            options.logMangaDirection = options.logMangaDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 'o') { // order alphabetical/chapter count
-            if (options.sortMangasAlphabetical) options.sortMangasAlphabetical = false;
-            else options.sortMangasAlphabetical = true;
+            options.sortMangasAlphabetical = !options.sortMangasAlphabetical;
         }  else if (input === 't') { // toggle paging on/off
-            if (options.enablePagingManga) options.enablePagingManga = false;
-            else options.enablePagingManga = true;
+            options.enablePagingManga = !options.enablePagingManga;
         } else if (input === '+') { // next page
             // if next page is not out of bounds
             if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
@@ -165,9 +160,9 @@ async function traverseChapters (selectedManga) {
         // display selectedManga chapters
         menuLogMangadexChapterDisplay(pagedChapters, foundManga, options.enablePagingChapter, pageDetails);
 
-        console.log(`\n||\n|| s -> Sort chapters ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
-        console.log(`|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
+        console.log(`\n||\n|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
         console.log(`|| ? -> Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`);
+        console.log(`|| s -> Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
         console.log(`|| t -> Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`);
         if (options.enablePagingChapter) console.log('|| ± -> Next/Previous page');
         console.log('|| e -> Go back\n||');
@@ -179,20 +174,17 @@ async function traverseChapters (selectedManga) {
         // handle user input
         if (input >= 0 && input < pagedChapters.length) { 
             await chapterOptionsMenu(pagedChapters[input], selectedManga.manga);
-        } else if (input === 's') { // toggle SORTDIRECTION = asc/desc
-            if (options.logChapterDirection === 'asc') options.logChapterDirection = 'desc';
-            else options.logChapterDirection = 'asc';
         } else if (input === 'h') { // toggle hide read chapters
-            if (options.hideReadChapters) options.hideReadChapters = false;
-            else options.hideReadChapters = true;
+            options.hideReadChapters = !options.hideReadChapters;
         } else if (input === 'l') { // clear lang-codes
             options.filterChapterLanguages = [];
         } else if (isValidLangCode) { // add lang-code
             options.filterChapterLanguages.push(input); // add lang-code
             options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
+        } else if (input === 's') { // toggle SORTDIRECTION = asc/desc
+            options.logChapterDirection = options.logChapterDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 't') { // toggle paging on/off
-            if (options.enablePagingChapter) options.enablePagingChapter = false;
-            else options.enablePagingChapter = true;
+            options.enablePagingChapter = !options.enablePagingChapter;
         } else if (input === '+') { // next page
             // if next page is not out of bounds
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {

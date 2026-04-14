@@ -47,8 +47,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
                 console.log('\n||\n|| Options reset to default\n||');
                 break;
             case 4: // toggle fetchAllChapters
-                if (options.fetchAllChapters) options.fetchAllChapters = false;
-                else options.fetchAllChapters = true;
+                options.fetchAllChapters = !options.fetchAllChapters;
                 break;
             case 'e':
                 break;
