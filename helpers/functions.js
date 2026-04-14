@@ -138,7 +138,10 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
     // optionsArray = array of strings
     // specialOptionsArray = array of objects
 
-    const emptyLine = '_', skipLine = '', separatorLine = '-', pageFooter = 'p'; 
+    const skipLine = '_',      // console.log('||') 
+          emptyLine = '',      // console.log()
+          separatorLine = '-', // console.log('|| --------------------')
+          pageFooter = 'p';    // logs 'Page: currentPage / lastPage'
     
     try {
         // handle invalid parameters
@@ -156,9 +159,9 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
             let i = 0, selectableIndex = 0; // i = optionsArray index, selectableIndex = menu option index
             while (i < optionsArray?.length) { 
                 const val = optionsArray[i++]?.trim();
-                if (val === emptyLine) {
+                if (val === skipLine) {
                     console.log('||');
-                } else if (val === skipLine) {
+                } else if (val === emptyLine) {
                     console.log();
                 } else if (val === separatorLine) {
                     console.log('|| --------------------');
@@ -181,9 +184,9 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
         if (specialOptionsArray?.length) {
             // e.g. "s -> Settings"
             for (let i = 0; i < specialOptionsArray?.length; i++) {
-                if (specialOptionsArray[i] === emptyLine) {
+                if (specialOptionsArray[i] === skipLine) {
                     console.log('||');
-                } else if (specialOptionsArray[i] === skipLine) {
+                } else if (specialOptionsArray[i] === emptyLine) {
                     console.log();
                 } else if (specialOptionsArray[i] === separatorLine) {
                     console.log('|| --------------------');
