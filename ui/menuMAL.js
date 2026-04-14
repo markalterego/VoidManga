@@ -120,8 +120,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             const entry = pagedEntries[input]; // reference to selected entry
             await updateEntryMenu(entry); // update stuff related to selected entry
         } else if (input === 't') { // toggle paging on/off
-            if (options.enablePagingEntries) options.enablePagingEntries = false;
-            else options.enablePagingEntries = true;
+            options.enablePagingEntries = !options.enablePagingEntries;
         } else if (input === '+') { // next page
             // if next page is not out of bounds
             if (options.enablePagingEntries && (entries.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
@@ -209,18 +208,11 @@ async function updateEntryMenu (entry, l) {
         const comments    = s1_comments.padEnd(PADEND, ' ') + ': ' + s2_comments.padStart(PADSTART, ' ');         // comments with padding
         // <-- formatting menu options END
 
-        console.log(`\n||\n|| UPDATE - ${entryTitle}\n||`);
-        console.log('|| --------------------\n||');
-        console.log(`|| 0 -> ${status}`);
-        console.log(`|| 1 -> ${score}`);
-        console.log(`|| 2 -> ${progress}`);
-        console.log(`|| 3 -> ${startDate}`);
-        console.log(`|| 4 -> ${finishDate}`);
-        console.log(`|| 5 -> ${isRe}`);
-        console.log(`|| 6 -> ${comments}`);
-        console.log('||\n|| --------------------');
-        console.log('||\n|| l -> Log entry');
-        console.log('|| e -> Go back\n||');
+        printMenuOptions(
+            `UPDATE - ${entryTitle}`,
+            ['-', '_', status, score, progress, startDate, finishDate, isRe, comments, '_', '-', '_'],
+            [{'l': 'Log entry'}]
+        );
 
         input = await takeUserInput(true); // take user input as whole num
 
