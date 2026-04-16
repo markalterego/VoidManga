@@ -387,11 +387,11 @@ async function chapterOptionsMenu (selectedChapter, manga) {
 
     while (input !== 'e') 
     {
-        const attributes = selectedChapter.attributes; // chapter attributes
-        const chapterTitle = attributes.title ? attributes.title : ''; // title
-        const chNum = attributes.chapter !== null ? attributes.chapter : -1; // chapter number 
-        const vlNum = attributes.volume !== null ? attributes.volume : -1; // volume number
-        const transLang = attributes.translatedLanguage ? attributes.translatedLanguage : 'No Translated Language'; // translated language
+        const { title, chapter, volume, translatedLanguage } = selectedChapter.attributes; // chapter attributes
+        const chapterTitle = title ?? ''; // title
+        const chNum = chapter ?? -1; // chapter number 
+        const vlNum = volume ?? -1; // volume number
+        const transLang = translatedLanguage || 'No Translated Language'; // translated language
         const mangaTitle = Object.values(manga.attributes.title)[0]; // title
         const formattedTitle = `${chapterTitle.length > 0 ? chapterTitle.trim() : mangaTitle.trim() }${chNum >= 0 ? ` (ch: ${chNum})` : (vlNum >= 0 ? ` (vol: ${vlNum})` : '' )}${transLang.length > 0 ? ` (${transLang})` : ''}`;
         
@@ -403,8 +403,8 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         input = await takeUserInput(); // get user input
 
         if (input === LOGDATA) {
-            const dataTitle = `${mangaTitle} ${chNum >= 0 ? `(ch: ${chNum})` : // chNum for context
-                                (vlNum >= 0 ? `(vol: ${vlNum})` : '' )}`;       // log neither volume nor chapter// vlNum for context
+            const dataTitle = `${mangaTitle} ${chNum >= 0 ? `(ch: ${chNum})` : // chNum
+                                (vlNum >= 0 ? `(vol: ${vlNum})` : '' )}`;      // vlNum 
             await logDataDeepMenu(selectedChapter, dataTitle, true);
         } else if (input === OPENINBROWSER) {
             await open(selectedChapter.link); 
