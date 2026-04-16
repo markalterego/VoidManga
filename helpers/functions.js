@@ -154,54 +154,40 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
         // header
         console.log(`\n||\n|| ${header}\n||`);
 
-        // optionsArray
-        if (optionsArray?.length) {
-            let i = 0, selectableIndex = 0; // i = optionsArray index, selectableIndex = menu option index
-            while (i < optionsArray?.length) { 
-                const val = optionsArray[i++]?.trim();
-                if (val === skipLine) {
-                    console.log('||');
-                } else if (val === emptyLine) {
-                    console.log();
-                } else if (val === separatorLine) {
-                    console.log('|| --------------------');
-                } else if (val === pageFooter) {
-                    if (pageDetails) {
-                        console.log('|| --------------------\n||');
-                        const currentPageString = String(pageDetails.currentPageIndex + 1);
-                        const lastPageString = String(pageDetails.lastPageIndex + 1);
-                        const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
-                        const label = `Page: `.padEnd(10, ' ');
-                        console.log(`|| ${label} ${pageProgressString}\n||`);
-                    }
-                } else if (val !== null) {
-                    console.log(`|| ${selectableIndex++} -> ${val}`);
-                } 
-            }
-        }
-        
-        // specialOptionsArray
-        if (specialOptionsArray?.length) {
-            // e.g. "s -> Settings"
-            for (let i = 0; i < specialOptionsArray?.length; i++) {
-                if (specialOptionsArray[i] === skipLine) {
-                    console.log('||');
-                } else if (specialOptionsArray[i] === emptyLine) {
-                    console.log();
-                } else if (specialOptionsArray[i] === separatorLine) {
-                    console.log('|| --------------------');
-                } else if (specialOptionsArray[i] === pageFooter) {
-                    if (pageDetails) {
-                        console.log('|| --------------------\n||');
-                        const currentPageString = String(pageDetails.currentPageIndex + 1);
-                        const lastPageString = String(pageDetails.lastPageIndex + 1);
-                        const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
-                        const label = `Page: `.padEnd(10, ' ');
-                        console.log(`|| ${label} ${pageProgressString}\n||`);
-                    }
-                } else if (specialOptionsArray[i] !== null) {
-                    const [[key, val]] = Object.entries(specialOptionsArray[i]);
-                    console.log(`|| ${key} -> ${val}`);
+        // mapping optionsArray        as { 'index': val } 
+        //         specialOptionsArray as { 'special': val }
+        const allOptions = [
+            ...(optionsArray?.map(val => ({ type: 'index', val })) ?? []),
+            ...(specialOptionsArray?.map(val => ({ type: 'special', val })) ?? [])
+        ];
+
+        // indicates selectable option for 'index' type options
+        let selectableIndex = 0;
+
+        // printing allOptions
+        for (const { type, val } of allOptions) {
+            if (val === skipLine) {
+                console.log('||');
+            } else if (val === emptyLine) {
+                console.log();
+            } else if (val === separatorLine) {
+                console.log('|| --------------------');
+            } else if (val === pageFooter) {
+                if (pageDetails) {
+                    const currentPageString = String(pageDetails.currentPageIndex + 1);
+                    const lastPageString = String(pageDetails.lastPageIndex + 1);
+                    const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
+                    const label = 'Page: '.padEnd(10, ' ');
+                    console.log(`|| --------------------\n||\n|| ${label} ${pageProgressString}\n||`);
+                }
+            } else if (val !== null) {
+                if (type === 'index') { 
+                    // optionsArray printed as "0 -> MyAnimeList"
+                    console.log(`|| ${selectableIndex++} -> ${val.trim()}`);
+                } else { 
+                    // specialOptionsArray printed as "s -> Settings"
+                    const [[key, label]] = Object.entries(val);
+                    console.log(`|| ${key} -> ${label}`);
                 }
             }
         } 
