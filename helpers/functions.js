@@ -174,9 +174,7 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
                 console.log('|| --------------------');
             } else if (val === pageFooter) {
                 if (pageDetails) {
-                    const currentPageString = String(pageDetails.currentPageIndex + 1);
-                    const lastPageString = String(pageDetails.lastPageIndex + 1);
-                    const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
+                    const pageProgressString = `${pageDetails.currentPageIndex + 1} / ${pageDetails.lastPageIndex + 1}`.padStart(9, ' ');
                     const label = 'Page: '.padEnd(10, ' ');
                     console.log(`|| --------------------\n||\n|| ${label} ${pageProgressString}\n||`);
                 }
