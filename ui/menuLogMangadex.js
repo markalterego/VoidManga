@@ -145,14 +145,15 @@ async function mangaOptionsMenu (selectedManga) {
     }
 }
 
-async function traverseChapters (selectedManga) {
-    const chapters = selectedManga.chapters;
+async function traverseChapters (selectedManga, chapterArr) {
+    const chapters = chapterArr ?? selectedManga.chapters;
+    const manga = !chapterArr ? selectedManga.manga : selectedManga;
     let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
 
     while (input !== 'e') 
     {
         // reference to manga at mangalist
-        const foundManga = findEntryAtLists(selectedManga.manga);
+        const foundManga = findEntryAtLists(manga);
         // sort chapters by options
         let sortedChapters = sortChapters(chapters, foundManga, pageDetails);
         // page chapters
@@ -173,7 +174,7 @@ async function traverseChapters (selectedManga) {
 
         // handle user input
         if (input >= 0 && input < pagedChapters.length) { 
-            await chapterOptionsMenu(pagedChapters[input], selectedManga.manga);
+            await chapterOptionsMenu(pagedChapters[input], manga);
         } else if (input === 'h') { // toggle hide read chapters
             options.hideReadChapters = !options.hideReadChapters;
         } else if (input === 'l') { // clear lang-codes
@@ -287,7 +288,7 @@ function logSeriesProgress (manga) {
 }
 
 async function findChapterOfManga (title, selectedManga) {
-    const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3; 
+    const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3, CHAPTERTITLE = 4; 
     let input = 0; 
 
     // TODO: 
@@ -299,7 +300,7 @@ async function findChapterOfManga (title, selectedManga) {
     {
         printMenuOptions(
             `Search ${title}`,
-            ['Next un-read chapter', 'Lowest chapter number', 'Highest chapter number', 'Specific chapter number', '_']
+            ['Next un-read chapter', 'Lowest chapter number', 'Highest chapter number', 'Specific chapter number', 'By chapter title', '_']
         );
 
         input = await takeUserInput(true);
@@ -315,6 +316,8 @@ async function findChapterOfManga (title, selectedManga) {
             if (foundChapter) await chapterOptionsMenu(foundChapter, selectedManga.manga);
         } else if (input === SPECIFICCHAPTER) {
             await findChapterByChapterNumber(selectedManga.chapters, selectedManga.manga);
+        } else if (input === CHAPTERTITLE) {
+            await findChapterByChapterTitle(selectedManga.chapters, selectedManga.manga);
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
@@ -369,11 +372,39 @@ async function findChapterByChapterNumber (chapters, manga) {
         input = await takeUserInput();
         
         if (input >= 0) {
-            const foundChapter = chapters.find(chapter => Number(chapter.attributes.chapter) === input); // trying to find given chapter number
+            const foundChapter = chapters.filter(chapter => Number(chapter.attributes.chapter) === input); // trying to find given chapter number
             if (!foundChapter) {
                 console.log('\n||\n|| Given chapter was not found\n||');
             } else {
                 await chapterOptionsMenu(foundChapter, manga);
+            }
+        } else if (input !== 'e') {
+            console.log('\n|| Please input a valid option');
+        }
+    }
+}
+
+async function findChapterByChapterTitle (chapters, manga) {
+    let input = 0;
+
+    while (input !== 'e') 
+    {
+        printMenuOptions(
+            'Input a chapter title:',
+            []
+        );
+
+        input = await takeUserInput(false, true);
+
+        if (typeof input === 'string' && input.length && input !== 'e') {
+            const regex = new RegExp(`\\b${input}`, 'i'); // regex matches input at beginning of each word
+            const matching = chapters.filter(chapter => regex.test(chapter.attributes.title)); // match title to input
+            if (!matching.length) { // no matching results
+                console.log('\n||\n|| No matches found\n||');
+            } else if (matching.length === 1) { // open result
+                await chapterOptionsMenu(matching[0], manga);
+            } else { // traverse results
+                await traverseChapters(manga, matching);
             }
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
