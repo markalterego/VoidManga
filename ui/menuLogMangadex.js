@@ -304,7 +304,7 @@ async function findChapterOfManga (title, selectedManga) {
     {
         printMenuOptions(
             `Search ${title}`,
-            ['Next un-read chapter', 'Lowest chapter number', 'Highest chapter number', 'Specific chapter number', 'By chapter title', '_']
+            ['Next un-read chapter', 'Lowest chapter', 'Highest chapter', 'Chapter number', 'Chapter title', '_']
         );
 
         input = await takeUserInput(true);
@@ -344,14 +344,23 @@ async function findNextUnreadChapter (selectedManga) {
 }
 
 async function findLowestChapterNumber (selectedManga) {
-    const {manga, chapters} = selectedManga;
+    const { manga, chapters } = selectedManga;
+    
+    // finds the lowest chapter number across all chapters,
+    // and returns all chapter objects that match that number
 
-    // TODO: 
-    // - use reduce to avoid possible stack overflow
+    const { chapters: foundChapters } = chapters
+        .filter(ch => ch.attributes.chapter) // filter existing chapter numbers
+        .reduce((acc, ch) => {
+            const chNum = Number(ch.attributes.chapter); // chapter num
+            if (chNum < acc.min) { 
+                return { min: chNum, chapters: [ch] }; // overwrite acc
+            } else if (chNum === acc.min) { 
+                return { ...acc, chapters: [...acc.chapters, ch]}; // spread to acc  
+            } 
+            return acc; // keep acc as is
+    }, { min: Infinity, chapters: []});
 
-    const validChapters = chapters.filter(ch => ch.attributes.chapter); 
-    const lowestChapterNumber = Math.min(...validChapters.map(ch => Number(ch.attributes.chapter)));
-    const foundChapters = chapters.filter(ch => Number(ch.attributes.chapter) === lowestChapterNumber);
     if (!foundChapters.length) {
         console.log('\n||\n|| Given chapter was not found\n||')
     } else if (foundChapters.length === 1) { // open result
@@ -362,20 +371,29 @@ async function findLowestChapterNumber (selectedManga) {
 }
 
 async function findHighestChapterNumber (selectedManga) {
-    const {manga, chapters} = selectedManga;
+    const { manga, chapters } = selectedManga;
+    
+    // finds the highest chapter number across all chapters,
+    // and returns all chapter objects that match that number
 
-    // TODO: 
-    // - use reduce to avoid possible stack overflow
+    const { chapters: foundChapters } = chapters
+        .filter(ch => ch.attributes.chapter) // filter existing chapter numbers
+        .reduce((acc, ch) => {
+            const chNum = Number(ch.attributes.chapter); // chapter num
+            if (chNum > acc.max) { 
+                return { max: chNum, chapters: [ch] }; // overwrite acc
+            } else if (chNum === acc.max) { 
+                return { ...acc, chapters: [...acc.chapters, ch]}; // spread to acc  
+            } 
+            return acc; // keep acc as is
+    }, { max: 0, chapters: []});
 
-    const validChapters = chapters.filter(ch => ch.attributes.chapter);
-    const highestChapterNumber = Math.max(...validChapters.map(ch => Number(ch.attributes.chapter)));
-    const foundChapters = chapters.filter(ch => Number(ch.attributes.chapter) === highestChapterNumber);
-    if (!foundChapters.length) {
+    if (!foundChapters.length) { // no results
         console.log('\n||\n|| Given chapter was not found\n||')
-    } else if (foundChapters.length === 1) { // open result
-        await chapterOptionsMenu(foundChapters[0], manga);
-    } else { // traverse results
-        await traverseChapters(manga, foundChapters);
+    } else if (foundChapters.length === 1) { // one result
+        await chapterOptionsMenu(foundChapters[0], manga); // open result
+    } else { // multiple results
+        await traverseChapters(manga, foundChapters); // traverse results
     }
 }
 
