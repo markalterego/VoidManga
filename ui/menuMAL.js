@@ -644,7 +644,7 @@ async function searchListsByTitleMenu() {
             } else { // traverse results
                 await traverseEntry(null, null, matching);
             }
-        } else {
+        } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
     }
