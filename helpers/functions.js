@@ -42,30 +42,6 @@ function customFetchMangadexDisplay (options) {
     console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n||`);
 }
 
-function menuLogMangadexMangaDisplay (mangadexData, indexedList, enablePageFooter, pageDetails) {
-    console.log('\n||\n|| --- Select manga ---\n||');
-    if (!mangadexData.length) {
-        console.log('|| - No selected manga\n||');
-    } else {
-        mangadexData.forEach((obj, index) => {
-            const manga = obj.manga; // manga data
-            const title = Object.values(manga.attributes.title)[0]; // first title
-            const chapterCount = obj.chapters.length;
-            if (indexedList) console.log(`|| ${index}: ${title} (${chapterCount})`);
-            else console.log(`|| - ${title} (${chapterCount})`);
-            if (index === mangadexData.length - 1) console.log('||');
-        });
-        if (enablePageFooter) {
-            console.log('|| --------------------\n||');
-            const currentPageString = String(pageDetails.currentPageIndex + 1);
-            const lastPageString = String(pageDetails.lastPageIndex + 1);
-            const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
-            const label = `Page: `.padEnd(10, ' ');
-            console.log(`|| ${label} ${pageProgressString}\n||`);
-        } 
-    }
-}
-
 function menuLogMangadexChapterDisplay (sortedChapters, foundManga, enablePageFooter, pageDetails) {
     console.log('\n||\n|| --- Select chapt ---\n||');
     if (sortedChapters?.length === 0) {
@@ -202,7 +178,6 @@ export {
     clearScreen, 
     customFetchMangadexDisplay, 
     menuFetchFiltersDisplay,
-    menuLogMangadexMangaDisplay, 
     menuLogMangadexChapterDisplay,
     capitalFirstLetterString, 
     longStringToArray,
