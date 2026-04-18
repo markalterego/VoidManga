@@ -1,5 +1,5 @@
 import open from 'open';
-import { takeUserInput, menuLogMangadexMangaDisplay, menuLogMangadexChapterDisplay, capitalFirstLetterString, 
+import { takeUserInput, menuLogMangadexChapterDisplay, capitalFirstLetterString, 
          longStringToArray, printMenuOptions } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
 
@@ -29,17 +29,39 @@ async function menuLogMangadex (mangadexData, l, config) {
         // page mangas
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
-        // display selecable manga(s)
-        menuLogMangadexMangaDisplay(pagedMangas, true, options.enablePagingManga, pageDetails); // true for indexed list
+        // options formatting
+        const mangaTitles = pagedMangas.map(obj => 
+            `${Object.values(obj.manga.attributes.title)[0]} (${obj.chapters.length})`
+        );
 
-        console.log(`\n||\n|| f -> Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`);
-        console.log(`|| h -> Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`);
-        console.log(`|| s -> Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`);
-        console.log(`|| o -> Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`);
-        console.log(`|| t -> Toggle paging [${options.enablePagingManga ? 'x' : ''}]`);
-        if (options.enablePagingManga) console.log('|| ± -> Next/Previous page');
-        console.log('|| e -> Go back\n||');
+        const optionsArray = pagedMangas.length 
+            ? [ ...mangaTitles, '_' ] 
+            : null;
 
+        // specialOption formatting
+        const pageOption = options.enablePagingManga ? 'p' : null;
+        const noMangaOption = {'?': 'No manga found\n||'};
+        const pageFooter = pagedMangas.length ? pageOption : noMangaOption; 
+
+        const specialOptionsArray = [
+            pageFooter,
+            '', 
+            '_',
+            {'f': `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`},
+            {'h': `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`},
+            {'s': `Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`},
+            {'o': `Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`},
+            {'t': `Toggle paging [${options.enablePagingManga ? 'x' : ''}]`},
+            (options.enablePagingManga ? {'±': 'Next/Previous page'} : null)
+        ];
+
+        printMenuOptions(
+            '--- Select manga ---', 
+            optionsArray,
+            specialOptionsArray,
+            pageDetails
+        );
+        
         input = await takeUserInput(true); // get user input - true for whole numbers
         
         if (input >= 0 && input < pagedMangas.length) {
