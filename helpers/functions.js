@@ -42,31 +42,6 @@ function customFetchMangadexDisplay (options) {
     console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n||`);
 }
 
-function menuLogMangadexChapterDisplay (sortedChapters, foundManga, enablePageFooter, pageDetails) {
-    console.log('\n||\n|| --- Select chapt ---\n||');
-    if (sortedChapters?.length === 0) {
-        console.log('|| - No chapters found\n||');
-    } else {
-        sortedChapters.forEach((chapter, index) => {
-            const chapterTitle = chapter.attributes.title ? chapter.attributes.title : 'No Title'; // title
-            const chNum = chapter.attributes.chapter !== null ? chapter.attributes.chapter : -1; // chapter number
-            const vlNum = chapter.attributes.volume !== null ? chapter.attributes.volume : 'N/A'; // volume number
-            const transLang = chapter.attributes.translatedLanguage ? chapter.attributes.translatedLanguage : 'No Translated Language'; // translated language
-            const unreadChapterFlag = parseInt(foundManga?.list_status.num_chapters_read) < chNum ? '{( Unread! )}' : ''; // logs {( Unread! )} when num_chapters_read < chNum
-            console.log(`|| ${index++} -> ${chNum >= 0 ? `Chapter: ${chNum} - ` : `Volume: ${vlNum} - `}${chapterTitle} (${transLang}) ${unreadChapterFlag}`);
-            if (index === sortedChapters.length) console.log('||');
-        });
-        if (enablePageFooter) {
-            console.log('|| --------------------\n||');
-            const currentPageString = String(pageDetails.currentPageIndex + 1);
-            const lastPageString = String(pageDetails.lastPageIndex + 1);
-            const pageProgressString = `${currentPageString} / ${lastPageString}`.padStart(9, ' ');
-            const label = `Page: `.padEnd(10, ' ');
-            console.log(`|| ${label} ${pageProgressString}\n||`);
-        } 
-    }
-}
-
 function menuFetchFiltersDisplay (lists, key) {
     // display current filters
     let selectionFound = false;
@@ -178,7 +153,6 @@ export {
     clearScreen, 
     customFetchMangadexDisplay, 
     menuFetchFiltersDisplay,
-    menuLogMangadexChapterDisplay,
     capitalFirstLetterString, 
     longStringToArray,
     truncateString,
