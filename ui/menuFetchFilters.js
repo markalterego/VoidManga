@@ -34,7 +34,7 @@ async function filterTypeMenu() {
         console.log('||\n|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         if (input === ANIME || input === MANGA) {
             // selecting status
@@ -87,7 +87,7 @@ async function filterStatusMenu (type) {
         console.log('||\n|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // logging titles by status
         if ((type === ANIME && input < animeStatus.length) || (type === MANGA && input < mangaStatus.length)) { 
@@ -136,7 +136,7 @@ async function filterEntriesMenu (type, status) {
         console.log('||\n|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // toggling filter at given option
         if (input > -1 && input < lists[type][status].length) {

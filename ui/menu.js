@@ -31,7 +31,7 @@ async function rootMenu() {
             [{'s': 'Settings'}]
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         switch (input) 
         {
@@ -70,7 +70,7 @@ async function settingsMenu() {
             ['Update MAL_API_CLIENT_ID', `Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`, '_']
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         switch (input) 
         {
@@ -100,7 +100,7 @@ async function updateAPIKeyMenu () {
             [{'?': 'https://myanimelist.net/apiconfig'}, '_']
         );
         
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         const isValidAPIKey = (typeof input === 'string' && input.length === 32); // API key expected length is 32 characters
 

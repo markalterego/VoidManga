@@ -26,7 +26,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
             ['Fetch with options', 'Change options', 'Filter MAL titles', 'Reset default options', `Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`, '_']
         );
 
-        input = await takeUserInput(true); // get user input
+        input = await takeUserInput(true);
 
         switch (input)
         {
@@ -138,7 +138,7 @@ async function fetchOptionsMenu (options) {
             ['Manga options', 'Chapter options', 'Content ratings', '_']
         );
 
-        input = await takeUserInput(true); // get user input
+        input = await takeUserInput(true);
         
         if (input === MANGAFETCH) { // manga fetch options
             await mangaOptionsMenu(options);
@@ -167,7 +167,7 @@ async function mangaOptionsMenu (options) {
             ['Manga fetch size', 'Manga order', '_']
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
         
         if (input === MANGAFETCHSIZE) { // limit_manga
             await optionMangaLimit(options);
@@ -194,7 +194,7 @@ async function optionMangaLimit (options) {
             [{'?': 'Input a value between 0-100'}, '_']
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // setting the given option
         if (input >= 0 && input <= 100) {
@@ -225,7 +225,7 @@ async function optionMangaOrder (options) {
             [{'t': 'Toggle direction'}]
         );
 
-        input = await takeUserInput(); // get user input 
+        input = await takeUserInput(); 
 
         // handle user choice
         if (input >= 0 && input < Object.keys(mangaOrderTypes).length) { // selected type option
@@ -264,7 +264,7 @@ async function chapterOptionsMenu (options) {
                                          ['Chapter languages', '_'])
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         if (!options.fetchAllChapters && input === CHAPTERFETCHSIZE) { // limit_chapter
             await optionChapterLimit(options);
@@ -295,7 +295,7 @@ async function optionChapterLimit (options) {
             [{'?': 'Input a value between 0-100'}, '_']
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // setting the given option
         if (input >= 0 && input <= 100) {
@@ -326,7 +326,7 @@ async function optionChapterOrder (options) {
             [{'t': 'Toggle direction'}]
         );
 
-        input = await takeUserInput(); // get user input 
+        input = await takeUserInput(); 
 
         // handle user choice
         if (input >= 0 && input < Object.keys(chapterOrderTypes).length) { // selected type option
@@ -361,7 +361,7 @@ async function optionChapterOffset (options) {
             [{'?': `Input a value between 0-${maxOffset}`}, '_']
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // setting the given option
         if (input >= 0 && input <= maxOffset) {
@@ -403,7 +403,7 @@ async function optionChapterLanguages (options) {
             [{'c': 'Clear filters'}]
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // regex tests for manually inputted language codes and allows:
         // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
@@ -439,7 +439,7 @@ async function optionContentRatings (options) {
             [{'c': 'Clear ratings'}]
         );
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // setting option / clearing options
         if (input > -1 && input < contentRatings.length) {
@@ -502,7 +502,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
         console.log('|| ± -> Include/Exclude all');
         console.log('|| e -> Go back\n||');
 
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
         
         // handle user choice
         if (input >= 0 && input <= highestSelectableIndex) { // adding to search
