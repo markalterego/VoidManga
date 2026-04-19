@@ -272,47 +272,32 @@ function sortChapters (chapters, foundManga) {
     // log by chapter number either 1-999 or 999-1
     const logDirection = options.logChapterDirection;
 
-    // TODO:
-    // - no longer sort by -> 
-    //      vol_1 - vol_99 - ch_1 - ch_99
-    //   but somehow implement ->
-    //      vol_1, ch_1 -> vol99, ch_99
-    //   but also consider that if volume number doesn't exist, 
-    //   sort those chapters by themselves to the end
-    //   
-    //   this is kinda fucked to implement since e.g. Homunculus 
-    //   seems to order by vol.1 ch.1, vol.1 ch.2, vol.2 ch.1
-    //   
-    //   then there's the rare case where a few arabic chapters just
-    //   have a random volume number latched onto them that isn't even 
-    //   correct, specifically a few Berserk chapters (but I'll probably just
-    //   ignore those since I don't know how to handle them)    
+    const chapterOnly = sortedChapters.filter(({ attributes: { volume, chapter } }) => !volume && chapter);
+    const volumeOnly = sortedChapters.filter(({ attributes: { volume, chapter }})  => volume && !chapter);
+    const volumeChapter = sortedChapters.filter(({ attributes: { volume, chapter }}) => volume && chapter);
 
-    sortedChapters = sortedChapters.sort((a, b) => {
-        // sorts array based on return value
-        // A and B are two "random" points of array
-        // if return value > 0 -> moves A after B
-        // if return value < 0 -> moves A before B
-        // if return value = 0 -> keeps A and B in place
-
-        // check if A or B is volume
-        const isVolumeA = a.attributes.volume && !a.attributes.chapter;
-        const isVolumeB = b.attributes.volume && !b.attributes.chapter;
-        // group by A and B so that volumes come first 
-        const groupA = isVolumeA ? 0 : 1; 
-        const groupB = isVolumeB ? 0 : 1;
-        if (groupA !== groupB) return groupA - groupB; // short-circuit
-
-        // sort by either chNum or vlNum
-        const numA = isVolumeA ? Number(a.attributes.volume) : 
-                                 Number(a.attributes.chapter);
-        const numB = isVolumeB ? Number(b.attributes.volume) : 
-                                 Number(b.attributes.chapter);
-        // log ascending or descending based on user preference
-        return logDirection === 'asc' ? numA - numB : // sort ascending e.g. 1-999
-                                        numB - numA ; // sort descending e.g. 999-1
-    });  
-    return sortedChapters;
+    return [
+        ...volumeOnly.sort((a, b) => {
+            return logDirection === 'asc'
+                ? a.attributes.volume - b.attributes.volume
+                : b.attributes.volume - a.attributes.volume
+        }),
+        ...volumeChapter.sort((a, b) => {
+            if (a.attributes.volume !== b.attributes.volume) {
+                return logDirection === 'asc'
+                    ? a.attributes.volume - b.attributes.volume
+                    : b.attributes.volume - a.attributes.volume
+            }
+            return logDirection === 'asc'
+                ? a.attributes.chapter - b.attributes.chapter
+                : b.attributes.chapter - a.attributes.chapter
+        }), 
+        ...chapterOnly.sort((a, b) => {
+            return logDirection === 'asc' 
+                ? Number(a.attributes.chapter) - Number(b.attributes.chapter)
+                : Number(b.attributes.chapter) - Number(a.attributes.chapter)
+        })
+    ]; 
 }
 
 function updatePageDetails (pageDetails, sortedContent) {
