@@ -1,6 +1,5 @@
 import open from 'open';
-import { takeUserInput, menuLogMangadexChapterDisplay, capitalFirstLetterString, 
-         longStringToArray, printMenuOptions } from '../helpers/functions.js';
+import { takeUserInput, capitalFirstLetterString, longStringToArray, printMenuOptions } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
 
 // TODO:
@@ -24,12 +23,10 @@ async function menuLogMangadex (mangadexData, l, config) {
 
     while (input !== 'e') 
     {
-        // sort/filter mangadexData + update pageDetails
-        sortedMangas = input === 's' || input === 'h' || input === 'o' || input === 'f' || input === null ? sortMangas(mangadexData, pageDetails) : sortedMangas; 
-        // page mangas
+        sortedMangas = input === 'f' || input === 'h' || input === 's'  || input === 'o' || input === null ? sortMangas(mangadexData) : sortedMangas; 
+        pageDetails = updatePageDetails(pageDetails, sortedMangas);
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
-        // options formatting
         const mangaTitles = pagedMangas.map(obj => 
             `${Object.values(obj.manga.attributes.title)[0]} (${obj.chapters.length})`
         );
@@ -38,7 +35,6 @@ async function menuLogMangadex (mangadexData, l, config) {
             ? [ ...mangaTitles, '_' ] 
             : null;
 
-        // specialOption formatting
         const pageOption = options.enablePagingManga ? 'p' : null;
         const noMangaOption = {'?': 'No manga found\n||'};
         const pageFooter = pagedMangas.length ? pageOption : noMangaOption; 
@@ -62,7 +58,7 @@ async function menuLogMangadex (mangadexData, l, config) {
             pageDetails
         );
         
-        input = await takeUserInput(true); // get user input - true for whole numbers
+        input = await takeUserInput(true);
         
         if (input >= 0 && input < pagedMangas.length) {
             await mangaOptionsMenu(pagedMangas[input]); // input selected manga
@@ -102,7 +98,7 @@ async function menuLogMangadex (mangadexData, l, config) {
     }    
 }
 
-function sortMangas (mangadexData, pageDetails) {
+function sortMangas (mangadexData) {
     // shallow copy of mangadexData
     let sortedMangas = [...mangadexData];
     // filter by mangas found at user's mangalist
@@ -133,8 +129,6 @@ function sortMangas (mangadexData, pageDetails) {
             sortedMangas.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
         }
     }
-    // update page details if necessary
-    pageDetails = updatePageDetails(pageDetails, sortedMangas);
     return sortedMangas;
 }
 
@@ -151,7 +145,7 @@ async function mangaOptionsMenu (selectedManga) {
             ['Log manga data', 'Log MAL progress', 'Traverse chapters', 'Search for chapter', '_']
         );
 
-        input = await takeUserInput(true); // get user input
+        input = await takeUserInput(true);
 
         if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
@@ -170,33 +164,60 @@ async function mangaOptionsMenu (selectedManga) {
 async function traverseChapters (selectedManga, chapterArr) {
     const chapters = chapterArr ?? selectedManga.chapters;
     const manga = !chapterArr ? selectedManga.manga : selectedManga;
-    let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
+    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters;
+    const formatChapterTitle = ({ attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
+        const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
+        const vlNum = volume ?? -1;
+        const vlLabel = vlNum >= 0 ? `Vol.${vlNum}` : ''; 
+        const chNum = chapter ?? -1;
+        const labelGap = chNum >= 0 && vlNum >= 0 ? ' ' : '';
+        const chLabel = chNum >= 0 ? `Ch.${chNum}` : '';            
+        const transLang = translatedLanguage ?? 'No Translated Language';
+        const unreadFlag = foundManga?.list_status.num_chapters_read < chNum ? '{( Unread! )}' : '';
+        return `[${vlLabel}${labelGap}${chLabel}] ${chTitle} (${transLang}) ${unreadFlag}`;
+    };
+    const isValidLangCode = (input) => { 
+        return /^[a-z]{2}(-[a-z]{2})?$/i.test(input); 
+    };
 
     // TODO:
     // - make it possible to arrange chapters by their title a-z and z-a
-    // - attempt to implement menuLogMangadexChapterDisplay through printMenuOptions function
 
     while (input !== 'e') 
     {
-        // reference to manga at mangalist
         const foundManga = findEntryAtLists(manga);
-        // sort chapters by options
-        let sortedChapters = sortChapters(chapters, foundManga, pageDetails);
-        // page chapters
+        sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === null ? sortChapters(chapters, foundManga) : sortedChapters;
+        pageDetails = updatePageDetails(pageDetails, sortedChapters);
         let pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
-        // display selectedManga chapters
-        menuLogMangadexChapterDisplay(pagedChapters, foundManga, options.enablePagingChapter, pageDetails);
 
-        console.log(`\n||\n|| h -> Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`);
-        console.log(`|| ? -> Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`);
-        console.log(`|| s -> Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`);
-        console.log(`|| t -> Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`);
-        if (options.enablePagingChapter) console.log('|| ± -> Next/Previous page');
-        console.log('|| e -> Go back\n||');
-        
-        input = await takeUserInput(true); // get user input 
+        const chapterTitles = pagedChapters.map(ch => formatChapterTitle(ch, foundManga));
+        const optionsArray = chapterTitles.length
+            ? [...chapterTitles, '_']
+            : null;
 
-        const isValidLangCode = /^[a-z]{2}(-[a-z]{2})?$/i.test(input); // test lang-code 
+        const pageOption = options.enablePagingChapter ? 'p' : null;
+        const noChapterOptions = {'?': 'No chapters found\n||'};
+        const pageFooter = pagedChapters.length ? pageOption : noChapterOptions;
+
+        const specialOptionsArray = [
+            pageFooter,
+            '',
+            '_',
+            {'h': `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`},
+            {'?': `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`},
+            {'s': `Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`},
+            {'t': `Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`},
+            (options.enablePagingChapter ? {'±': 'Next/Previous page'} : null)
+        ];
+
+        printMenuOptions(
+            '--- Select chapt ---',
+            optionsArray,
+            specialOptionsArray,
+            pageDetails
+        );
+
+        input = await takeUserInput(true); 
 
         // handle user input
         if (input >= 0 && input < pagedChapters.length) { 
@@ -205,22 +226,22 @@ async function traverseChapters (selectedManga, chapterArr) {
             options.hideReadChapters = !options.hideReadChapters;
         } else if (input === 'l') { // clear lang-codes
             options.filterChapterLanguages = [];
-        } else if (isValidLangCode) { // add lang-code
-            options.filterChapterLanguages.push(input); // add lang-code
+        } else if (isValidLangCode(input)) { // add lang-code
+            options.filterChapterLanguages.push(input); 
             options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
-        } else if (input === 's') { // toggle SORTDIRECTION = asc/desc
+        } else if (input === 's') { // toggle sort direction
             options.logChapterDirection = options.logChapterDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingChapter = !options.enablePagingChapter;
         } else if (input === '+') { // next page
             // if next page is not out of bounds
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
-                pageDetails.currentPageIndex++; // increment currentPage
+                pageDetails.currentPageIndex++;
             } 
         } else if (input === '-') { // previous page
             // if previous page is not out of bounds
             if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
-                pageDetails.currentPageIndex--; // decrement currentPage
+                pageDetails.currentPageIndex--;
             }
         } else if (input === '++') { // last page
             // navigate to last page
@@ -238,7 +259,7 @@ async function traverseChapters (selectedManga, chapterArr) {
     }
 }
 
-function sortChapters (chapters, foundManga, pageDetails) {
+function sortChapters (chapters, foundManga) {
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
     if (options.hideReadChapters && foundManga) { // don't hide if foundManga undefined
@@ -250,6 +271,23 @@ function sortChapters (chapters, foundManga, pageDetails) {
     }
     // log by chapter number either 1-999 or 999-1
     const logDirection = options.logChapterDirection;
+
+    // TODO:
+    // - no longer sort by -> 
+    //      vol_1 - vol_99 - ch_1 - ch_99
+    //   but somehow implement ->
+    //      vol_1, ch_1 -> vol99, ch_99
+    //   but also consider that if volume number doesn't exist, 
+    //   sort those chapters by themselves to the end
+    //   
+    //   this is kinda fucked to implement since e.g. Homunculus 
+    //   seems to order by vol.1 ch.1, vol.1 ch.2, vol.2 ch.1
+    //   
+    //   then there's the rare case where a few arabic chapters just
+    //   have a random volume number latched onto them that isn't even 
+    //   correct, specifically a few Berserk chapters (but I'll probably just
+    //   ignore those since I don't know how to handle them)    
+
     sortedChapters = sortedChapters.sort((a, b) => {
         // sorts array based on return value
         // A and B are two "random" points of array
@@ -274,8 +312,6 @@ function sortChapters (chapters, foundManga, pageDetails) {
         return logDirection === 'asc' ? numA - numB : // sort ascending e.g. 1-999
                                         numB - numA ; // sort descending e.g. 999-1
     });  
-    // update page details if necessary
-    pageDetails = updatePageDetails(pageDetails, sortedChapters);
     return sortedChapters;
 }
 
@@ -495,7 +531,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
             ['Log chapter data', 'Open chapter in browser', 'Find manga at lists', '_']
         );
         
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         if (input === LOGDATA) {
             const dataTitle = `${mangaTitle} ${chNum >= 0 ? `(ch: ${chNum})` : // chNum
@@ -543,7 +579,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
         console.log('||\n|| e -> Go back\n||');
         const highestSelectableIndex = index - 1;
         
-        input = await takeUserInput(true); // get user input
+        input = await takeUserInput(true);
 
         // 1. display selectable keys of data
         // 2. handle user input
@@ -722,7 +758,7 @@ async function openChaptersInBrowserMenu (fetchResults) {
         }
         console.log('\n||\n|| e -> Go back\n||');
         
-        input = await takeUserInput(); // get user input
+        input = await takeUserInput();
 
         // handle user input
         if (input >= 0 && input <= selectableIndex - 1) {
