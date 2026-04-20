@@ -18,13 +18,11 @@ async function menuLogMangadex (mangadexData, l, config) {
     // TODO: 
     // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
     //   to the end of that specific title
-    // - make it so that if user inputs 'p21' the current page is set to '21' (consider
-    //   making this a thing at traverseChapters as well) 
 
     while (input !== 'e') 
     {
         sortedMangas = input === 'f' || input === 'h' || input === 's'  || input === 'o' || input === null ? sortMangas(mangadexData) : sortedMangas; 
-        pageDetails = updatePageDetails(pageDetails, sortedMangas);
+        pageDetails = options.enablePagingManga ? updatePageDetails(pageDetails, sortedMangas) : pageDetails;
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
         const mangaTitles = pagedMangas.map(obj => 
@@ -57,7 +55,7 @@ async function menuLogMangadex (mangadexData, l, config) {
             specialOptionsArray,
             pageDetails
         );
-        
+
         input = await takeUserInput(true);
         
         if (input >= 0 && input < pagedMangas.length) {
@@ -70,28 +68,10 @@ async function menuLogMangadex (mangadexData, l, config) {
             options.logMangaDirection = options.logMangaDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 'o') { // order alphabetical/chapter count
             options.sortMangasAlphabetical = !options.sortMangasAlphabetical;
-        }  else if (input === 't') { // toggle paging on/off
+        } else if (input === 't') { // toggle paging on/off
             options.enablePagingManga = !options.enablePagingManga;
-        } else if (input === '+') { // next page
-            // if next page is not out of bounds
-            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
-                pageDetails.currentPageIndex++; // increment currentPage
-            } 
-        } else if (input === '-') { // previous page
-            // if previous page is not out of bounds
-            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
-                pageDetails.currentPageIndex--; // decrement currentPage
-            }
-        } else if (input === '++') { // last page
-            // navigate to last page
-            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) ) {
-                pageDetails.currentPageIndex = pageDetails.lastPageIndex;
-            }
-        } else if (input === '--') { // first page
-            // navigate to first page
-            if (options.enablePagingManga && (sortedMangas.length / 10 > 0) ) {
-                pageDetails.currentPageIndex = 0;
-            }
+        } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.at(0) === 'p')) { // pageOptions
+            pageDetails = pagingOptions(input, sortedMangas, pageDetails);
         } else if (input !== 'e') { 
             console.log('\n|| Please input a valid option');
         }
@@ -323,6 +303,35 @@ function pageContent (sortedContent, currentPage, enablePaging) {
         });
     } 
     return sortedContent;
+}
+
+function pagingOptions (input, sortedContent, pageDetails) {
+    const isSpecificPage = (input) => {
+        return /^p[0-9]+$/i.test(input);
+    };
+    if (input === '+') { // next page
+        if (sortedContent.length / 10 > 0 && pageDetails.currentPageIndex + 1 <= pageDetails.lastPageIndex) {
+            pageDetails.currentPageIndex++; 
+        } 
+    } else if (input === '-') { // previous page
+        if ((sortedContent.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
+            pageDetails.currentPageIndex--; 
+        }
+    } else if (input === '++') { // navigate to last page
+        if (sortedContent.length / 10 > 0) {
+            pageDetails.currentPageIndex = pageDetails.lastPageIndex;
+        }
+    } else if (input === '--') { // navigate to first page
+        if (sortedContent.length / 10 > 0) {
+            pageDetails.currentPageIndex = 0;
+        }
+    } else if (isSpecificPage(input)) { // navigate to specific page
+        const pageNumIndex = Number(input.slice(1)) - 1;
+        if ((sortedContent.length / 10 > 0) && pageNumIndex >= 0 && pageNumIndex <= pageDetails.lastPageIndex) {
+            pageDetails.currentPageIndex = pageNumIndex;
+        }
+    } 
+    return pageDetails;
 }
 
 function logSeriesProgress (manga) {
