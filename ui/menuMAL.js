@@ -1,7 +1,7 @@
 import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
-import { logDataDeepMenu, updatePageDetails, pageContent } from "./menuLogMangadex.js";
+import { logDataDeepMenu, updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMAL } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
 
@@ -96,7 +96,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
 
     while (input !== 'e') 
     {
-        pageDetails = updatePageDetails(pageDetails, entries);
+        pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
 
         let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
 
@@ -121,26 +121,8 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             await updateEntryMenu(entry); // update stuff related to selected entry
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (input === '+') { // next page
-            // if next page is not out of bounds
-            if (options.enablePagingEntries && (entries.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
-                pageDetails.currentPageIndex++; // increment currentPage
-            } 
-        } else if (input === '-') { // previous page
-            // if previous page is not out of bounds
-            if (options.enablePagingEntries && (entries.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
-                pageDetails.currentPageIndex--; // decrement currentPage
-            }
-        } else if (input === '++') { // last page
-            // navigate to last page
-            if (options.enablePagingEntries && (entries.length / 10 > 0) ) {
-                pageDetails.currentPageIndex = pageDetails.lastPageIndex;
-            }
-        } else if (input === '--') { // first page
-            // navigate to first page
-            if (options.enablePagingEntries && (entries.length / 10 > 0) ) {
-                pageDetails.currentPageIndex = 0;
-            }
+        } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.at(0) === 'p')) { // paging options
+            pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
