@@ -167,7 +167,7 @@ async function traverseChapters (selectedManga, chapterArr) {
     {
         const foundManga = findEntryAtLists(manga);
         sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === null ? sortChapters(chapters, foundManga) : sortedChapters;
-        pageDetails = updatePageDetails(pageDetails, sortedChapters);
+        pageDetails = options.enablePagingChapter ? updatePageDetails(pageDetails, sortedChapters) : pageDetails;
         let pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
         const chapterTitles = pagedChapters.map(ch => formatChapterTitle(ch, foundManga));
@@ -213,26 +213,8 @@ async function traverseChapters (selectedManga, chapterArr) {
             options.logChapterDirection = options.logChapterDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingChapter = !options.enablePagingChapter;
-        } else if (input === '+') { // next page
-            // if next page is not out of bounds
-            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex + 1) <= pageDetails.lastPageIndex) {
-                pageDetails.currentPageIndex++;
-            } 
-        } else if (input === '-') { // previous page
-            // if previous page is not out of bounds
-            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
-                pageDetails.currentPageIndex--;
-            }
-        } else if (input === '++') { // last page
-            // navigate to last page
-            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0)) {
-                pageDetails.currentPageIndex = pageDetails.lastPageIndex;
-            }
-        } else if (input === '--') { // first page
-            // navigate to first page
-            if (options.enablePagingChapter && (sortedChapters.length / 10 > 0)) {
-                pageDetails.currentPageIndex = 0;
-            }
+        } else if (options.enablePagingChapter && (input === '+' || input === '-' || input === '++' || input === '--' || input?.at(0) === 'p')) { // pageOptions
+            pageDetails = pagingOptions(input, sortedChapters, pageDetails);
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
         }
