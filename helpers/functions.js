@@ -83,6 +83,10 @@ function truncateString (string, maxLengthOfString) {
     return string.length > maxLengthOfString ? `${string.slice(0, maxLengthOfString).trim()}...`: string;
 }
 
+function isValidLangCode (input) {
+    return /^[a-z]{2}(-[a-z]{2})?$/i.test(input);
+}
+
 function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetails) {
     // creates a simple menu in a standardized format
     // header = string
@@ -156,5 +160,6 @@ export {
     capitalFirstLetterString, 
     longStringToArray,
     truncateString,
+    isValidLangCode,
     printMenuOptions
 };
