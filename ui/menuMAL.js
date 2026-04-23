@@ -73,7 +73,7 @@ async function traverseStatus (typeIndex) {
             [...statuses.map(capitalFirstLetterString), '_']
         );  
 
-        input = await takeUserInput(true); // take user input as whole num
+        input = await takeUserInput(true); 
 
         if (input >= 0 && input < statuses.length) {
             const statusIndex = input; // selected status
@@ -89,32 +89,39 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
     const entries = !entryArr ? lists[typeIndex][statusIndex] : entryArr;
     let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
 
-    // TODO:
-    // - move paging related options e.g. input === '+' next page etc. to a separate
-    //   function which takes in a key parameter to specify which enablePagingEntries/chapter/manga
-    //   is to be updated
-
     while (input !== 'e') 
     {
         pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
-
         let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
 
+        // formatting printMenuOptions parameters
+        const header = !entryArr ? `Status: ${capitalFirstLetterString(status)}`: 'Search results';
+
+        const entryTitles = pagedEntries.map(e => e.node.title);
+        const optionsArray = entryTitles.length
+            ? [...entryTitles, '_'] 
+            : null;
+        
+        const pageOption = options.enablePagingEntries ? 'p' : null;
+        const noEntriesOption = {'?': 'No entries found\n||'};
+        const pageFooter = pagedEntries.length ? pageOption : noEntriesOption;
+        const specialOptionsArray = [
+            pageFooter,
+            '',
+            '_',
+            {'t': `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`}, 
+            (options.enablePagingEntries ? {'±' : 'Next/Previous page'} : null)
+        ];
+
+        // calling printMenuOptions
         printMenuOptions(
-            (!entryArr ? `Status: ${capitalFirstLetterString(status)}` : 'Search results'),
-            [ ...pagedEntries.map(entry => entry.node.title), '_'],
-            (pagedEntries.length ? 
-                [
-                    (options.enablePagingEntries ? 'p' : null), '', '_',
-                    {'t': `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`}, 
-                    (options.enablePagingEntries ? {'±' : 'Next/Previous page'} : null)
-                ] : 
-                [{'?': 'No entries found'}, '_']
-            ), 
+            header,
+            optionsArray,
+            specialOptionsArray, 
             pageDetails
         );
 
-        input = await takeUserInput(true); // take user input as whole num
+        input = await takeUserInput(true); 
         
         if (input >= 0 && input < pagedEntries.length) {
             const entry = pagedEntries[input]; // reference to selected entry
@@ -158,7 +165,7 @@ async function updateEntryMenu (entry, l) {
         const entryTitle = entry_clone.node.title; // anime/manga title
         const list_status = entry_clone.list_status; // list_status
         
-        // <-- formatting menu options START
+        // formatting printMenuOptions parameters
         const s1_status = 'Status';
         const s2_status = capitalFirstLetterString(list_status.status);                             // watching/reading etc...
         const status    = s1_status.padEnd(PADEND, ' ') + ': ' + s2_status.padStart(PADSTART, ' '); // status with padding
@@ -188,15 +195,15 @@ async function updateEntryMenu (entry, l) {
         const s1_comments = 'Comments';
         const s2_comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : NOT_SET; // list_status.comment || 'no comment'
         const comments    = s1_comments.padEnd(PADEND, ' ') + ': ' + s2_comments.padStart(PADSTART, ' ');         // comments with padding
-        // <-- formatting menu options END
-
+        
+        // calling printMenuOptions
         printMenuOptions(
             `UPDATE - ${entryTitle}`,
             ['-', '_', status, score, progress, startDate, finishDate, isRe, comments, '_', '-', '_'],
             [{'l': 'Log entry'}]
         );
 
-        input = await takeUserInput(true); // take user input as whole num
+        input = await takeUserInput(true); 
 
         if (input === STATUS) {
             const oldStatus = list_status.status; // status before update
@@ -533,7 +540,7 @@ async function updateIsReMenu (list_status) {
             ['no', 'yes', '_']
         );
 
-        input = await takeUserInput(true); // take user input as whole number
+        input = await takeUserInput(true); 
         
         if (input >= 0 && input <= 1) {
             const value = input === 0 ? false : true; // isRe value
