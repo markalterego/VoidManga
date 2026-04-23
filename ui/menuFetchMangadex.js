@@ -1,4 +1,5 @@
-import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay, printMenuOptions, capitalFirstLetterString } from "../helpers/functions.js";
+import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay, 
+         printMenuOptions, capitalFirstLetterString, isValidLangCode } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, fetchMangadexOptions } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
@@ -405,17 +406,13 @@ async function optionChapterLanguages (options) {
 
         input = await takeUserInput();
 
-        // regex tests for manually inputted language codes and allows:
-        // 'en', 'Es', etc. <----OR----> 'eN-us', 'Pt-br', etc. 
-        const testResult = /^[a-z]{2}(-[a-z]{2})?$/i.test(input); // validating language code
-
         // handling menu choice
         if (input >= 0 && input < chapterTranslatedLanguages.length) { // pre-defined language options
             options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[input]);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
         } else if (input === 'c') { // clear current translatedLanguage options 
             options.chapterTranslatedLanguage = []; 
-        } else if (testResult) { // custom input e.g. 'en' or 'pt-br'
+        } else if (isValidLangCode(input)) { // custom input e.g. 'en' or 'pt-br'
             options.chapterTranslatedLanguage.push(input);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
         } else if (input !== 'e') {
