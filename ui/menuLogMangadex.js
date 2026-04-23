@@ -1,5 +1,6 @@
 import open from 'open';
-import { takeUserInput, capitalFirstLetterString, longStringToArray, printMenuOptions } from '../helpers/functions.js';
+import { takeUserInput, capitalFirstLetterString, longStringToArray, 
+         printMenuOptions, isValidLangCode } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
 
 // TODO:
@@ -25,6 +26,7 @@ async function menuLogMangadex (mangadexData, l, config) {
         pageDetails = options.enablePagingManga ? updatePageDetails(pageDetails, sortedMangas) : pageDetails;
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
+        // formatting printMenuOptions parameters
         const mangaTitles = pagedMangas.map(obj => 
             `${Object.values(obj.manga.attributes.title)[0]} (${obj.chapters.length})`
         );
@@ -49,6 +51,7 @@ async function menuLogMangadex (mangadexData, l, config) {
             (options.enablePagingManga ? {'±': 'Next/Previous page'} : null)
         ];
 
+        // calling printMenuOptions
         printMenuOptions(
             '--- Select manga ---', 
             optionsArray,
@@ -156,9 +159,6 @@ async function traverseChapters (selectedManga, chapterArr) {
         const unreadFlag = foundManga?.list_status.num_chapters_read < chNum ? '{( Unread! )}' : '';
         return `[${vlLabel}${labelGap}${chLabel}] ${chTitle} (${transLang}) ${unreadFlag}`;
     };
-    const isValidLangCode = (input) => { 
-        return /^[a-z]{2}(-[a-z]{2})?$/i.test(input); 
-    };
 
     // TODO:
     // - make it possible to arrange chapters by their title a-z and z-a
@@ -170,6 +170,7 @@ async function traverseChapters (selectedManga, chapterArr) {
         pageDetails = options.enablePagingChapter ? updatePageDetails(pageDetails, sortedChapters) : pageDetails;
         let pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
+        // formatting printMenuOptions parameters
         const chapterTitles = pagedChapters.map(ch => formatChapterTitle(ch, foundManga));
         const optionsArray = chapterTitles.length
             ? [...chapterTitles, '_']
@@ -190,6 +191,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             (options.enablePagingChapter ? {'±': 'Next/Previous page'} : null)
         ];
 
+        // calling printMenuOptions
         printMenuOptions(
             '--- Select chapt ---',
             optionsArray,
@@ -199,7 +201,6 @@ async function traverseChapters (selectedManga, chapterArr) {
 
         input = await takeUserInput(true); 
 
-        // handle user input
         if (input >= 0 && input < pagedChapters.length) { 
             await chapterOptionsMenu(pagedChapters[input], manga);
         } else if (input === 'h') { // toggle hide read chapters
