@@ -16,7 +16,7 @@ async function withRetry (fn, maxRetries = 5) {
     }
 }
 
-function rateLimitedFetch (fn, minMs = 200) {
+async function rateLimitedFetch (fn, minMs = 200) {
     // executes a function and waits a set amount
     // of time after the function if the execution
     // was faster than a set amount of milliseconds
