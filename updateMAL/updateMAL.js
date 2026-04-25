@@ -62,7 +62,7 @@ function getEntryIndex (lists, entry) {
     return lists[type][status].findIndex(e => e.node.id === entry.node.id); 
 }
 
-export { updateMAL };
+export { updateMAL, getTypeIndex };
 
 /*
 entry {
