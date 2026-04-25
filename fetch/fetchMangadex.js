@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { setTimeout } from "timers/promises";
 import { logErrorDetails } from '../helpers/errorLogger.js';
+import { getTypeIndex } from '../updateMAL/updateMAL.js';
+import { withRetry, rateLimitedFetch } from './fetchUtils.js';
 // import { toZonedTime, format } from 'date-fns-tz'; 
 
 async function fetchMangadexMangas (lists, options) {
@@ -23,58 +25,39 @@ async function fetchMangadexMangas (lists, options) {
 }
 
 function findIncludedEntries (lists) {
-    // 1. find entry with .includeInMangadexFetch = true 
-    // 2. copies found entry to formattedEntry 
-    // 3. includes new key to formattedEntry called type holding either 'anime' or 'manga' 
-    //    in reference to if said entry was found in lists[0] or lists[1]
-    let foundEntries = [];
-    for (const type of lists) {
-        for (const status of type) {
-            for (const entry of status) {
-                if (entry.includeInMangadexFetch) {
-                    const formattedEntry = JSON.parse(JSON.stringify(entry)); // copy entry found in lists to formattedEntry
-                    formattedEntry.type = type === 0 ? 'anime' : 'manga'; // include type of entry to formattedEntry
-                    foundEntries.push(formattedEntry); // push formattedEntry to found entries
-                }
-            }
-        }
-    }
-    return foundEntries;
+    // filters lists by entries which have entry.includeInMangadexFetch set to true
+    // and maps type: 'anime'/'manga' to each found entry based on if entry was found
+    // at anime- or mangalist 
+    const types = ['anime', 'manga'];
+    return lists.flat(2)
+                .filter(e => e.includeInMangadexFetch)
+                .map(e => ( 
+                    { ...e, type: types[getTypeIndex(e)] } 
+                ));
 }
 
 async function fetchManga (entry, options) {
-    let formattedMangaResponse = {}, errorsInRow = 0, keepFetching = true;
-    while (keepFetching) {
-        const startTimeManga = performance.now(); // timing manga fetch start
-        try {
-            const mangaResponse = await axios.get(`https://api.mangadex.org/manga`, { // fetching Mangadex mangas based on preference
-                params: {
-                    title: entry.node.title, // entry title
-                    limit: options.limit_manga, // preferred fetch length 
-                    [`order[${options.mangaOrderType}]`]: options.mangaOrderDirection, // e.g 'order[relevance]': 'desc' - orders by most relevant to least relevant
-                    contentRating: options.contentRating // includes preferred contentRatings
-                }
-            });
-            formattedMangaResponse = { searchResults: mangaResponse.data.data, // searchResults 
-                                       query: { // relevant MAL info
-                                            title: entry.node.title, // title used for search
-                                            id: entry.node.id, // MAL id
-                                            type: entry.type === 0 ? 'anime' : 'manga', // list type
-                                      }}; 
-            keepFetching = false; // stop fetching
-        } catch (error) {
-            if (error.response) { // <-- error related to fetching 
-                const triesRemaining = 5 - (++errorsInRow); // update errorsInRow and log failed fetch
-                console.error(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
-                if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // throw five fetches in a row err
-            } else {
-                throw error; // throw error up the hierarchy
-            }
-        }
-        const mangaFetchTimeTaken = Math.round(performance.now()-startTimeManga); // time taken for fetch
-        if (mangaFetchTimeTaken < 200) await setTimeout(200-mangaFetchTimeTaken); // avoiding rate limit
-    }   
-    return formattedMangaResponse;
+    const { type, node: { title, id } } = entry;
+    const { limit_manga, mangaOrderType, mangaOrderDirection, contentRating } = options;
+    
+    const params = {
+        title,
+        limit: limit_manga,
+        [`order[${mangaOrderType}]`]: mangaOrderDirection, // e.g 'order[relevance]': 'desc' - orders by most relevant to least relevant
+        contentRating
+    };
+
+    // fetch manga 
+    const response = await withRetry(() => 
+        rateLimitedFetch(() => 
+            axios.get('https://api.mangadex.org/manga', { params })
+        )
+    );
+
+    return {
+        searchResults: response.data.data,
+        query: { title, id, type }
+    };
 }
  
 async function fetchMangadexChapters (selectedMangas, options) {
