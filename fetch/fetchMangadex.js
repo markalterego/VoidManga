@@ -118,55 +118,46 @@ async function fetchChaptersCustom ({ manga: { id } }, options) {
     return formattedChapterResponse ?? [];
 }
 
-async function fetchChaptersAll (selectedManga, options) {
-    const limit = 100; let chapters = [], offset = 0, keepFetching = true, errorsInRow = 0; 
-    while (keepFetching) {
-        const startTimeChapter = performance.now(); // timing chapter fetch start
-        try {
-            // format params
-            const formattedParams = Object.fromEntries( // obj
-                Object.entries({ // arr
-                    limit: limit, // max fetch size
-                    offset: offset, // offset
-                    translatedLanguage: options.chapterTranslatedLanguage, // filter by preferred translation
-                    contentRating: options.contentRating // includes preferred contentRatings
-                }).filter(([_, value]) => (Array.isArray(value) && value.length) || (typeof value === 'number' && value >= 0)) // remove empty keys
-            );
-            // fetch chapter endpoint
-            const chapterResponse = await axios.get(`https://api.mangadex.org/manga/${selectedManga.manga.id}/feed`, { // fetching chapters of manga
-                params: formattedParams
-            }); 
-            // handle received chapter data
-            const fetchedChaptersCount = chapterResponse.data.data?.length;
-            const hasNoMoreFetchableChapters = fetchedChaptersCount !== limit; // endpoint didn't return the amount of chapters it was asked to return
-            const nextFetchExceedsAllowedOffsetSizeSum = offset + limit + 100 >= 10000; // calculates the next fetches offset + size -> api allows offset + size < 10k
-            if (fetchedChaptersCount) { // found chapters
-                const finalChapterResponseData = chapterResponse.data.data.map((chapter) => { // keep only relevant info from results
-                    return { ...chapter, link: `https://mangadex.org/chapter/${chapter.id}` };
-                });
-                chapters.push(finalChapterResponseData); // pushes array of obj to chapters
-                // adds padding at start based on letters in number
-                console.log(`||    ${String(fetchedChaptersCount).padStart(3)} chapters (offset ${String(offset).padStart(4)})`);
-            }
-            if (hasNoMoreFetchableChapters || nextFetchExceedsAllowedOffsetSizeSum) {
-                chapters = chapters.flatMap(c => c); // flatten arr of arr of obj TO arr of obj
-                keepFetching = false; // stop fetching
-            }
-            offset += 100; // append offset by 100
-            errorsInRow = 0; // resetting consecutive errors
-        } catch (error) { 
-            if (error.response) { // <-- error related to fetching
-                const triesRemaining = 5 - (++errorsInRow); // update errorsInRow and log failed fetch
-                console.log(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
-                if (errorsInRow >= 5) throw new Error('Five fetches failed in a row'); // five fetches in a row err
-            } else {
-                throw error; // throw error up the hierarchy
-            }
-        }
-        const chapterFetchTimeTaken = Math.round(performance.now()-startTimeChapter); // time taken for chapter fetch
-        if (chapterFetchTimeTaken < 200) await setTimeout(200-chapterFetchTimeTaken); // avoiding rate limits
-    }   
-    return chapters;
+async function fetchChaptersAll ({ manga: { id }}, { chapterTranslatedLanguage, contentRating }, limit = 100) {
+    const hasMoreChapters = (amountFetched) => amountFetched === limit; // evaluates true when API returns limit amount of chapters
+    const withinOffsetCap = (offset) => offset + limit < 10000; // evalutes true until offset cap is reached
+
+    let chapters = [], amountFetched = limit;
+
+    for (let offset = 0; hasMoreChapters(amountFetched) && withinOffsetCap(offset); offset += limit) {
+        const params = Object.fromEntries(
+            Object.entries({
+                limit,
+                offset,
+                translatedLanguage: chapterTranslatedLanguage, 
+                contentRating 
+            }).filter(([_, val]) => ( // filter invalid values
+                (typeof val === 'number' && val >= 0) ||
+                (Array.isArray(val) && val.length)
+            ))
+        );
+
+        // fetch chapters
+        const chapterResponse = await withRetry(() =>
+            rateLimitedFetch(() =>
+                axios.get(`https://api.mangadex.org/manga/${id}/feed`, { params })
+            )
+        );
+
+        amountFetched = chapterResponse.data.data?.length; 
+
+        // format response
+        const formattedChapters = chapterResponse.data.data?.map(chapter =>
+            ({ ...chapter, link: `https://mangadex.org/chapter/${chapter.id}`})
+        );
+
+        chapters.push(formattedChapters);
+        
+        // log chapters fetched
+        console.log(`||    ${String(amountFetched).padStart(3)} chapters (offset ${String(offset).padStart(4)})`);   
+    }
+
+    return chapters.flat();
 }
 
 export { fetchMangadexMangas, fetchMangadexChapters };
