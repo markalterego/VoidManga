@@ -453,47 +453,61 @@ async function optionContentRatings (options) {
 }
 
 async function selectMangasFromFetchResults (mangaSearches) {
-    let input = 0, index = 0, highestSelectableIndex = 0, selectedMangas = [];
+    let input = null, selectedMangas = [];
+    const hasSelectedMangas = () => selectedMangas.length;
+    const appendSelectedMangas = (toAppend) => {
+        const isDuplicate = selectedMangas.some(({ manga }) => manga.id === toAppend.id); // check for duplicates
+        if (!isDuplicate) selectedMangas.push({ manga: toAppend }); // push and map toAppend as { manga: toAppend }
+    } 
 
     while (input !== 's' && input !== 'e') 
     {
-        // log search results
-        mangaSearches.forEach((mangaSearch, mangaSearchIndex) => {
-            if (mangaSearchIndex === 0) { // header
-                console.log('\n||\n|| Add titles to chapter search:\n||');
-            }
-            console.log(`|| ${mangaSearch.query.title}:\n||`); // MAL title
-            const searchResults = mangaSearch.searchResults; // results for title
-            if (!searchResults.length) {
-                console.log(`|| - No results for search`);
-            } else {
-                searchResults.forEach((searchResult) => {
-                    const attributes = searchResult.attributes;
-                    const title = Object.values(attributes.title)[0]; // title
-                    const malId = mangaSearch.query.id; // MAL id
-                    const searchId = parseInt(searchResult.attributes.links?.mal, 10); // Mangadex manga data sometimes has e.g. '85173' from 'https://myanimelist.net/manga/85173'
-                    const sameIdTag = mangaSearch.query.type === 'manga' ? (malId === searchId ? '<-- Perfect Match!!!' : '') : ''; // exact same id and type
-                    console.log(`|| ${index++}: ${title} ${sameIdTag}`);
-                });
-            }
-            console.log('||');
-        });
-        // set highest selectable + reset index
-        highestSelectableIndex = index - 1; index = 0; 
-        // log selected
-        console.log('\n||\n|| Currently selected titles:\n||');
-        if (selectedMangas.length === 0) {
-            console.log('|| - No titles selected\n||');
-        } else {
-            // logging selected titles
-            selectedMangas.forEach((selectedManga) => { 
-                const attributes = selectedManga.manga.attributes;
-                const firstTitle = Object.values(attributes.title)[0]; // first title
-                console.log(`|| - ${firstTitle}`); 
-            });
-            console.log('||');
+        let index = 0;
+    
+        // 1. call printMenuOptions for each mangaSearch
+        for (const { searchResults, query: { title: MAL_title, id: MAL_id, type: MAL_type } } of mangaSearches) {
+            
+            // formatting to {'index': 'title (<-- Perfect match)'}
+            const mangaTitles = searchResults.map(({ attributes: { title, links: { mal } }}) => {
+                const isPerfectMatch = MAL_type === 'manga' 
+                    ? Number(mal) === Number(MAL_id) // e.g. mal = '85173' from 'https://myanimelist.net/manga/85173'
+                    : false;
+                const perfectMatchTag = isPerfectMatch ? '<-- Perfect match' : '';
+                const value = `${Object.values(title)[0]} ${perfectMatchTag}`;
+                return { [index++]: value };
+            }); 
+
+            const specialOptionsArray = searchResults.length
+                ? [...mangaTitles, '_']
+                : [{'?': 'No results found'}, '_'];
+
+            printMenuOptions(
+                `${MAL_title}:`,
+                null,
+                specialOptionsArray,
+                { printExit: false }
+            );
         }
+
+        const mangaTitleCount = index;
+
+        // log selected
+        // console.log('\n||\n|| Currently selected titles:\n||');
+        // if (selectedMangas.length === 0) {
+        //     console.log('|| - No titles selected\n||');
+        // } else {
+        //     // logging selected titles
+        //     selectedMangas.forEach((selectedManga) => { 
+        //         const attributes = selectedManga.manga.attributes;
+        //         const firstTitle = Object.values(attributes.title)[0]; // first title
+        //         console.log(`|| - ${firstTitle}`); 
+        //     });
+        //     console.log('||');
+        // }
         // log e -> exit, s -> search etc...
+
+        console.log(selectedMangas);
+
         console.log('\n||\n|| s -> Search chapters');
         console.log('|| p -> Select perfect matches');
         console.log('|| ± -> Include/Exclude all');
@@ -501,50 +515,25 @@ async function selectMangasFromFetchResults (mangaSearches) {
 
         input = await takeUserInput();
         
-        // handle user choice
-        if (input >= 0 && input <= highestSelectableIndex) { // adding to search
-            mangaSearches.forEach((mangaSearch) => { // manga search
-                const searchResults = mangaSearch.searchResults;
-                searchResults.forEach((searchResult) => { // results for search
-                    if (index === input) { // index matches user given choice
-                        const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
-                        if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
-                    }
-                    index++;
-                }); 
-            });
-            index = 0;
-        } else if (input === 's') { 
-            if (selectedMangas.length === 0) {
-                console.log('\n||\n|| Select at least one title to perform a search\n||');
-                input = 0;
-            }
+        if (input >= 0 && input < mangaTitleCount) { // adding to search
+            const allResults = mangaSearches.flatMap(({ searchResults }) => searchResults);
+            const selectedManga = allResults[input];
+            appendSelectedMangas(selectedManga);
+        } else if (input === 's' && !hasSelectedMangas(selectedMangas)) { 
+            console.log('\n||\n|| Select at least one title to perform a search\n||');
+            input = null;
         } else if (input === 'p') { // select all perfect matches
-            mangaSearches.forEach((mangaSearch) => {
-                const searchResults = mangaSearch.searchResults;
-                searchResults.forEach((searchResult) => {
-                    const type = mangaSearch.query.type; // 'anime' or 'manga'
-                    const malId = mangaSearch.query.id; // MAL id
-                    const searchId = parseInt(searchResult.attributes.links?.mal, 10); // Mangadex manga data sometimes has e.g. '85173' from 'https://myanimelist.net/manga/85173'
-                    if (type === 'manga' && malId === searchId) { // perfect match found
-                        const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
-                        if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
-                    }
-                });
-            }); 
+            const mangaOnlySearches = mangaSearches.filter(({ query: { type: MAL_type }}) => MAL_type === 'manga');
+            const perfectMatches = mangaOnlySearches.flatMap(({ searchResults, query: { id: MAL_id }}) => 
+                searchResults.filter(({ attributes }) => Number(attributes.links?.mal) === MAL_id)
+            );
+            perfectMatches.forEach(perfectMatch => appendSelectedMangas(perfectMatch));
         } else if (input === '+') {
             // including all Manga titles to fetch
-            mangaSearches.forEach((mangaSearch) => {
-                const searchResults = mangaSearch.searchResults;
-                searchResults.forEach((searchResult) => {
-                    const isDuplicate = selectedMangas.find(selected => selected.manga.id === searchResult.id);
-                    if (!isDuplicate) selectedMangas.push({manga: searchResult}); // pushing selected to selected
-                });
-            });
+            const allResults = mangaSearches.flatMap(({ searchResults }) => searchResults);
+            allResults.forEach(result => appendSelectedMangas(result));
         } else if (input === '-' || input === 'e') { // clear current selection
             selectedMangas = [];
-        } else {
-            console.log('\n|| Please input a valid option');
         }
     }
     return selectedMangas;
