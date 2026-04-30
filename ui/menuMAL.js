@@ -1,5 +1,5 @@
 import { filehandle } from "../filehandling/filehandle.js";
-import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions } from "../helpers/functions.js";
+import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logDataDeepMenu, updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMAL } from "../fetch/fetchMAL.js";
@@ -118,7 +118,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             header,
             optionsArray,
             specialOptionsArray, 
-            pageDetails
+            { pageDetails }
         );
 
         input = await takeUserInput(true); 
@@ -128,7 +128,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             await updateEntryMenu(entry); // update stuff related to selected entry
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.at(0) === 'p')) { // paging options
+        } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -625,7 +625,7 @@ async function searchListsByTitleMenu() {
         input = await takeUserInput(false, true); // take user input
         
         if (typeof input === 'string' && input.length && input !== 'e') {
-            const regex = new RegExp(`\\b${input}`, 'i'); // regex matches input at beginning of each word
+            const regex = new RegExp(`\\b${escapeRegex(input)}`, 'i'); // regex matches input at beginning of each word
             const matching = lists.flat(2) // arr of entries
                                   .filter(e => regex.test(e.node.title)); // match title to input
             if (!matching.length) { // no matching results
