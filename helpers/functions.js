@@ -87,11 +87,16 @@ function isValidLangCode (input) {
     return /^[a-z]{2}(-[a-z]{2})?$/i.test(input);
 }
 
-function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetails) {
+function escapeRegex (input) {
+    return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+} 
+
+function printMenuOptions (header, optionsArray, specialOptionsArray, { pageDetails = null, printExit = true, printHeader = true } = {}) {
     // creates a simple menu in a standardized format
     // header = string
     // optionsArray = array of strings
     // specialOptionsArray = array of objects
+    // { pageDetails = object, printExit = boolean, printHeader = boolean }
 
     const skipLine = '_',      // console.log('||') 
           emptyLine = '',      // console.log()
@@ -107,7 +112,7 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
         } 
         
         // header
-        console.log(`\n||\n|| ${header}\n||`);
+        if (printHeader) console.log(`\n||\n|| ${header}\n||`);
 
         // mapping optionsArray        as { 'index': val } 
         //         specialOptionsArray as { 'special': val }
@@ -146,7 +151,7 @@ function printMenuOptions (header, optionsArray, specialOptionsArray, pageDetail
         } 
 
         // end of print
-        console.log('|| e -> Go back\n||');
+        if (printExit) console.log('|| e -> Go back\n||');
     } catch (error) {
         logErrorDetails(error);
     }
@@ -161,5 +166,6 @@ export {
     longStringToArray,
     truncateString,
     isValidLangCode,
+    escapeRegex,
     printMenuOptions
 };
