@@ -1,6 +1,6 @@
 import open from 'open';
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
-         printMenuOptions, isValidLangCode } from '../helpers/functions.js';
+         printMenuOptions, isValidLangCode, escapeRegex } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
 
 // TODO:
@@ -56,7 +56,7 @@ async function menuLogMangadex (mangadexData, l, config) {
             '--- Select manga ---', 
             optionsArray,
             specialOptionsArray,
-            pageDetails
+            { pageDetails }
         );
 
         input = await takeUserInput(true);
@@ -73,7 +73,7 @@ async function menuLogMangadex (mangadexData, l, config) {
             options.sortMangasAlphabetical = !options.sortMangasAlphabetical;
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingManga = !options.enablePagingManga;
-        } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.at(0) === 'p')) { // pageOptions
+        } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
             pageDetails = pagingOptions(input, sortedMangas, pageDetails);
         } else if (input !== 'e') { 
             console.log('\n|| Please input a valid option');
@@ -196,7 +196,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             '--- Select chapt ---',
             optionsArray,
             specialOptionsArray,
-            pageDetails
+            { pageDetails }
         );
 
         input = await takeUserInput(true); 
@@ -214,7 +214,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             options.logChapterDirection = options.logChapterDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingChapter = !options.enablePagingChapter;
-        } else if (options.enablePagingChapter && (input === '+' || input === '-' || input === '++' || input === '--' || input?.at(0) === 'p')) { // pageOptions
+        } else if (options.enablePagingChapter && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
             pageDetails = pagingOptions(input, sortedChapters, pageDetails);
         } else if (input !== 'e') {
             console.log('\n|| Please input a valid option');
@@ -474,7 +474,7 @@ async function findChapterByChapterTitle (selectedManga) {
         input = await takeUserInput(false, true);
 
         if (typeof input === 'string' && input.length && input !== 'e') {
-            const regex = new RegExp(`\\b${input}`, 'i'); // regex matches input at beginning of each word
+            const regex = new RegExp(`\\b${escapeRegex(input)}`, 'i'); // regex matches input at beginning of each word
             const matching = chapters.filter(chapter => regex.test(chapter.attributes.title)); // match title to input
             if (!matching.length) { // no matching results
                 console.log('\n||\n|| No matches found\n||');
