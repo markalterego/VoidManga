@@ -155,9 +155,10 @@ async function traverseChapters (selectedManga, chapterArr) {
         const chNum = chapter ?? -1;
         const labelGap = chNum >= 0 && vlNum >= 0 ? ' ' : '';
         const chLabel = chNum >= 0 ? `Ch.${chNum}` : '';            
+        const noVlChLabel = chNum < 0 && vlNum < 0 ? '???' : ''; 
         const transLang = translatedLanguage ?? 'No Translated Language';
         const unreadFlag = foundManga?.list_status.num_chapters_read < chNum ? '{( Unread! )}' : '';
-        return `[${vlLabel}${labelGap}${chLabel}] ${chTitle} (${transLang}) ${unreadFlag}`;
+        return `[${noVlChLabel}${vlLabel}${labelGap}${chLabel}] ${chTitle} (${transLang}) ${unreadFlag}`;
     };
 
     // TODO:
@@ -238,6 +239,7 @@ function sortChapters (chapters, foundManga) {
     const chapterOnly = sortedChapters.filter(({ attributes: { volume, chapter } }) => !volume && chapter);
     const volumeOnly = sortedChapters.filter(({ attributes: { volume, chapter }})  => volume && !chapter);
     const volumeChapter = sortedChapters.filter(({ attributes: { volume, chapter }}) => volume && chapter);
+    const noVolumeOrChapter = sortedChapters.filter(({ attributes: { volume, chapter }}) => !volume && !chapter);
 
     return [
         ...volumeOnly.sort((a, b) => {
@@ -259,7 +261,8 @@ function sortChapters (chapters, foundManga) {
             return logDirection === 'asc' 
                 ? Number(a.attributes.chapter) - Number(b.attributes.chapter)
                 : Number(b.attributes.chapter) - Number(a.attributes.chapter)
-        })
+        }),
+        ...noVolumeOrChapter
     ]; 
 }
 
