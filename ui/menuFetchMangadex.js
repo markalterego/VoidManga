@@ -24,7 +24,14 @@ async function menuFetchMangadex (lists, config, mangadexData) {
         // logs menu
         printMenuOptions(
             'Custom fetch Mangadex',
-            ['Fetch with options', 'Change options', 'Filter MAL titles', 'Reset default options', `Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`, '_']
+            [
+                ['Fetch with options'], 
+                ['Change options'],
+                ['Filter MAL titles'], 
+                ['Reset default options'], 
+                [`Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`],
+                '_'
+            ]
         );
 
         input = await takeUserInput(true);
@@ -136,7 +143,12 @@ async function fetchOptionsMenu (options) {
         // lists options that can be changed 
         printMenuOptions(
             'Change fetch options',
-            ['Manga options', 'Chapter options', 'Content ratings', '_']
+            [
+                ['Manga options'],
+                ['Chapter options'],
+                ['Content ratings'],
+                '_'
+            ]
         );
 
         input = await takeUserInput(true);
@@ -165,7 +177,11 @@ async function mangaOptionsMenu (options) {
         // logs menu
         printMenuOptions(
             'Manga options',
-            ['Manga fetch size', 'Manga order', '_']
+            [
+                ['Manga fetch size'],
+                ['Manga order'],
+                '_'
+            ]
         );
 
         input = await takeUserInput();
@@ -191,8 +207,10 @@ async function optionMangaLimit (options) {
         // logs menu
         printMenuOptions(
             'Manga fetch size',
-            null,
-            [{'?': 'Input a value between 0-100'}, '_']
+            [
+                ['?', 'Input a value between 0-100'],
+                '_'
+            ]
         );
 
         input = await takeUserInput();
@@ -222,8 +240,11 @@ async function optionMangaOrder (options) {
         // print order types
         printMenuOptions(
             'Manga order',
-            [...Object.keys(mangaOrderTypes).map(orderType => capitalFirstLetterString(orderType)), '_'],
-            [{'t': 'Toggle direction'}]
+            [
+                ...Object.keys(mangaOrderTypes).map(orderType => [capitalFirstLetterString(orderType)]), 
+                '_',
+                ['t', 'Toggle direction']
+            ]
         );
 
         input = await takeUserInput(); 
@@ -258,11 +279,17 @@ async function chapterOptionsMenu (options) {
         // logs currently selected options
         customFetchMangadexDisplay(options);
 
+        // format menu options
+        const chapterOptionsCustom = [['Chapter fetch size'], ['Chapter order'], ['Chapter offset'], ['Chapter languages'], '_'];
+        const chapterOptionsAll = [['Chapter languages'], '_'];
+        const optionsArray = options.fetchAllChapters
+            ? chapterOptionsAll
+            : chapterOptionsCustom;
+
         // print menu options
         printMenuOptions(
             'Chapter options',
-            (!options.fetchAllChapters ? ['Chapter fetch size', 'Chapter order', 'Chapter offset', 'Chapter languages', '_'] : 
-                                         ['Chapter languages', '_'])
+            optionsArray
         );
 
         input = await takeUserInput();
@@ -292,8 +319,10 @@ async function optionChapterLimit (options) {
         // print menu
         printMenuOptions(
             'Chapter fetch size',
-            null,
-            [{'?': 'Input a value between 0-100'}, '_']
+            [
+                ['?', 'Input a value between 0-100'],
+                '_'
+            ]
         );
 
         input = await takeUserInput();
@@ -323,8 +352,11 @@ async function optionChapterOrder (options) {
         // print order types
         printMenuOptions(
             'Chapter order',
-            [...Object.keys(chapterOrderTypes).map(orderType => capitalFirstLetterString(orderType)), '_'],
-            [{'t': 'Toggle direction'}]
+            [
+                ...Object.keys(chapterOrderTypes).map(orderType => [capitalFirstLetterString(orderType)]), 
+                '_',
+                ['t', 'Toggle direction']
+            ]
         );
 
         input = await takeUserInput(); 
@@ -358,8 +390,7 @@ async function optionChapterOffset (options) {
 
         printMenuOptions(
             'Chapter offset',
-            null,
-            [{'?': `Input a value between 0-${maxOffset}`}, '_']
+            [['?', `Input a value between 0-${maxOffset}`], '_']
         );
 
         input = await takeUserInput();
@@ -400,8 +431,11 @@ async function optionChapterLanguages (options) {
         // print selectable languages
         printMenuOptions(
             'Select chapter languages (or enter custom code)',
-            [...chapterTranslatedLanguages.map(lang => capitalFirstLetterString(lang)), '_'],
-            [{'c': 'Clear filters'}]
+            [
+                ...chapterTranslatedLanguages.map(lang => [capitalFirstLetterString(lang)]), 
+                '_',
+                ['c', 'Clear filters']
+            ]
         );
 
         input = await takeUserInput();
@@ -432,8 +466,12 @@ async function optionContentRatings (options) {
         // log content ratings
         printMenuOptions(
             'Choose content ratings',
-            [...contentRatings.map(contentRating => capitalFirstLetterString(contentRating)), 'Select all', '_'],
-            [{'c': 'Clear ratings'}]
+            [
+                ...contentRatings.map(contentRating => [capitalFirstLetterString(contentRating)]), 
+                ['Select all'], 
+                '_',
+                ['c', 'Clear ratings']
+            ]
         );
 
         input = await takeUserInput();
@@ -464,9 +502,17 @@ async function selectMangasFromFetchResults (mangaSearches) {
     {
         let index = 0;
     
-        // 1. call printMenuOptions for each mangaSearch
+        // 1. printing each mangaSearch as a separate menu
+        // 
+        // || 
+        // || Berserk:
+        // || 
+        // || 0 -> Berserk <-- Perfect match
+        // || 1 -> Berserk 2
+        // || 
+        // 
+
         for (const { searchResults, query: { title: MAL_title, id: MAL_id, type: MAL_type } } of mangaSearches) {
-            
             // formatting to {'index': 'title (<-- Perfect match)'}
             const mangaTitles = searchResults.map(({ attributes: { title, links: { mal } }}) => {
                 const isPerfectMatch = MAL_type === 'manga' 
@@ -474,44 +520,59 @@ async function selectMangasFromFetchResults (mangaSearches) {
                     : false;
                 const perfectMatchTag = isPerfectMatch ? '<-- Perfect match' : '';
                 const value = `${Object.values(title)[0]} ${perfectMatchTag}`;
-                return { [index++]: value };
+                return [ index++, value ];
             }); 
 
-            const specialOptionsArray = searchResults.length
+            const optionsArray = searchResults.length
                 ? [...mangaTitles, '_']
-                : [{'?': 'No results found'}, '_'];
+                : [['?', 'No results found'], '_'];
 
             printMenuOptions(
                 `${MAL_title}:`,
-                null,
-                specialOptionsArray,
+                optionsArray,
                 { printExit: false }
             );
         }
 
         const mangaTitleCount = index;
 
-        // log selected
-        // console.log('\n||\n|| Currently selected titles:\n||');
-        // if (selectedMangas.length === 0) {
-        //     console.log('|| - No titles selected\n||');
-        // } else {
-        //     // logging selected titles
-        //     selectedMangas.forEach((selectedManga) => { 
-        //         const attributes = selectedManga.manga.attributes;
-        //         const firstTitle = Object.values(attributes.title)[0]; // first title
-        //         console.log(`|| - ${firstTitle}`); 
-        //     });
-        //     console.log('||');
-        // }
-        // log e -> exit, s -> search etc...
+        // 2. printing selected titles and options
+        // 
+        // || 
+        // || Selected titles
+        // || 
+        // || - Berserk 
+        // || - Frieren
+        // || 
+        // 
+        // ||
+        // || s -> Search chapters
+        // || p -> Select perfect matches
+        // || ± -> Include/Exclude all
+        // || e -> Go back
+        // ||
 
-        console.log(selectedMangas);
+        // formatting selected titles
+        const mangaTitles = selectedMangas.map(({ manga: { attributes: {title}}}) => 
+            [null, '-', Object.values(title)?.[0]]
+        ); 
+        const noTitlesOption = [[null, '-', 'No selected titles']];
+        const selectedTitles = selectedMangas.length ? mangaTitles : noTitlesOption;
 
-        console.log('\n||\n|| s -> Search chapters');
-        console.log('|| p -> Select perfect matches');
-        console.log('|| ± -> Include/Exclude all');
-        console.log('|| e -> Go back\n||');
+        const optionsArray = [
+            ...selectedTitles,
+            '_',
+            '',
+            '_',
+            ['s', 'Search chapters'],
+            ['p', 'Select perfect matches'],
+            ['±', 'Include/Exclude all']
+        ];  
+
+        printMenuOptions(
+            'Selected titles',
+            optionsArray
+        );
 
         input = await takeUserInput();
         

@@ -27,8 +27,13 @@ async function rootMenu() {
     {
         printMenuOptions(
             'What would you like to do?',
-            ['MyAnimeList', 'Log Mangadex', 'Fetch Mangadex', '_'],
-            [{'s': 'Settings'}]
+            [
+                ['MyAnimeList'], 
+                ['Log Mangadex'], 
+                ['Fetch Mangadex'], 
+                '_', 
+                ['s', 'Settings']
+            ]
         );
 
         input = await takeUserInput();
@@ -67,7 +72,11 @@ async function settingsMenu() {
     {
         printMenuOptions(
             'Settings',
-            ['Update MAL_API_CLIENT_ID', `Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`, '_']
+            [
+                ['Update MAL_API_CLIENT_ID'], 
+                [`Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`], 
+                '_'
+            ]
         );
 
         input = await takeUserInput();
@@ -96,8 +105,10 @@ async function updateAPIKeyMenu () {
     {
         printMenuOptions(
             'Input MAL_API_CLIENT_ID',
-            null,
-            [{'?': 'https://myanimelist.net/apiconfig'}, '_']
+            [
+                ['?', 'https://myanimelist.net/apiconfig'], 
+                '_'
+            ]
         );
         
         input = await takeUserInput();
