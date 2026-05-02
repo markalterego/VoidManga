@@ -91,62 +91,59 @@ function escapeRegex (input) {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 } 
 
-function printMenuOptions (header, optionsArray, specialOptionsArray, { pageDetails = null, printExit = true, printHeader = true } = {}) {
+function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true } = {}) {
     // creates a simple menu in a standardized format
     // header = string
-    // optionsArray = array of strings
-    // specialOptionsArray = array of objects
+    // optionsArray = array of arrays (expect skipLine, emptyLine, separatorLine, pageFooter)
     // { pageDetails = object, printExit = boolean, printHeader = boolean }
-
+    
     const skipLine = '_',      // console.log('||') 
           emptyLine = '',      // console.log()
           separatorLine = '-', // console.log('|| --------------------')
           pageFooter = 'p';    // logs 'Page: currentPage / lastPage'
     
+    let i = 0;
+
     try {
-        // handle invalid parameters
-        if (!header) {
-            throw new Error ('Failed to log menu. Header is not defined.');
-        } else if (!optionsArray && !specialOptionsArray) {
-            throw new Error ('Failed to log menu. Neither optionsArray nor specialOptionsArray are defined.');
-        } 
-        
         // header
         if (printHeader) console.log(`\n||\n|| ${header}\n||`);
 
-        // mapping optionsArray        as { 'index': val } 
-        //         specialOptionsArray as { 'special': val }
-        const allOptions = [
-            ...(optionsArray?.map(val => ({ type: 'index', val })) ?? []),
-            ...(specialOptionsArray?.map(val => ({ type: 'special', val })) ?? [])
-        ];
+        // format options
+        const formattedOptions = optionsArray.map((val) => {
+            if (Array.isArray(val) && val.length === 1) {
+                return [i++, '->', val[0]];
+            } else if (Array.isArray(val) && val.length === 2) {
+                return [val[0], '->', val[1]];
+            } else if (Array.isArray(val) && val.length === 3) {
+                return [val[0], val[1], val[2]];
+            }
+            return val;
+        });
 
-        // indicates selectable option for 'index' type options
-        let selectableIndex = 0;
-
-        // printing allOptions
-        for (const { type, val } of allOptions) {
-            if (val === skipLine) {
+        // printing options
+        for (const arr of formattedOptions) {
+            if (arr === skipLine) {
                 console.log('||');
-            } else if (val === emptyLine) {
+            } else if (arr === emptyLine) {
                 console.log();
-            } else if (val === separatorLine) {
+            } else if (arr === separatorLine) {
                 console.log('|| --------------------');
-            } else if (val === pageFooter) {
+            } else if (arr === pageFooter) {
                 if (pageDetails) {
                     const pageProgressString = `${pageDetails.currentPageIndex + 1} / ${pageDetails.lastPageIndex + 1}`.padStart(9, ' ');
                     const label = 'Page: '.padEnd(10, ' ');
                     console.log(`|| --------------------\n||\n|| ${label} ${pageProgressString}\n||`);
                 }
-            } else if (val !== null) {
-                if (type === 'index') { 
-                    // optionsArray printed as "0 -> MyAnimeList"
-                    console.log(`|| ${selectableIndex++} -> ${val.trim()}`);
-                } else { 
-                    // specialOptionsArray printed as "s -> Settings"
-                    const [[key, label]] = Object.entries(val);
-                    console.log(`|| ${key} -> ${label}`);
-                }
+            } else if (arr !== null) {
+                // format menuOption
+                const emptyString = '';
+                const key = arr[0] ?? emptyString;
+                const firstGap = key === emptyString ? emptyString : ' ';
+                const separator = arr[1] ?? emptyString;
+                const val = arr[2] ?? emptyString;
+                const secondGap = val === emptyString ? emptyString : ' ';
+                // print menuOption
+                console.log(`|| ${key}${firstGap}${separator}${secondGap}${val}`);
             }
         } 
 
