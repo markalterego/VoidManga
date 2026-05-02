@@ -28,34 +28,29 @@ async function menuLogMangadex (mangadexData, l, config) {
 
         // formatting printMenuOptions parameters
         const mangaTitles = pagedMangas.map(obj => 
-            `${Object.values(obj.manga.attributes.title)[0]} (${obj.chapters.length})`
+            [`${Object.values(obj.manga.attributes.title)[0]} (${obj.chapters.length})`]
         );
-
-        const optionsArray = pagedMangas.length 
-            ? [ ...mangaTitles, '_' ] 
-            : null;
-
-        const pageOption = options.enablePagingManga ? 'p' : null;
-        const noMangaOption = {'?': 'No manga found\n||'};
-        const pageFooter = pagedMangas.length ? pageOption : noMangaOption; 
-
-        const specialOptionsArray = [
+        const pageFooter = mangaTitles.length && options.enablePagingManga ? 'p' : null;
+        const titles = pagedMangas.length ? [...mangaTitles] : [['?', 'No manga found']];
+        
+        const optionsArray = [
+            ...titles,
+            '_',
             pageFooter,
             '', 
             '_',
-            {'f': `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`},
-            {'h': `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`},
-            {'s': `Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`},
-            {'o': `Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`},
-            {'t': `Toggle paging [${options.enablePagingManga ? 'x' : ''}]`},
-            (options.enablePagingManga ? {'±': 'Next/Previous page'} : null)
+            ['f', `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`],
+            ['h', `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`],
+            ['s', `Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`],
+            ['o', `Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`],
+            ['t', `Toggle paging [${options.enablePagingManga ? 'x' : ''}]`],
+            (options.enablePagingManga ? ['±', 'Next/Previous page'] : null)
         ];
 
         // calling printMenuOptions
         printMenuOptions(
             '--- Select manga ---', 
             optionsArray,
-            specialOptionsArray,
             { pageDetails }
         );
 
@@ -125,7 +120,13 @@ async function mangaOptionsMenu (selectedManga) {
         
         printMenuOptions(
             `Select an option for ${title}`,
-            ['Log manga data', 'Log MAL progress', 'Traverse chapters', 'Search for chapter', '_']
+            [
+                ['Log manga data'], 
+                ['Log MAL progress'], 
+                ['Traverse chapters'], 
+                ['Search for chapter'], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(true);
@@ -172,31 +173,27 @@ async function traverseChapters (selectedManga, chapterArr) {
         let pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
         // formatting printMenuOptions parameters
-        const chapterTitles = pagedChapters.map(ch => formatChapterTitle(ch, foundManga));
-        const optionsArray = chapterTitles.length
-            ? [...chapterTitles, '_']
-            : null;
+        const chapterTitles = pagedChapters.map(ch => [formatChapterTitle(ch, foundManga)]);
+        const titles = chapterTitles.length ? [...chapterTitles] : [['?', 'No chapters found']];
+        const pageFooter = chapterTitles.length && options.enablePagingChapter ? 'p' : null;
 
-        const pageOption = options.enablePagingChapter ? 'p' : null;
-        const noChapterOptions = {'?': 'No chapters found\n||'};
-        const pageFooter = pagedChapters.length ? pageOption : noChapterOptions;
-
-        const specialOptionsArray = [
+        const optionsArray = [
+            ...titles,
+            '_',
             pageFooter,
             '',
             '_',
-            {'h': `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`},
-            {'?': `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`},
-            {'s': `Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`},
-            {'t': `Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`},
-            (options.enablePagingChapter ? {'±': 'Next/Previous page'} : null)
+            ['h', `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`],
+            ['?', `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`],
+            ['s', `Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`],
+            ['t', `Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`],
+            (options.enablePagingChapter ? ['±', 'Next/Previous page'] : null)
         ];
 
         // calling printMenuOptions
         printMenuOptions(
             '--- Select chapt ---',
             optionsArray,
-            specialOptionsArray,
             { pageDetails }
         );
 
@@ -342,7 +339,14 @@ async function findChapterOfManga (title, selectedManga) {
     {
         printMenuOptions(
             `Search ${title}`,
-            ['Next un-read chapter', 'Lowest chapter', 'Highest chapter', 'Chapter number', 'Chapter title', '_']
+            [
+                ['Next un-read chapter'], 
+                ['Lowest chapter'], 
+                ['Highest chapter'], 
+                ['Chapter number'], 
+                ['Chapter title'], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(true);
@@ -442,8 +446,7 @@ async function findChapterByChapterNumber (selectedManga) {
     while (input !== 'e') 
     {
         printMenuOptions(
-            'Input a chapter number:',
-            []
+            'Input a chapter number:'
         );
 
         input = await takeUserInput();
@@ -470,8 +473,7 @@ async function findChapterByChapterTitle (selectedManga) {
     while (input !== 'e') 
     {
         printMenuOptions(
-            'Input a chapter title:',
-            []
+            'Input a chapter title:'
         );
 
         input = await takeUserInput(false, true);
@@ -508,7 +510,12 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         
         printMenuOptions(
             formattedTitle,
-            ['Log chapter data', 'Open chapter in browser', 'Find manga at lists', '_']
+            [
+                ['Log chapter data'], 
+                ['Open chapter in browser'], 
+                ['Find manga at lists'], 
+                '_'
+            ]
         );
         
         input = await takeUserInput();
