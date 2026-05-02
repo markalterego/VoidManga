@@ -24,7 +24,13 @@ async function menuMAL (l, config) {
     {
         printMenuOptions(
             'MyAnimeList options', 
-            ['Anime list', 'Manga list', 'Search lists', 'Fetch lists', '_']
+            [
+                ['Anime list'], 
+                ['Manga list'], 
+                ['Search lists'], 
+                ['Fetch lists'], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(true); // take userInput whole numbers
@@ -70,7 +76,10 @@ async function traverseStatus (typeIndex) {
     {
         printMenuOptions(
             `Type: ${typeIndex === ANIME ? 'Anime' : 'Manga'}`,
-            [...statuses.map(capitalFirstLetterString), '_']
+            [
+                ...statuses.map(s => [capitalFirstLetterString(s)]), 
+                '_'
+            ]
         );  
 
         input = await takeUserInput(true); 
@@ -96,28 +105,23 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
 
         // formatting printMenuOptions parameters
         const header = !entryArr ? `Status: ${capitalFirstLetterString(status)}`: 'Search results';
+        const entryTitles = pagedEntries.map(e => [e.node.title]);
+        const pageFooter = entryTitles.length && options.enablePagingEntries ? 'p' : null;
+        const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
 
-        const entryTitles = pagedEntries.map(e => e.node.title);
-        const optionsArray = entryTitles.length
-            ? [...entryTitles, '_'] 
-            : null;
-        
-        const pageOption = options.enablePagingEntries ? 'p' : null;
-        const noEntriesOption = {'?': 'No entries found\n||'};
-        const pageFooter = pagedEntries.length ? pageOption : noEntriesOption;
-        const specialOptionsArray = [
+        const optionsArray = [
+            ...titles,
+            '_',
             pageFooter,
             '',
             '_',
-            {'t': `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`}, 
-            (options.enablePagingEntries ? {'±' : 'Next/Previous page'} : null)
+            ['t', `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
+            (options.enablePagingEntries ? ['±', 'Next/Previous page'] : null)
         ];
 
-        // calling printMenuOptions
         printMenuOptions(
             header,
-            optionsArray,
-            specialOptionsArray, 
+            optionsArray, 
             { pageDetails }
         );
 
@@ -199,8 +203,21 @@ async function updateEntryMenu (entry, l) {
         // calling printMenuOptions
         printMenuOptions(
             `UPDATE - ${entryTitle}`,
-            ['-', '_', status, score, progress, startDate, finishDate, isRe, comments, '_', '-', '_'],
-            [{'l': 'Log entry'}]
+            [
+                '-', 
+                '_', 
+                [status], 
+                [score], 
+                [progress], 
+                [startDate], 
+                [finishDate], 
+                [isRe], 
+                [comments], 
+                '_', 
+                '-', 
+                '_',
+                ['l', 'Log entry']
+            ]
         );
 
         input = await takeUserInput(true); 
@@ -275,7 +292,7 @@ async function updateStatusMenu (list_status) {
         printMenuOptions(
             `Pick from available statuses (${statusBeforeChange === list_status.status ? `current: ${list_status.status}` : 
                                                                                          `update to: ${list_status.status} - from: ${statusBeforeChange}`})`,
-            [...statuses.map(status => capitalFirstLetterString(status)), '_']
+            [...statuses.map(status => [capitalFirstLetterString(status)]), '_']
         )
         
         input = await takeUserInput(true); // take whole num as user input
@@ -297,8 +314,7 @@ async function updateScoreMenu (list_status) {
         printMenuOptions(
             `Pick a score (${scoreBeforeChange === list_status.score ? `current: ${list_status.score}` :
                                                                        `update to: ${list_status.score} - from: ${scoreBeforeChange}`})`,
-            null,
-            [{'?': 'Input a value between 0-10'}, '_']
+            [['?', 'Input a value between 0-10'], '_']
         );
 
         input = await takeUserInput(true); // take whole num as user input
@@ -326,8 +342,11 @@ async function updateProgressMenu (entry) {
         printMenuOptions(
             `Update progress (${progressBeforeChange === getProgress(list_status) ? `current: ${getProgress(list_status)} / ${getTotal(entry)}` :
                                                                                     `update to: ${getProgress(list_status)} / ${getTotal(entry)} - from: ${progressBeforeChange} / ${getTotal(entry)}`})`,
-            null,
-            [{'±': 'Increase/Decrease progress'}, {'?': `Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`}, '_']
+            [
+                ['±', 'Increase/Decrease progress'], 
+                ['?', `Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(true); // take whole num as user input
@@ -384,8 +403,7 @@ async function updateStartDateMenu (list_status) {
         printMenuOptions(
             `Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` : 
                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` })`,
-            null,
-            [{'?': 'Input date (year-mm-dd)'}, {'c': 'Clear date'}, '_']
+            [['?', 'Input date (year-mm-dd)'], ['c', 'Clear date'], '_']
         );  
         
         input = await takeUserInput(); // take user input
@@ -407,8 +425,7 @@ async function updateFinishDateMenu (list_status) {
         printMenuOptions(
             `Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` : 
                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` })`,
-            null,
-            [{'?': 'Input date (\"year-mm-dd\")'}, {'c': 'Clear date'}, '_']
+            [['?', 'Input date (\"year-mm-dd\")'], ['c', 'Clear date'], '_']
         );
         
         input = await takeUserInput(); // take user input
@@ -537,7 +554,11 @@ async function updateIsReMenu (list_status) {
         printMenuOptions(
             `Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
                                                                                                                           `update to: ${getIsRe(list_status) ? 'yes' : 'no'} - from: ${isReBeforeChange ? 'yes' : 'no'}`})`,
-            ['no', 'yes', '_']
+            [
+                ['no'], 
+                ['yes'], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(true); 
@@ -574,8 +595,11 @@ async function updateCommentsMenu (list_status) {
         printMenuOptions(
             `Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
                                                                                (`update to: "${list_status.comments}" - from: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set` }`)})`,
-            null,
-            [{'?': `Input comment (minimum ${MIN_LENGTH} characters)`}, {'c': 'Clear comment'}, '_']
+            [
+                ['?', `Input comment (minimum ${MIN_LENGTH} characters)`], 
+                ['c', 'Clear comment'], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(); // take user input
@@ -598,7 +622,10 @@ async function searchListsMenu() {
     {
         printMenuOptions(
             'Search for entry', 
-            ['Search by title', '_']
+            [
+                ['Search by title'], 
+                '_'
+            ]
         );
 
         input = await takeUserInput(true); // take user input
@@ -618,8 +645,7 @@ async function searchListsByTitleMenu() {
     {
         printMenuOptions(
             'Search lists by title', 
-            null, 
-            [{'?': 'Input title'}, '_']
+            [['?', 'Input title'], '_']
         );
 
         input = await takeUserInput(false, true); // take user input
