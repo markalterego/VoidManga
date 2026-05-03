@@ -10,14 +10,14 @@ async function fetchMangadexMangas (lists, options) {
         let mangaEndpointFetchResults = [], fetchCount = 0;
         const includedEntries = findIncludedEntries(lists); // returns an array of copies of found entries slightly re-formatted  
         console.log('\n||\n|| Fetching mangas...\n||');
-        for (const entry of includedEntries) { // anime/manga     
-            const fetchResult = await fetchManga(entry, options); // returns { searchResults: [obj, etc...], query: { key: value, etc... } }
-            const searchTitle = fetchResult.query.title; // title used in search (MAL title)
-            const fetchedMangasCount = fetchResult.searchResults?.length; // length of searchResults
+        for (const entry of includedEntries) {
+            const fetchResult = await fetchManga(entry, options); // returns { searchResults, query }
             mangaEndpointFetchResults.push(fetchResult);
-            const isLastEntry = entry === includedEntries[includedEntries.length-1]; // last entry in includedEntries
-            console.log(`|| [${searchTitle}] ${fetchedMangasCount ? `${fetchedMangasCount} mangas fetched`: 'no mangas found'} (${++fetchCount}/${includedEntries.length})${isLastEntry ? '\n||' : ''}`);
+            const fetchedAmount = fetchResult.searchResults?.length;
+            const fetchedMangasString = fetchedAmount ? `${fetchedAmount} mangas fetched` : 'no mangas found'; 
+            console.log(`|| [${entry.node.title}] ${fetchedMangasString} (${++fetchCount}/${includedEntries.length})`);
         } 
+        console.log('||');
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
         logErrorDetails(error);
