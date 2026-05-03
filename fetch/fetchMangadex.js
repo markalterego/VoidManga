@@ -68,17 +68,18 @@ async function fetchMangadexChapters (selectedMangas, options) {
         //   into multiple 100 sized or smaller fetches 
 
         let mangaAndChapterInfo = [], fetchCount = 0;
+        console.log();
         for (const selectedManga of selectedMangas) {
-            const isFirstManga = selectedManga === selectedMangas[0]; // first manga of selectedMangas
-            const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0]; // first title at ...attributes.title
-            console.log(`${isFirstManga ? '\n' : ''}||\n|| [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
-            const fetchedChapters = !options.fetchAllChapters ? await fetchChaptersCustom(selectedManga, options) : await fetchChaptersAll(selectedManga, options); // fetch chapters for manga
-            const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine selectedManga.manga && fetchedChapter into obj
-            const fetchedChaptersCount = combinedMangaChapterData.chapters?.length; // total chapters found
-            mangaAndChapterInfo.push(combinedMangaChapterData); // append combined manga chapter info to mangaAndChapterInfo
-            const isLastManga = selectedManga === selectedMangas[selectedMangas.length-1]; // last manga in selectedMangas
-            console.log(`||   ${fetchedChaptersCount ? `Total: ${fetchedChaptersCount} chapters` : 'No chapters found'}${isLastManga ? '\n||' : ''}`); // logging total found chapters for selectedManga
+            const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
+            console.log(`||\n|| [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
+            const fetchedChapters = options.fetchAllChapters ? await fetchChaptersAll(selectedManga, options) : await fetchChaptersCustom(selectedManga, options); 
+            const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine manga + chapter data
+            mangaAndChapterInfo.push(combinedMangaChapterData);
+            const fetchedAmount = combinedMangaChapterData.chapters?.length;
+            const fetchedChaptersString = fetchedAmount ? `Total: ${fetchedAmount} chapters` : 'No chapters found'; 
+            console.log(`||   ${fetchedChaptersString}`); 
         }
+        console.log('||');
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
     } catch (error) {
         logErrorDetails(error);
