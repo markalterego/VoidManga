@@ -38,7 +38,7 @@ async function fetchMAL (lists) {
 
 async function fetchMALUserLists (old_lists) {
     await checkAndUpdateTokens(); // check token validity + update if necessary
-    console.log(`\n||\n|| Now fetching MAL lists\n||`);
+    console.log(`\n\n  Now fetching MAL lists`);
     const animelist = await fetchAnimeList(); // fetch Anime endpoint
     const mangalist = await fetchMangaList(); // fetch Manga endpoint
     const sortedLists = sortSeriesByStatus(animelist, mangalist, old_lists); // format anime- and manga lists

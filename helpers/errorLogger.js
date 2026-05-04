@@ -19,24 +19,24 @@ function logErrorDetails (error) {
     const responseHint = data?.hint;
 
     // header
-    console.error(`\n||\n|| --- Error ---\n||`);
+    console.error(`  --- Error ---`);
 
     // response status + info
-    if (status)     console.error(`|| Status:     ${status}`);  
-    if (statusText) console.error(`|| StatusText: ${statusText}`);
+    if (status)     console.error(`  Status:     ${status}`);  
+    if (statusText) console.error(`  StatusText: ${statusText}`);
     
     // response details
     if (responseError || responseMessage || responseHint) {
-        if (responseError)   console.error(`|| Error:      ${responseError}`);
-        if (responseMessage) console.error(`|| Message:    ${responseMessage}`);
-        if (responseHint)    console.error(`|| Hint:       ${responseHint}`);
+        if (responseError)   console.error(`  Error:      ${responseError}`);
+        if (responseMessage) console.error(`  Message:    ${responseMessage}`);
+        if (responseHint)    console.error(`  Hint:       ${responseHint}`);
     } else { 
-        if (code)    console.error(`|| Code:       ${code}`);
-        if (message) console.error(`|| Message:    ${message}`);
+        if (code)    console.error(`  Code:       ${code}`);
+        if (message) console.error(`  Message:    ${message}`);
     }
 
     // footer
-    console.error('||\n|| -------------\n||');
+    console.error('\n  -------------');
 }
 
 export { logErrorDetails };

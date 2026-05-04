@@ -10,7 +10,7 @@ async function withRetry (fn, maxRetries = 5) {
         } catch (error) {
             if (!error.response) throw error;
             const triesRemaining = maxRetries - attempt;
-            console.error(`|| Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n||`}`);
+            console.error(`  Fetch failed (Tries remaining: ${triesRemaining ? `${triesRemaining})` : `${triesRemaining})\n`}`);
             if (triesRemaining === 0) throw new Error(`${maxRetries} fetches failed in a row`); // throw too many fetches failed in a row err
         }
     }

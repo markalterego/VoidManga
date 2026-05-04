@@ -55,7 +55,7 @@ async function rootMenu() {
             case 'e': 
                 break;                 
             default:
-                console.log('\n|| Please input a valid option');
+                console.log('\n  Please input a valid option');
         }
         filehandle('config', config); // save config file
     }
@@ -93,7 +93,7 @@ async function settingsMenu() {
             case 'e':
                 break;
             default:
-                console.log('\n|| Please input a valid option');
+                console.log('\n  Please input a valid option');
         }
     }
 }
@@ -117,9 +117,9 @@ async function updateAPIKeyMenu () {
 
         if (isValidAPIKey) {
             writeEnv({ MAL_API_CLIENT_ID: input }, true); // write MAL_API_CLIENT_ID to .env
-            console.log('\n||\n|| MAL_API_CLIENT_ID updated successfully\n||');
+            console.log('  MAL_API_CLIENT_ID updated successfully');
         } else if (input !== 'e') {
-            console.log('\n||\n|| MAL_API_CLIENT_ID needs to be 32 characters in length\n||');
+            console.log('  MAL_API_CLIENT_ID needs to be 32 characters in length');
         }
     }
 }

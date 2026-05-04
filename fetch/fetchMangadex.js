@@ -9,15 +9,15 @@ async function fetchMangadexMangas (lists, options) {
     try {
         let mangaEndpointFetchResults = [], fetchCount = 0;
         const includedEntries = findIncludedEntries(lists); // returns an array of copies of found entries slightly re-formatted  
-        console.log('\n||\n|| Fetching mangas...\n||');
+        console.log('\n\n  Fetching mangas...\n');
         for (const entry of includedEntries) {
             const fetchResult = await fetchManga(entry, options); // returns { searchResults, query }
             mangaEndpointFetchResults.push(fetchResult);
             const fetchedAmount = fetchResult.searchResults?.length;
             const fetchedMangasString = fetchedAmount ? `${fetchedAmount} mangas fetched` : 'no mangas found'; 
-            console.log(`|| [${entry.node.title}] ${fetchedMangasString} (${++fetchCount}/${includedEntries.length})`);
+            console.log(`  [${entry.node.title}] ${fetchedMangasString} (${++fetchCount}/${includedEntries.length})`);
         } 
-        console.log('||');
+        console.log();
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
         logErrorDetails(error);
@@ -71,15 +71,15 @@ async function fetchMangadexChapters (selectedMangas, options) {
         console.log();
         for (const selectedManga of selectedMangas) {
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
-            console.log(`||\n|| [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
+            console.log(`\n  [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
             const fetchedChapters = options.fetchAllChapters ? await fetchChaptersAll(selectedManga, options) : await fetchChaptersCustom(selectedManga, options); 
             const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine manga + chapter data
             mangaAndChapterInfo.push(combinedMangaChapterData);
             const fetchedAmount = combinedMangaChapterData.chapters?.length;
             const fetchedChaptersString = fetchedAmount ? `Total: ${fetchedAmount} chapters` : 'No chapters found'; 
-            console.log(`||   ${fetchedChaptersString}`); 
+            console.log(`   ${fetchedChaptersString}`); 
         }
-        console.log('||');
+        console.log();
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
     } catch (error) {
         logErrorDetails(error);
@@ -155,7 +155,7 @@ async function fetchChaptersAll ({ manga: { id }}, { chapterTranslatedLanguage, 
         chapters.push(formattedChapters);
         
         // log chapters fetched
-        console.log(`||    ${String(amountFetched).padStart(3)} chapters (offset ${String(offset).padStart(4)})`);   
+        console.log(`    ${String(amountFetched).padStart(3)} chapters (offset ${String(offset).padStart(4)})`);   
     }
 
     return chapters.flat();

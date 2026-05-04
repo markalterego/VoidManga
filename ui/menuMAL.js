@@ -45,7 +45,7 @@ async function menuMAL (l, config) {
             lists = await fetchMAL(lists); // searches and returns MAL lists
             filehandle('mal', lists);
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
     return lists;
@@ -88,7 +88,7 @@ async function traverseStatus (typeIndex) {
             const statusIndex = input; // selected status
             await traverseEntry(typeIndex, statusIndex); // traverse entries for lists[typeIndex][statusIndex]
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
 }
@@ -135,7 +135,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
 }
@@ -266,7 +266,7 @@ async function updateEntryMenu (entry, l) {
         } else if (input === 'l') {
             await logDataDeepMenu(entry, entryTitle, false, true);
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
 
         // update changes
@@ -300,7 +300,7 @@ async function updateStatusMenu (list_status) {
         if (input >= 0 && input < statuses.length) {
             list_status.status = statuses[input]; // update entry_clone status
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
 }
@@ -322,7 +322,7 @@ async function updateScoreMenu (list_status) {
         if (input >= 0 && input <= 10) {
             list_status.score = input; // save user input
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
 }
@@ -369,7 +369,7 @@ async function updateProgressMenu (entry) {
         } else if (input === '--') { // progress = min (always sets progress to 0)
             setProgress(list_status, 0);
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }  
 }
@@ -477,7 +477,7 @@ function isValidDate (date) {
     // an entry containing that specific date.
 
     if (typeof date !== 'string' || date.length !== 10 || date.split('-').length !== 3) { // wrong format
-        console.log(`\n||\n|| Date expected in the format "year-mm-dd"\n||`);
+        console.log(`  Date expected in the format "year-mm-dd"`);
         return false;
     }
 
@@ -502,38 +502,38 @@ function isValidDate (date) {
     
     // check for NaN values
     if (Number.isNaN(yyyy)) {
-        console.log('\n||\n|| The given year is not a number\n||');
+        console.log('  The given year is not a number');
         return false;
     } else if (Number.isNaN(mm)) {
-        console.log('\n||\n|| The given month is not a number\n||');
+        console.log('  The given month is not a number');
         return false;
     } else if (Number.isNaN(dd)) {
-        console.log('\n||\n|| The given day is not a number\n||');
+        console.log('  The given day is not a number');
         return false;
     }
 
     // date doesn't follow Year -> Month -> Day order
     if (yyyy === 0 && mm > 0) { 
-        console.log(`\n||\n|| Given year can't be set to 0 when given month is over 0\n||`);
+        console.log(`  Given year can't be set to 0 when given month is over 0`);
         return false;
     } else if (mm === 0 && dd > 0) { 
-        console.log(`\n||\n|| Given month can't be set to 0 when given day is over 0\n||`);
+        console.log(`  Given month can't be set to 0 when given day is over 0`);
         return false;
     } else if (yyyy > 0 && (yyyy < 1000 || yyyy > 2999)) {
-        console.log('\n||\n|| Given year has to be between 1000 - 2999\n||');
+        console.log('  Given year has to be between 1000 - 2999');
         return false;
     }
 
     // check date normally
     if (mm > 0 && dd > 0) {
         if (mm > 12) { // month > 12
-            console.log('\n||\n|| Given month has to be between 1 - 12\n||');
+            console.log('  Given month has to be between 1 - 12');
             return false;
         } else if (dd > 31) { // day > 31
-            console.log('\n||\n|| Given day has to be between 1 - 31\n||');
+            console.log('  Given day has to be between 1 - 31');
             return false;
         } else if (dd > daysByMonth[mm-1]) { // invalid day for month
-            console.log('\n||\n|| Given date is invalid for given month\n||');
+            console.log('  Given date is invalid for given month');
             return false;
         } 
     }
@@ -567,7 +567,7 @@ async function updateIsReMenu (list_status) {
             const value = input === 0 ? false : true; // isRe value
             setIsRe(list_status, value);          // update isRe
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         } 
     }
 }
@@ -607,7 +607,7 @@ async function updateCommentsMenu (list_status) {
         if (input === 'c') { // clear comment
             list_status.comments = ''; 
         } else if (input !== 'e' && (input === undefined || String(input).length < 3)) { // comment is too short
-            console.log(`\n||\n|| Minimum required comment length: ${MIN_LENGTH} characters\n||`);
+            console.log(`  Minimum required comment length: ${MIN_LENGTH} characters`);
         } else if (input !== 'e') { // comment is valid
             list_status.comments = String(input); // update comments
         }
@@ -633,7 +633,7 @@ async function searchListsMenu() {
         if (input === SEARCH_BY_TITLE) {
             await searchListsByTitleMenu(); // search lists by title
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
 }
@@ -655,12 +655,12 @@ async function searchListsByTitleMenu() {
             const matching = lists.flat(2) // arr of entries
                                   .filter(e => regex.test(e.node.title)); // match title to input
             if (!matching.length) { // no matching results
-                console.log('\n||\n|| No matches found\n||');
+                console.log('  No matches found');
             } else { // traverse results
                 await traverseEntry(null, null, matching);
             }
         } else if (input !== 'e') {
-            console.log('\n|| Please input a valid option');
+            console.log('\n  Please input a valid option');
         }
     }
 }

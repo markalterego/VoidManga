@@ -8,7 +8,7 @@ async function takeUserInput (useWhole, useString, skipClear) {
     // 3. checks if input includes only numbers
     // 4.1. if (input had only numbers) return Number(input) || return parseInt(input)
     // 4.2. else return input.toLowerCase()
-    let userInput = (await rl.question('\n|| Input: ')).trim(); // get user input
+    let userInput = (await rl.question('\n  Input: ')).trim(); // get user input
     const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
     if (!useString && isNumber && userInput.length > 0) { // convert userinput to num
         userInput = Number(userInput);
@@ -30,16 +30,16 @@ function clearScreen() {
 }
 
 function customFetchMangadexDisplay (options) {
-    console.log(`\n||\n|| Manga fetch size: ${options.limit_manga}`);
-    console.log(`|| Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
-    console.log(`|| Chapter fetch type: ${options.fetchAllChapters ? 'all' : 'custom'}`);
+    console.log(`\n\n  Manga fetch size: ${options.limit_manga}`);
+    console.log(`  Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
+    console.log(`  Chapter fetch type: ${options.fetchAllChapters ? 'all' : 'custom'}`);
     if (!options.fetchAllChapters) {
-        console.log(`|| Chapter fetch size: ${options.limit_chapter}`); 
-        console.log(`|| Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
-        console.log(`|| Chapter offset: ${options.offset_chapter}`);
+        console.log(`  Chapter fetch size: ${options.limit_chapter}`); 
+        console.log(`  Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
+        console.log(`  Chapter offset: ${options.offset_chapter}`);
     }
-    console.log(`|| Chapter languages: ${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}`);
-    console.log(`|| Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n||`);
+    console.log(`  Chapter languages: ${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}`);
+    console.log(`  Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n`);
 }
 
 function menuFetchFiltersDisplay (lists, key) {
@@ -47,19 +47,19 @@ function menuFetchFiltersDisplay (lists, key) {
     let selectionFound = false;
     lists?.forEach((type, type_index) => { // anime/manga
         if (type_index === 0) {
-            console.log('\n||\n|| Current selection:\n||');
+            console.log('\n\n  Current selection:\n');
         }
         type.forEach(status => { // status
             status.forEach(entry => { // entry
                 if (entry[key]) { // key is set to true
-                    console.log(`|| - ${entry.node.title} (${entry.list_status.status})`);
+                    console.log(` - ${entry.node.title} (${entry.list_status.status})`);
                     selectionFound = true;
                 }
             });
         });
         if (type_index === lists.length-1) {
-            if (!selectionFound) console.log('|| - No titles selected');
-            console.log('||');
+            if (!selectionFound) console.log('  - No titles selected');
+            console.log();
         }
     });
 }
@@ -97,16 +97,16 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
     // optionsArray = array of arrays (expect skipLine, emptyLine, separatorLine, pageFooter)
     // { pageDetails = object, printExit = boolean, printHeader = boolean }
     
-    const skipLine = '_',      // console.log('||') 
+    const skipLine = '_',      // console.log() 
           emptyLine = '',      // console.log()
-          separatorLine = '-', // console.log('|| --------------------')
+          separatorLine = '-', // console.log('  --------------------')
           pageFooter = 'p';    // logs 'Page: currentPage / lastPage'
     
     let i = 0;
 
     try {
         // header
-        if (printHeader) console.log(`\n||\n|| ${header}\n||`);
+        if (printHeader) console.log(`\n\n  ${header}\n`);
 
         // format options
         const formattedOptions = optionsArray.map((val) => {
@@ -123,16 +123,16 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
         // printing options
         for (const arr of formattedOptions) {
             if (arr === skipLine) {
-                console.log('||');
+                console.log();
             } else if (arr === emptyLine) {
                 console.log();
             } else if (arr === separatorLine) {
-                console.log('|| --------------------');
+                console.log('  ' + '\u2500'.repeat(20));
             } else if (arr === pageFooter) {
                 if (pageDetails) {
                     const pageProgressString = `${pageDetails.currentPageIndex + 1} / ${pageDetails.lastPageIndex + 1}`.padStart(9, ' ');
                     const label = 'Page: '.padEnd(10, ' ');
-                    console.log(`|| --------------------\n||\n|| ${label} ${pageProgressString}\n||`);
+                    console.log('  ' + '\u2500'.repeat(20) + `\n\n  ${label} ${pageProgressString}\n`);
                 }
             } else if (arr !== null) {
                 // format menuOption
@@ -143,12 +143,12 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
                 const val = arr[2] ?? emptyString;
                 const secondGap = val === emptyString ? emptyString : ' ';
                 // print menuOption
-                console.log(`|| ${key}${firstGap}${separator}${secondGap}${val}`);
+                console.log(`  ${key}${firstGap}${separator}${secondGap}${val}`);
             }
         } 
 
         // end of print
-        if (printExit) console.log('|| e -> Go back\n||');
+        if (printExit) console.log('  e -> Go back\n');
     } catch (error) {
         logErrorDetails(error);
     }

@@ -15,7 +15,7 @@ function filehandle (fileIdentifier, input) {
                 writeFileSync(destination, JSON.stringify(input, null, 2), 'utf8');
             }
         } else {
-            console.log(`\n||\n|| The given fileIdentifier has to be of type string\n||`);
+            console.log(`  The given fileIdentifier has to be of type string`);
         } 
     } catch (error) {
         logErrorDetails(error);
