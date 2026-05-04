@@ -164,7 +164,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
             return combined ? `[${combined}]` : `[???]`;
         })()
-        const progressLabelPadding = ' '.repeat(Math.max(0, 25 - String(index).length - progressLabel.length - indexPadding.length)) + '| ';
+        const progressLabelPadding = ' '.repeat(Math.max(0, 22 - String(index).length - progressLabel.length - indexPadding.length)) + '| ';
 
         const maxTitleWidth = 35;
         const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
