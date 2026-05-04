@@ -94,11 +94,10 @@ function escapeRegex (input) {
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true } = {}) {
     // creates a simple menu in a standardized format
     // header = string
-    // optionsArray = array of arrays (expect skipLine, emptyLine, separatorLine, pageFooter)
+    // optionsArray = array of arrays (expect skipLine, separatorLine, pageFooter)
     // { pageDetails = object, printExit = boolean, printHeader = boolean }
     
-    const skipLine = '_',      // console.log() 
-          emptyLine = '',      // console.log()
+    const emptyLine = '_',     // console.log()
           separatorLine = '-', // console.log('  --------------------')
           pageFooter = 'p';    // logs 'Page: currentPage / lastPage'
     
@@ -122,9 +121,7 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
 
         // printing options
         for (const arr of formattedOptions) {
-            if (arr === skipLine) {
-                console.log();
-            } else if (arr === emptyLine) {
+            if (arr === emptyLine) {
                 console.log();
             } else if (arr === separatorLine) {
                 console.log('  ' + '\u2500'.repeat(20));
