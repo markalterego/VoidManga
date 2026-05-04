@@ -1,7 +1,9 @@
 import open from 'open';
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
-         printMenuOptions, isValidLangCode, escapeRegex } from '../helpers/functions.js';
+         printMenuOptions, isValidLangCode, escapeRegex, truncateString } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
+import cliTruncate from 'cli-truncate';
+import stringWidth from 'string-width';
 
 // TODO:
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
@@ -15,6 +17,12 @@ let options = null; // config.logMangadexOptions
 async function menuLogMangadex (mangadexData, l, config) {
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
     options = config.logMangadexOptions, lists = l; 
+    const formatMangaTitle = (index, title, chaptersLength) => {
+        const maxTitleWidth = 25 - String(index).length;
+        const truncatedTitle = cliTruncate(title, maxTitleWidth);
+        const padding = ' '.repeat(Math.max(0, maxTitleWidth + 2 - stringWidth(truncatedTitle)));
+        return [`${truncatedTitle}${padding}(${chaptersLength})`];
+    };
 
     // TODO: 
     // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
@@ -27,9 +35,7 @@ async function menuLogMangadex (mangadexData, l, config) {
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
         // formatting printMenuOptions parameters
-        const mangaTitles = pagedMangas.map(obj => 
-            [`${Object.values(obj.manga.attributes.title)[0]} (${obj.chapters.length})`]
-        );
+        const mangaTitles = pagedMangas.map((obj, index) => formatMangaTitle(index, Object.values(obj.manga.attributes.title)[0], obj.chapters.length));
         const pageFooter = mangaTitles.length && options.enablePagingManga ? 'p' : null;
         const titles = pagedMangas.length ? [...mangaTitles] : [['?', 'No manga found']];
         
@@ -147,19 +153,29 @@ async function mangaOptionsMenu (selectedManga) {
 
 async function traverseChapters (selectedManga, chapterArr) {
     const chapters = chapterArr ?? selectedManga.chapters;
-    const manga = !chapterArr ? selectedManga.manga : selectedManga;
+    const manga = chapterArr ? selectedManga : selectedManga.manga;
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters;
-    const formatChapterTitle = ({ attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
+    const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
+        const progressLabel = (() => {
+            const vlLabel = volume ? `Vol.${volume}` : ''; 
+            const chLabel = chapter ? `Ch.${chapter}` : ''; 
+            const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
+            return combined ? `[${combined}]` : `[???]`;
+        })()
+        const progressLabelPadding = ' '.repeat(Math.max(0, 25 - String(index).length - progressLabel.length)) + '| ';
+
+        const maxTitleWidth = 35;
         const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
-        const vlNum = volume ?? -1;
-        const vlLabel = vlNum >= 0 ? `Vol.${vlNum}` : ''; 
-        const chNum = chapter ?? -1;
-        const labelGap = chNum >= 0 && vlNum >= 0 ? ' ' : '';
-        const chLabel = chNum >= 0 ? `Ch.${chNum}` : '';            
-        const noVlChLabel = chNum < 0 && vlNum < 0 ? '???' : ''; 
-        const transLang = translatedLanguage ?? 'No Translated Language';
-        const unreadFlag = foundManga?.list_status.num_chapters_read < chNum ? '{( Unread! )}' : '';
-        return `[${noVlChLabel}${vlLabel}${labelGap}${chLabel}] ${chTitle} (${transLang}) ${unreadFlag}`;
+        const truncatedTitle = `${cliTruncate(chTitle, maxTitleWidth)}`;
+        const truncatedTitlePadding = ' '.repeat(Math.max(0, maxTitleWidth + 1 - stringWidth(truncatedTitle))) + '| '; 
+        
+        const transLang = translatedLanguage ? `(${translatedLanguage})` : `(No Translated Language)`;
+        const transLangPadding = ' '.repeat(Math.max(0, 6 - translatedLanguage.length)) + '| ';
+
+        const isUnread = foundManga?.list_status.num_chapters_read < chapter;
+        const unreadFlag = isUnread ? `{( Unread! )}` : '';
+
+        return [`${progressLabel}${progressLabelPadding}${truncatedTitle}${truncatedTitlePadding}${transLang}${transLangPadding}${unreadFlag}`];
     };
 
     // TODO:
@@ -173,7 +189,7 @@ async function traverseChapters (selectedManga, chapterArr) {
         let pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
         // formatting printMenuOptions parameters
-        const chapterTitles = pagedChapters.map(ch => [formatChapterTitle(ch, foundManga)]);
+        const chapterTitles = pagedChapters.map((ch, index) => formatChapterTitle(index, ch, foundManga));
         const titles = chapterTitles.length ? [...chapterTitles] : [['?', 'No chapters found']];
         const pageFooter = chapterTitles.length && options.enablePagingChapter ? 'p' : null;
 
