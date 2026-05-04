@@ -166,15 +166,15 @@ async function traverseChapters (selectedManga, chapterArr) {
             const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
             return combined ? `[${combined}]` : `[???]`;
         })()
-        const progressLabelPadding = ' '.repeat(Math.max(0, 22 - String(index).length - progressLabel.length - indexPadding.length)) + '| ';
+        const progressLabelPadding = ' '.repeat(Math.max(0, 22 - String(index).length - progressLabel.length - indexPadding.length));
 
         const maxTitleWidth = 35;
         const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
         const truncatedTitle = `${cliTruncate(chTitle, maxTitleWidth)}`;
-        const truncatedTitlePadding = ' '.repeat(Math.max(0, maxTitleWidth + 1 - stringWidth(truncatedTitle))) + '| '; 
+        const truncatedTitlePadding = ' '.repeat(Math.max(0, maxTitleWidth + 2 - stringWidth(truncatedTitle))); 
         
         const transLang = translatedLanguage ? `(${translatedLanguage})` : `(No Translated Language)`;
-        const transLangPadding = ' '.repeat(Math.max(0, 6 - translatedLanguage.length)) + '| ';
+        const transLangPadding = ' '.repeat(Math.max(0, 6 - translatedLanguage.length));
 
         const isUnread = foundManga?.list_status.num_chapters_read < chapter;
         const unreadFlag = isUnread ? `{( Unread! )}` : '';
