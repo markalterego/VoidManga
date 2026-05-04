@@ -156,13 +156,15 @@ async function traverseChapters (selectedManga, chapterArr) {
     const manga = chapterArr ? selectedManga : selectedManga.manga;
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters;
     const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
+        const indexPadding = ' '.repeat(Math.max(0, 4 - String(index).length)); // padding up to 4 digits
+
         const progressLabel = (() => {
             const vlLabel = volume ? `Vol.${volume}` : ''; 
             const chLabel = chapter ? `Ch.${chapter}` : ''; 
             const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
             return combined ? `[${combined}]` : `[???]`;
         })()
-        const progressLabelPadding = ' '.repeat(Math.max(0, 25 - String(index).length - progressLabel.length)) + '| ';
+        const progressLabelPadding = ' '.repeat(Math.max(0, 25 - String(index).length - progressLabel.length - indexPadding.length)) + '| ';
 
         const maxTitleWidth = 35;
         const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
@@ -175,7 +177,7 @@ async function traverseChapters (selectedManga, chapterArr) {
         const isUnread = foundManga?.list_status.num_chapters_read < chapter;
         const unreadFlag = isUnread ? `{( Unread! )}` : '';
 
-        return [`${progressLabel}${progressLabelPadding}${truncatedTitle}${truncatedTitlePadding}${transLang}${transLangPadding}${unreadFlag}`];
+        return [`${indexPadding}${progressLabel}${progressLabelPadding}${truncatedTitle}${truncatedTitlePadding}${transLang}${transLangPadding}${unreadFlag}`];
     };
 
     // TODO:
