@@ -110,10 +110,12 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
 
         const optionsArray = [
+            '-',
+            '_',
             ...titles,
             '_',
             pageFooter,
-            '',
+            '_',
             '_',
             ['t', `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
             (options.enablePagingEntries ? ['±', 'Next/Previous page'] : null)

@@ -41,11 +41,11 @@ async function menuLogMangadex (mangadexData, l, config) {
         
         const optionsArray = [
             '-',
-            '',
+            '_',
             ...titles,
             '_',
             pageFooter,
-            '', 
+            '_',
             '_',
             ['f', `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`],
             ['h', `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`],
@@ -203,7 +203,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             ...titles,
             '_',
             pageFooter,
-            '',
+            '_',
             '_',
             ['h', `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`],
             ['?', `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`],

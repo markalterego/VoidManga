@@ -562,7 +562,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
         const optionsArray = [
             ...selectedTitles,
             '_',
-            '',
+            '_',
             '_',
             ['s', 'Search chapters'],
             ['p', 'Select perfect matches'],
