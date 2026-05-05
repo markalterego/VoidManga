@@ -129,7 +129,7 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
                 if (pageDetails) {
                     const pageProgressString = `${pageDetails.currentPageIndex + 1} / ${pageDetails.lastPageIndex + 1}`.padStart(9, ' ');
                     const label = 'Page: '.padEnd(10, ' ');
-                    console.log('  ' + '\u2500'.repeat(20) + `\n\n  ${label} ${pageProgressString}\n`);
+                    console.log('\n  ' + '\u2500'.repeat(20) + `\n\n  ${label} ${pageProgressString}`);
                 }
             } else if (arr !== null) {
                 // format menuOption
