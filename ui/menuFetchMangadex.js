@@ -514,7 +514,8 @@ async function selectMangasFromFetchResults (mangaSearches) {
 
         for (const { searchResults, query: { title: MAL_title, id: MAL_id, type: MAL_type } } of mangaSearches) {
             // formatting to {'index': 'title (<-- Perfect match)'}
-            const mangaTitles = searchResults.map(({ attributes: { title, links: { mal } }}) => {
+            const mangaTitles = searchResults.map(({ attributes: { title, links }}) => {
+                const mal = links?.mal;
                 const isPerfectMatch = MAL_type === 'manga' 
                     ? Number(mal) === Number(MAL_id) // e.g. mal = '85173' from 'https://myanimelist.net/manga/85173'
                     : false;
@@ -524,8 +525,8 @@ async function selectMangasFromFetchResults (mangaSearches) {
             }); 
 
             const optionsArray = searchResults.length
-                ? [...mangaTitles, '_']
-                : [['?', 'No results found'], '_'];
+                ? [...mangaTitles]
+                : [['?', 'No results found']];
 
             printMenuOptions(
                 `${MAL_title}:`,
@@ -562,8 +563,6 @@ async function selectMangasFromFetchResults (mangaSearches) {
         const optionsArray = [
             ...selectedTitles,
             '_',
-            '_',
-            '_',
             ['s', 'Search chapters'],
             ['p', 'Select perfect matches'],
             ['±', 'Include/Exclude all']
@@ -581,7 +580,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
             const selectedManga = allResults[input];
             appendSelectedMangas(selectedManga);
         } else if (input === 's' && !hasSelectedMangas(selectedMangas)) { 
-            console.log('  Select at least one title to perform a search');
+            console.log('\n  Select at least one title to perform a search');
             input = null;
         } else if (input === 'p') { // select all perfect matches
             const mangaOnlySearches = mangaSearches.filter(({ query: { type: MAL_type }}) => MAL_type === 'manga');
