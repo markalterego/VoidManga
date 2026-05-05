@@ -649,7 +649,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
     while (input !== 'e') 
     {   
         let index = 0;
-        console.log(`\n  LOG - ${capitalFirstLetterString(dataTitle)}\n`);
+        console.log(`\n\n  LOG - ${capitalFirstLetterString(dataTitle)}\n`);
         if (!Object.keys(data).length) {
             console.log('  ? -> No keys to select');
         } else {
