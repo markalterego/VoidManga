@@ -237,28 +237,22 @@ async function traverseChapters (selectedManga, chapterArr) {
     const manga = chapterArr ? selectedManga : selectedManga.manga;
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters;
     const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
-        const indexPadding = ' '.repeat(Math.max(0, 4 - String(index).length)); // padding up to 4 digits
-
-        const progressLabel = (() => {
+        const indexWithPadding = String(index).padEnd(4); // pads up to 4 digit indexes
+        const separatorWithPadding = ':'.padEnd(1); // pads separator once
+        const progressLabelWithPadding = (() => {
             const vlLabel = volume ? `Vol.${volume}` : ''; 
             const chLabel = chapter ? `Ch.${chapter}` : ''; 
             const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
-            return combined ? `[${combined}]` : `[???]`;
+            const wrapped = combined ? `[${combined}]` : '[???]';
+            return wrapped.padEnd(18);
         })()
-        const progressLabelPadding = ' '.repeat(Math.max(0, 22 - String(index).length - progressLabel.length - indexPadding.length));
-
         const maxTitleWidth = 35;
         const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
-        const truncatedTitle = `${cliTruncate(chTitle, maxTitleWidth)}`;
-        const truncatedTitlePadding = ' '.repeat(Math.max(0, maxTitleWidth + 2 - stringWidth(truncatedTitle))); 
-        
-        const transLang = translatedLanguage ? `(${translatedLanguage})` : `(No Translated Language)`;
-        const transLangPadding = ' '.repeat(Math.max(0, 6 - translatedLanguage.length));
-
-        const isUnread = foundManga?.list_status.num_chapters_read < chapter;
-        const unreadFlag = isUnread ? `{( Unread! )}` : '';
-
-        return [`${indexPadding}${progressLabel}${progressLabelPadding}${truncatedTitle}${truncatedTitlePadding}${transLang}${transLangPadding}${unreadFlag}`];
+        const truncatedTitle = cliTruncate(chTitle, maxTitleWidth);
+        const truncatedTitleWithPadding = truncatedTitle + ' '.repeat(maxTitleWidth - stringWidth(truncatedTitle) + 2); 
+        const transLangWithPadding = `(${translatedLanguage ?? '??-??'})`.padEnd(8); // minimum one padding after max length
+        const unreadFlag = foundManga?.list_status.num_chapters_read < chapter ? '{( Unread! )}' : '';
+        return [indexWithPadding, separatorWithPadding, `${progressLabelWithPadding}${truncatedTitleWithPadding}${transLangWithPadding}${unreadFlag}`];
     };
 
     // TODO:
