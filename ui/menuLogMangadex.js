@@ -198,7 +198,7 @@ async function findMangaByMangaTitle (mangadexData) {
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const LOGDATA = 0, MALPROGRESS = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
+    const LOGDATA = 0, OPENINBROWSER = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3, MALPROGRESS = 4;
     let input = 0;
 
     while (input !== 'e') 
@@ -208,10 +208,11 @@ async function mangaOptionsMenu (selectedManga) {
         printMenuOptions(
             `Select an option for ${title}`,
             [
-                ['Log manga data'], 
-                ['Log MAL progress'], 
+                ['Log manga data'],
+                ['Open manga in browser'],
                 ['Traverse chapters'], 
                 ['Search for chapter'], 
+                ['Log MAL progress'],
                 '_'
             ]
         );
@@ -220,12 +221,14 @@ async function mangaOptionsMenu (selectedManga) {
 
         if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
-        } else if (input === MALPROGRESS) { 
-            logSeriesProgress(selectedManga.manga);
+        } else if (input === OPENINBROWSER) { 
+            await open(selectedManga.manga.link);
         } else if (input === TRAVERSECHAPTERS) { 
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
             await searchChapters(title, selectedManga);
+        } else if (input === MALPROGRESS) { 
+            logSeriesProgress(selectedManga.manga);
         } else if (input !== 'e') { 
             console.log('\n  Please input a valid option');
         }
