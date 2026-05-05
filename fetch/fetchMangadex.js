@@ -48,14 +48,18 @@ async function fetchManga (entry, options) {
     };
 
     // fetch manga 
-    const response = await withRetry(() => 
+    const mangaResponse = await withRetry(() => 
         rateLimitedFetch(() => 
             axios.get('https://api.mangadex.org/manga', { params })
         )
     );
 
+    const formattedMangaresponse = mangaResponse.data.data?.map(manga => 
+        ({ ...manga, link: `https://mangadex.org/title/${manga.id}`})
+    );
+
     return {
-        searchResults: response.data.data,
+        searchResults: formattedMangaresponse,
         query: { title, id, type }
     };
 }
