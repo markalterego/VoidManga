@@ -19,7 +19,7 @@ function logErrorDetails (error) {
     const responseHint = data?.hint;
 
     // header
-    console.error(`  --- Error ---`);
+    console.error(`\n  --- Error ---\n`);
 
     // response status + info
     if (status)     console.error(`  Status:     ${status}`);  
@@ -36,7 +36,7 @@ function logErrorDetails (error) {
     }
 
     // footer
-    console.error('\n  -------------');
+    console.error('\n  -------------\n');
 }
 
 export { logErrorDetails };
