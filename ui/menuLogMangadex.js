@@ -45,10 +45,12 @@ async function menuLogMangadex (mangadexData, l, config) {
 async function traverseMangas (mangadexData) {
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
     const formatMangaTitle = (index, title, chaptersLength) => {
-        const maxTitleWidth = 35 - String(index).length;
-        const truncatedTitle = cliTruncate(title, maxTitleWidth);
-        const padding = ' '.repeat(Math.max(0, maxTitleWidth + 2 - stringWidth(truncatedTitle)));
-        return [`${truncatedTitle}${padding}(${chaptersLength})`];
+        const indexWithPadding = String(index).padEnd(4); // pads up to 4 digits
+        const separatorWithPadding = ':'.padEnd(1); // pads 1 after separator
+        const maxTitleWidth = 35;
+        const truncatedTitle = cliTruncate(title, maxTitleWidth); // cliTruncate takes into account 2 width chars
+        const truncatedTitleWithPadding = truncatedTitle + ' '.repeat(maxTitleWidth - stringWidth(truncatedTitle) + 2); // stringWidth counts 2 width chars 
+        return [indexWithPadding, separatorWithPadding, truncatedTitleWithPadding + `(${chaptersLength})`];
     };
 
     // TODO: 
