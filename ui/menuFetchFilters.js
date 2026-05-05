@@ -10,9 +10,9 @@ async function filterEntriesFromFetch (l, k) {
     lists = l; key = k; // referring lists and key accordingly
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
     if (!lists) { // lists was undefined in given parameters
-        console.log(`  MAL lists not found`);
+        console.log(`\n  MAL lists not found`);
     } else if (!isValidFilterKey) { // function parameter is not an expected value
-        console.log(`  The received value '${key}' is not valid`);
+        console.log(`\n  The received value '${key}' is not valid`);
     } else { // function parameter is an expected value
         await filterTypeMenu();
         // save updated lists to file
@@ -28,10 +28,10 @@ async function filterTypeMenu() {
         // display current filters
         menuFetchFiltersDisplay(lists, key);
         // select where to list statuses from
-        console.log(`  Filtering ${key}:`);
+        console.log(`\n  Filtering ${key}:\n`);
         console.log('  0 -> Filter anime');
         console.log('  1 -> Filter manga');
-        console.log('  ± -> Include/Exclude all');
+        console.log('\n  ± -> Include/Exclude all');
         console.log('  e -> Go back');
 
         input = await takeUserInput();
@@ -49,7 +49,7 @@ async function filterTypeMenu() {
                     }
                 }
             }
-            console.log('  Included all titles to fetch');
+            console.log('\n  Included all titles to fetch');
         } else if (input === '-') {
             // reassigning fetch filters as false
             for (const type of lists) {
@@ -59,7 +59,7 @@ async function filterTypeMenu() {
                     }
                 }
             }
-            console.log('  Excluded all titles from fetch');
+            console.log('\n  Excluded all titles from fetch');
         } else if (input !== 'e') {
             console.log('\n  Please input a valid option');
         }
@@ -74,7 +74,7 @@ async function filterStatusMenu (type) {
         // display current filters
         menuFetchFiltersDisplay(lists, key);
 
-        console.log('  Select a status');
+        console.log('\n  Select a status\n');
         if (type === ANIME) { // anime
             animeStatus.forEach((status, index) => {
                 console.log(`  ${index} -> ${capitalFirstLetterString(status)}`);
@@ -84,7 +84,7 @@ async function filterStatusMenu (type) {
                 console.log(`  ${index} -> ${capitalFirstLetterString(status)}`);
             });
         }
-        console.log('  ± -> Include/Exclude all');
+        console.log('\n  ± -> Include/Exclude all');
         console.log('  e -> Go back');
 
         input = await takeUserInput();
@@ -95,7 +95,7 @@ async function filterStatusMenu (type) {
             const status = input;
             // going back to upper menu in case lists[type][status] is empty
             if (!lists[type][status].length) { 
-                console.log('  No titles found for the selected status'); 
+                console.log('\n  No titles found for the selected status\n'); 
             } else {
                 await filterEntriesMenu(type, status); // passing type + status
             }
@@ -106,7 +106,7 @@ async function filterStatusMenu (type) {
                     item[key] = true;
                 }
             }
-            console.log(`  Included all ${type ? 'manga' : 'anime'} titles to fetch`);
+            console.log(`\n  Included all ${type ? 'manga' : 'anime'} titles to fetch\n`);
         } else if (input === '-') { // exclude all
             // reassigning fetch filters as false
             for (const status of lists[type]) {
@@ -114,7 +114,7 @@ async function filterStatusMenu (type) {
                     item[key] = false;
                 }
             }
-            console.log(`  Excluded all ${type ? 'manga' : 'anime'} titles from fetch`);
+            console.log(`\n  Excluded all ${type ? 'manga' : 'anime'} titles from fetch\n`);
         } else if (input !== 'e') {
             console.log('\n  Please input a valid option');
         }
@@ -129,12 +129,12 @@ async function filterEntriesMenu (type, status) {
         // display current filters
         menuFetchFiltersDisplay(lists, key);  
 
-        console.log('  Select titles to be fetched')
+        console.log('\n  Select titles to be fetched\n')
         lists[type][status].forEach((item, index) => {
             console.log(`  ${index} -> ${item.node.title} ${item[key] ? '[x]' : '[]'}`); 
         });
-        console.log('  ± -> Include/Exclude all');
-        console.log('  e -> Go back');
+        console.log('\n  ± -> Include/Exclude all');
+        console.log('  e -> Go back\n');
 
         input = await takeUserInput();
 
@@ -148,13 +148,13 @@ async function filterEntriesMenu (type, status) {
             for (const item of lists[type][status]) {
                 item[key] = true;
             }
-            console.log(`  Included all ${type ? mangaStatus[status] : animeStatus[status]} titles to fetch`);
+            console.log(`\n  Included all ${type ? mangaStatus[status] : animeStatus[status]} titles to fetch\n`);
         } else if (input === '-') { // exclude all
             // reassigning fetch filters as false
             for (const item of lists[type][status]) {
                 item[key] = false;
             }
-            console.log(`  Excluded all ${type ? mangaStatus[status] : animeStatus[status]} titles from fetch`);
+            console.log(`\n  Excluded all ${type ? mangaStatus[status] : animeStatus[status]} titles from fetch\n`);
         } else if (input !== 'e') {
             console.log('\n  Please input a valid option');
         }
