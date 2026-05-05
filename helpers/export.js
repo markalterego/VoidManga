@@ -1,3 +1,8 @@
+export const SYM = {
+    UP_TO_DATE: '\u2022',
+    UPDATED: '\u2191',
+    NEW: '\u002B'
+};
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 export const fetchMangadexOptions = { 
