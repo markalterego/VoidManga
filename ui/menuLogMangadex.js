@@ -15,8 +15,35 @@ let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
 
 async function menuLogMangadex (mangadexData, l, config) {
+    const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1;
+    let input = null;
+    options = config.logMangadexOptions, lists = l;
+
+    while (input !== 'e') 
+    {
+        printMenuOptions(
+            'Log MangaDex',
+            [
+                ['Traverse mangas'],
+                ['Search mangas'],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+
+        if (input === TRAVERSEMANGAS) {
+            await traverseMangas(mangadexData);
+        } else if (input === SEARCHMANGAS) {
+            await searchMangas(mangadexData);
+        } else if (input !== 'e') {
+            console.log('\n  Please input a valid option');
+        }
+    }
+}
+
+async function traverseMangas (mangadexData) {
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
-    options = config.logMangadexOptions, lists = l; 
     const formatMangaTitle = (index, title, chaptersLength) => {
         const maxTitleWidth = 25 - String(index).length;
         const truncatedTitle = cliTruncate(title, maxTitleWidth);
@@ -117,6 +144,26 @@ function sortMangas (mangadexData) {
     return sortedMangas;
 }
 
+async function searchMangas (mangadexData) {
+    const MANGATITLE = 0;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        printMenuOptions(
+            
+        );
+
+        input = await takeUserInput(true);
+
+        if (input === MANGATITLE) {
+            // function here
+        } else if (input !== 'e') {
+            console.log('\n  Please input a valid option');
+        }
+    }
+}
+
 async function mangaOptionsMenu (selectedManga) {
     const LOGDATA = 0, MALPROGRESS = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
     let input = 0;
@@ -145,7 +192,7 @@ async function mangaOptionsMenu (selectedManga) {
         } else if (input === TRAVERSECHAPTERS) { 
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
-            await findChapterOfManga(title, selectedManga);
+            await searchChapters(title, selectedManga);
         } else if (input !== 'e') { 
             console.log('\n  Please input a valid option');
         }
@@ -346,7 +393,7 @@ function logSeriesProgress (manga) {
     }
 }
 
-async function findChapterOfManga (title, selectedManga) {
+async function searchChapters (title, selectedManga) {
     const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3, CHAPTERTITLE = 4; 
     let input = 0; 
 
