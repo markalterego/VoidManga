@@ -55,7 +55,7 @@ async function fetchManga (entry, options) {
     );
 
     const formattedMangaresponse = mangaResponse.data.data?.map(manga => 
-        ({ ...manga, link: `https://mangadex.org/title/${manga.id}`})
+        ({ ...manga, url: `https://mangadex.org/title/${manga.id}`})
     );
 
     return {
@@ -117,7 +117,7 @@ async function fetchChaptersCustom ({ manga: { id } }, options) {
 
     // map links
     const formattedChapterResponse = chapterResponse.data.data?.map(chapter =>
-        ({ ...chapter, link: `https://mangadex.org/chapter/${chapter.id}`})
+        ({ ...chapter, url: `https://mangadex.org/chapter/${chapter.id}`})
     );
 
     return formattedChapterResponse ?? [];
@@ -153,7 +153,7 @@ async function fetchChaptersAll ({ manga: { id }}, { chapterTranslatedLanguage, 
 
         // format response
         const formattedChapters = chapterResponse.data.data?.map(chapter =>
-            ({ ...chapter, link: `https://mangadex.org/chapter/${chapter.id}`})
+            ({ ...chapter, url: `https://mangadex.org/chapter/${chapter.id}`})
         );
 
         chapters.push(formattedChapters);
