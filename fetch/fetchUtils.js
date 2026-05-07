@@ -21,9 +21,15 @@ async function rateLimitedFetch (fn, minMs = 200) {
     // of time after the function if the execution
     // was faster than a set amount of milliseconds
     const start = performance.now();
-    const result = await fn(); // run function
+    let result, error;
+    try {
+        result = await fn(); // run function
+    } catch (err) {
+        error = err;
+    }
     const timeTaken = performance.now() - start;
-    if (timeTaken < minMs) await setTimeout(timeTaken - minMs);
+    if (timeTaken < minMs) await setTimeout(minMs - timeTaken);
+    if (error) throw error;
     return result;
 }
 
