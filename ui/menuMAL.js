@@ -2,7 +2,7 @@ import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logDataDeepMenu, updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
-import { fetchMAL } from "../fetch/fetchMAL.js";
+import { fetchMALUserLists } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
 
 const ANIME = 0, MANGA = 1;
@@ -16,7 +16,7 @@ async function menuMAL (l, config) {
     if (!options.fetchMALOnMenuOpen) {
         lists = l; // reference to lists
     } else {
-        lists = await fetchMAL(l); // searches and returns MAL lists
+        lists = await fetchMALUserLists(l); // searches and returns MAL lists
         filehandle('mal', lists);
     }
 
@@ -42,7 +42,7 @@ async function menuMAL (l, config) {
         } else if (input === SEARCH_LISTS) {
             await searchListsMenu(); // search lists
         } else if (input === FETCHLISTS) {
-            lists = await fetchMAL(lists); // searches and returns MAL lists
+            lists = await fetchMALUserLists(lists); // searches and returns MAL lists
             filehandle('mal', lists);
         } else if (input !== 'e') {
             console.log('\n  Please input a valid option');
