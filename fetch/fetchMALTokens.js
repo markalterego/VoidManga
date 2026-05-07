@@ -85,7 +85,7 @@ async function waitForCallback() {
     // through the authorization page
     const app = express(), server = app.listen(3000);
     return await new Promise((resolve, reject) => {
-        // assign 60s timeout on server
+        // assign 30s timeout on server
         const timeout = globalThis.setTimeout(() => {  
             server.close(() => reject(new Error('timeout 30s')));
         }, 30000);
