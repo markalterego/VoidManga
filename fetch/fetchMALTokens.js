@@ -83,27 +83,43 @@ async function waitForCallback() {
     // callback server is used solely for receiving the authorization_code 
     // which is sent by MAL after the user has authorized the current "computer"
     // through the authorization page
-    const app = express(), server = app.listen(3000);
     return await new Promise((resolve, reject) => {
+        const app = express(); 
+        const server = app.listen(3000);
+
+        // closes server and clears timeout
+        const cleanup = (fn) => {
+            clearTimeout(timeout);
+            server.close(fn);
+        };
+        
         // assign 30s timeout on server
-        const timeout = globalThis.setTimeout(() => {  
-            server.close(() => reject(new Error('timeout 30s')));
-        }, 30000);
+        const timeout = globalThis.setTimeout(
+            () => cleanup(() => reject(new Error('Timeout 30s')))
+            , 30000
+        );
+
+        // port 3000 alredy in use
+        server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                cleanup(() => reject(new Error('Port 3000 already in use')));
+            }
+        });
+        
         // route definition
         app.get('/callback', (req, res) => {
-            const query = req.query; // received data
-            clearTimeout(timeout); // clear timeout
-            // show response on browser
-            if (query.code) {
-                res.send('Authorization received. You can close this window.');
-            } else { 
-                res.send(`Error: ${query.error}: ${query.message}`);
-            };
-            // close server
-            server.close(() => {
-                query.code ? resolve(query.code): 
-                             reject(new Error(`${query.error}: ${query.message}`));
-            });
+            const { code, error, message } = req.query;
+
+            // send response
+            res.send(code
+                ? 'Authorization received. You can close this window.'
+                : `Error: ${error}: ${message}`
+            );
+
+            cleanup(() => code 
+                ? resolve(code) 
+                : reject(new Error(`${error}: ${message}`))
+            );
         });
     });
 }
