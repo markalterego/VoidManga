@@ -17,10 +17,10 @@ async function updateMAL (lists, changedFields, entry) {
         const finalEntry = existingEntry ? { ...existingEntry, ...syncedEntry } : syncedEntry; // merge existing + synced OR use synced
         if (existingEntry) removeOldEntry(lists, existingEntry); // remove existing entry 
         appendNewEntry(lists, finalEntry); // add entry to lists
-        return lists; // return updated lists
     } catch (error) {
         logErrorDetails(error);
     }
+    return lists; // return updated lists
 }
 
 function findExistingEntry (lists, entry) {
