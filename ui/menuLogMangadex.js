@@ -198,7 +198,7 @@ async function findMangaByMangaTitle (mangadexData) {
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const LOGDATA = 0, OPENINBROWSER = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3, MALPROGRESS = 4;
+    const LOGDATA = 0, OPENINBROWSER = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
     let input = 0;
 
     while (input !== 'e') 
@@ -211,8 +211,7 @@ async function mangaOptionsMenu (selectedManga) {
                 ['Log manga data'],
                 ['Open manga in browser'],
                 ['Traverse chapters'], 
-                ['Search for chapter'], 
-                ['Log MAL progress'],
+                ['Search for chapter'],
                 '_'
             ]
         );
@@ -221,14 +220,12 @@ async function mangaOptionsMenu (selectedManga) {
 
         if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
-        } else if (input === OPENINBROWSER) { 
-            await open(selectedManga.manga.link);
+        } else if (input === OPENINBROWSER) {
+            selectedManga.manga?.url ? await open(selectedManga.manga?.url) : console.log('\n  URL was not found');
         } else if (input === TRAVERSECHAPTERS) { 
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
             await searchChapters(title, selectedManga);
-        } else if (input === MALPROGRESS) { 
-            logSeriesProgress(selectedManga.manga);
         } else if (input !== 'e') { 
             console.log('\n  Please input a valid option');
         }
@@ -622,7 +619,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
                                 (vlNum >= 0 ? `(vol: ${vlNum})` : '' )}`;      // vlNum 
             await logDataDeepMenu(selectedChapter, dataTitle, true);
         } else if (input === OPENINBROWSER) {
-            await open(selectedChapter.link); 
+            selectedChapter?.url ? await open(selectedChapter.url) : console.log('\n  URL was not found');
         } else if (input === OPENATLISTS) {
             const mangaEntry = findEntryAtLists(manga);
             if (!mangaEntry) {
