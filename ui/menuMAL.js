@@ -143,12 +143,13 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
 }
 
 async function updateEntryMenu (entry, l) {
-    // second parameter for function is supposed to be used
-    // when calling updateEntryMenu from outside (l = reference to 
-    // lists from outside the function)
+    //
+    // second parameter 'l' (standing for lists) is supposed to be used
+    // when calling updateEntryMenu from outside menuMAL.js (l = lists)
+    //
     const STATUS = 0, SCORE = 1, PROGRESS = 2, START_DATE = 3, FINISH_DATE = 4, ISRE = 5, COMMENTS = 6;
     const PADEND = 12, PADSTART = 0, NOT_SET = 'Not set';
-    let input = 0, changedFields = {}, listsReference = l === undefined ? lists : l;
+    let input = 0, changedFields = [], listsReference = l === undefined ? lists : l;
 
     // TODO: 
     // - make it so that start/finish dates are automatically applied
@@ -161,46 +162,52 @@ async function updateEntryMenu (entry, l) {
 
     while (input !== 'e') 
     {
-        // 1. I need original reference to entry + clone of entry
-        // 2. inside the loop I will only change data of the clone
-        // 3. after going out of loop, I will NOT pass the clone to updateMAL function 
-        //    as the clone is only used to reference changed values inside the loop 
+        // entry_clone is updated within deeper updateMenu functions, 
+        // after user returns to this function (updateEntryMenu), entry_clone
+        // is compared to the original entry - which remains unchanged - 
+        // and all key-value pairs which are different are appended to
+        // the changedFields array in the form of [key, value]. At the end
+        // of the loop, changedFields passed to updateMAL and emptied right after 
 
-        const entry_clone = structuredClone(entry); // clone of entry
-
-        const entryTitle = entry_clone.node.title; // anime/manga title
-        const list_status = entry_clone.list_status; // list_status
+        const entry_clone = structuredClone(entry); 
+        const { num_episodes, num_chapters, num_volumes } = entry_clone.node; 
+        const entryTitle = entry_clone.node.title; 
+        const list_status = entry_clone.list_status; 
+        const { status, is_rereading, is_rewatching, num_volumes_read, 
+                num_chapters_read, num_episodes_watched, score, updated_at,
+                start_date, finish_date, comments, priority, num_times_reread,
+                num_times_rewatched, reread_value, rewatch_value, tags } = list_status;
         
         // formatting printMenuOptions parameters
         const s1_status = 'Status';
-        const s2_status = capitalFirstLetterString(list_status.status);                             // watching/reading etc...
-        const status    = s1_status.padEnd(PADEND, ' ') + ': ' + s2_status.padStart(PADSTART, ' '); // status with padding
+        const s2_status = capitalFirstLetterString(status);                                         // watching/reading etc...
+        const s_status  = s1_status.padEnd(PADEND, ' ') + ': ' + s2_status.padStart(PADSTART, ' '); // status with padding
 
         const s1_score = 'Score';
-        const s2_score = `${list_status.score > 0 ? list_status.score : NOT_SET }`;              // 0 - 10 || 0
-        const score    = s1_score.padEnd(PADEND, ' ') + ': ' + s2_score.padStart(PADSTART, ' '); // score with padding
+        const s2_score = `${score > 0 ? score : NOT_SET }`;                                      // 0 - 10 || 0
+        const s_score  = s1_score.padEnd(PADEND, ' ') + ': ' + s2_score.padStart(PADSTART, ' '); // score with padding
 
         const s1_progress = 'Progress';
-        const s2_progress = getType(list_status) === ANIME ? (`${list_status.num_episodes_watched} / ${entry_clone.node.num_episodes > 0 ? entry_clone.node.num_episodes : '?'}`) : // anime = num_episodes_watched
-                                                             (`${list_status.num_chapters_read} / ${entry_clone.node.num_chapters > 0 ? entry_clone.node.num_chapters : '?'}`);     // manga = num_chapters_read
-        const progress    = s1_progress.padEnd(PADEND, ' ') + ': ' + s2_progress.padStart(PADSTART, ' '); // progress with padding
+        const s2_progress = getType(list_status) === ANIME ? (`${num_episodes_watched} / ${num_episodes > 0 ? num_episodes : '?'}`) : // anime = num_episodes_watched
+                                                             (`${num_chapters_read} / ${num_chapters > 0 ? num_chapters : '?'}`);     // manga = num_chapters_read
+        const s_progress  = s1_progress.padEnd(PADEND, ' ') + ': ' + s2_progress.padStart(PADSTART, ' '); // progress with padding
 
         const s1_startDate = 'Start date';
-        const s2_startDate = `${list_status.start_date?.length > 0 ? list_status.start_date : NOT_SET}`;     // yyyy-mm-dd
-        const startDate    = s1_startDate.padEnd(PADEND, ' ') + ': ' + s2_startDate.padStart(PADSTART, ' '); // start date with padding
+        const s2_startDate = `${start_date?.length > 0 ? start_date : NOT_SET}`;                             // yyyy-mm-dd
+        const s_startDate  = s1_startDate.padEnd(PADEND, ' ') + ': ' + s2_startDate.padStart(PADSTART, ' '); // start date with padding
         
         const s1_finishDate = 'Finish date';
-        const s2_finishDate = `${list_status.finish_date?.length > 0 ? list_status.finish_date : NOT_SET}`;     // yyyy-mm-dd
-        const finishDate    = s1_finishDate.padEnd(PADEND, ' ') + ': ' + s2_finishDate.padStart(PADSTART, ' '); // finish date with padding
+        const s2_finishDate = `${finish_date?.length > 0 ? finish_date : NOT_SET}`;                             // yyyy-mm-dd
+        const s_finishDate  = s1_finishDate.padEnd(PADEND, ' ') + ': ' + s2_finishDate.padStart(PADSTART, ' '); // finish date with padding
 
         const s1_isRe = `${getType(list_status) === ANIME ? 'Re-watching' : 'Re-reading'}`;
-        const s2_isRe = getType(list_status) === ANIME ? `${list_status.is_rewatching ? 'Yes' : 'No'}` : // anime = is_rewatching
-                                                         `${list_status.is_rereading  ? 'Yes' : 'No'}`;  // manga = is_rereading
-        const isRe    = s1_isRe.padEnd(PADEND, ' ') + ': ' + s2_isRe.padStart(PADSTART, ' ');            // isRe(watching/reading) with padding
+        const s2_isRe = getType(list_status) === ANIME ? `${is_rewatching ? 'Yes' : 'No'}` :            // anime = is_rewatching
+                                                         `${list_status.is_rereading  ? 'Yes' : 'No'}`; // manga = is_rereading
+        const s_isRe  = s1_isRe.padEnd(PADEND, ' ') + ': ' + s2_isRe.padStart(PADSTART, ' ');           // isRe(watching/reading) with padding
         
         const s1_comments = 'Comments';
         const s2_comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : NOT_SET; // list_status.comment || 'no comment'
-        const comments    = s1_comments.padEnd(PADEND, ' ') + ': ' + s2_comments.padStart(PADSTART, ' ');         // comments with padding
+        const s_comments  = s1_comments.padEnd(PADEND, ' ') + ': ' + s2_comments.padStart(PADSTART, ' ');         // comments with padding
         
         // calling printMenuOptions
         printMenuOptions(
@@ -208,13 +215,13 @@ async function updateEntryMenu (entry, l) {
             [
                 '-', 
                 '_', 
-                [status], 
-                [score], 
-                [progress], 
-                [startDate], 
-                [finishDate], 
-                [isRe], 
-                [comments], 
+                [s_status], 
+                [s_score], 
+                [s_progress], 
+                [s_startDate], 
+                [s_finishDate], 
+                [s_isRe], 
+                [s_comments], 
                 '_', 
                 '-', 
                 '_',
@@ -224,47 +231,30 @@ async function updateEntryMenu (entry, l) {
 
         input = await takeUserInput(true); 
 
-        if (input === STATUS) {
-            const oldStatus = list_status.status; // status before update
-            await updateStatusMenu(list_status);  // update status menu 
-            if (oldStatus !== list_status.status) changedFields.status = list_status.status; 
-        } else if (input === SCORE) {
-            const oldScore = list_status.score; // score before update
-            await updateScoreMenu(list_status); // update score menu
-            if (oldScore !== list_status.score) changedFields.score = list_status.score;
-        } else if (input === PROGRESS) {
-            const oldProgress = getProgress(list_status); // progress before update
-            await updateProgressMenu(entry_clone);        // update progress menu
-            if (oldProgress !== getProgress(list_status)) {
-                // hox! for some reason the api expects num_watched_episodes but returns num_episodes_watched...
-                if (!getType(list_status)) changedFields.num_watched_episodes = list_status.num_episodes_watched; // anime
-                else changedFields.num_chapters_read = list_status.num_chapters_read;                             // manga
-            }
-        } else if (input === START_DATE) {
-            const oldStartDate = list_status.start_date; // start date before update
-            await updateStartDateMenu(list_status);      // update start date menu
-            if (oldStartDate !== list_status.start_date) {
-                changedFields.start_date = list_status.start_date;
-                if (list_status.start_date === '0000-00-00') delete list_status.start_date;
-            }
-        } else if (input === FINISH_DATE) {
-            const oldFinishDate = list_status.finish_date; // finish date before update
-            await updateFinishDateMenu(list_status);       // update finish date menu
-            if (oldFinishDate !== list_status.finish_date) {
-                changedFields.finish_date = list_status.finish_date;
-                if (list_status.finish_date === '0000-00-00') delete list_status.finish_date;
-            }
-        } else if (input === ISRE) {
-            const oldIsRe = getIsRe(list_status); // isRe(reading/watching) before update
-            await updateIsReMenu(list_status);    // update isRe
-            if (oldIsRe !== getIsRe(list_status)) {
-                if (!getType(list_status)) changedFields.is_rewatching = list_status.is_rewatching; // anime
-                else changedFields.is_rereading = list_status.is_rereading;                         // manga
-            }
-        } else if (input === COMMENTS) {
-            const oldComments = list_status.comments; // comments before update
-            await updateCommentsMenu(list_status);    // update comments
-            if (oldComments !== list_status.comments) changedFields.comments = list_status.comments;
+        // selectable fields mapped to refer to their corresponding updateMenu function
+        const selectableFields = {
+            [STATUS]:      { field: 'status',                                          updater: updateStatusMenu     },
+            [SCORE]:       { field: 'score',                                           updater: updateScoreMenu      },
+            [PROGRESS]:    { field: 'progress',                                        updater: updateProgressMenu   },
+            [START_DATE]:  { field: 'start_date',                                      updater: updateStartDateMenu  },
+            [FINISH_DATE]: { field: 'finish_date',                                     updater: updateFinishDateMenu },
+            [ISRE]:        { field: (is_rereading ? 'is_rereading' : 'is_rewatching'), updater: updateIsReMenu       },
+            [COMMENTS]:    { field: 'comments',                                        updater: updateCommentsMenu   }
+        };
+
+        const selected = selectableFields[input];
+
+        if (selected) { 
+            const { field, updater } = selected;
+            const old_list_status = structuredClone(list_status);
+            field === 'progress' ? await updater(entry_clone) : await updater(list_status);
+            // check for updates
+            changedFields = Object.entries(list_status).filter(([key, _]) => { 
+                const oldVal = old_list_status[key];
+                const newVal = list_status[key];
+                if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
+                else return oldVal !== newVal;
+            });
         } else if (input === 'l') {
             await logDataDeepMenu(entry, entryTitle, false, true);
         } else if (input !== 'e') {
@@ -272,10 +262,10 @@ async function updateEntryMenu (entry, l) {
         }
 
         // update changes
-        if (Object.keys(changedFields).length > 0) {
+        if (changedFields.length) {
             listsReference = await updateMAL(listsReference, changedFields, entry); // update MAL entry
             filehandle('mal', listsReference); // save updates to file
-            changedFields = {}; // clear changedFields
+            changedFields = []; // clear changedFields
             // re-find entry reference
             entry = listsReference[getType(list_status)]                    // type
                                   .flatMap(s => s)                          // status
