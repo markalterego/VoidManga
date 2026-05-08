@@ -2,23 +2,37 @@ import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
 import { mangaOrderTypes, chapterOrderTypes } from './export.js';
 
-async function takeUserInput (useWhole, useString, skipClear) {
-    // 1. function takes input from user,
-    // 2. removes leading and trailing whitespaces from input
-    // 3. checks if input includes only numbers
-    // 4.1. if (input had only numbers) return Number(input) || return parseInt(input)
-    // 4.2. else return input.toLowerCase()
+async function takeUserInput (useWhole = false, forceString = false, { useMixedCase = false, useUpperCase = false } = {}, skipClear = false) {
+    //
+    // Default behaviour (no params):
+    //   - number input ... return as number e.g. '123' -> 123
+    //   - string input ... return as lowercase e.g. 'Hello' -> 'hello'
+    //   - empty input  ... return as undefined
+    //
+    // 1. if input includes only numbers
+    //    - !useWhole                         ... return as whole/decimal number
+    //    - useWhole AND !input.includes('.') ... return as whole number
+    // 2. if input is a string (or forceString is forcing string handling)
+    //    - useMixedCase                      ... return string as is
+    //    - !useMixedCase && useUpperCase     ... return string converted to upper case letters 
+    //    - !useMixedCase                     ... return string converted to lower case letters
+    // 3. all checks fail, return undefined
+    //
     let userInput = (await rl.question('\n  Input: ')).trim(); // get user input
-    const isNumber = userInput.split(/\s+/).every(str => !isNaN(str)); // check for numbers
-    if (!useString && isNumber && userInput.length > 0) { // convert userinput to num
-        userInput = Number(userInput);
-        if (useWhole) { // whole numbers
-            if (userInput % 1 === 0) userInput = parseInt(userInput);
-            else userInput = undefined;
-        } 
-    } else {
-        if (userInput.length > 0) userInput = userInput.toLowerCase(); // convert userinput to lowercase
-        else userInput = undefined;
+    const isNumber = userInput.split(/\s+/) // split by whitespace char e.g. 'hello 123' = ['hello', '123']
+                              .every(str => str !== '' && Number.isFinite(Number(str))); // check for numbers
+    if (isNumber && !forceString) { // number input AND is not forcing string input
+        if (useWhole) {
+            userInput = userInput.includes('.') ? undefined : parseInt(userInput);
+        } else {
+            userInput = Number(userInput);
+        }
+    } else if (userInput.length) { // string input longer than 0
+        if (!useMixedCase) {
+            userInput = useUpperCase ? userInput.toUpperCase() : userInput.toLowerCase();
+        }
+    } else { // not valid user input
+        userInput = undefined;
     }
     if (!skipClear) clearScreen(); // clear console window
     return userInput;
