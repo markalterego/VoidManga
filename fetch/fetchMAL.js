@@ -51,7 +51,7 @@ async function fetchAnimeList() {
 async function fetchMangaList() {
     const url = `https://api.myanimelist.net/v2/users/@me/mangalist`;
     const params = {
-        fields: 'list_status{comments,priority,num_times_reread,reread_value,tags},num_chapters',
+        fields: 'list_status{comments,priority,num_times_reread,reread_value,tags},num_chapters,num_volumes',
         limit: 1000, // max value
         nsfw: true // allows a more accurate response
     };
