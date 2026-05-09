@@ -153,6 +153,9 @@ async function updateListEntry (changedFields, entry) {
 
 async function putListEntry (entry_id, type, data_fields) {
     const url = `https://api.myanimelist.net/v2/${type}/${entry_id}/my_list_status`
+    // API expects num_episodes_watched as num_watched_episodes 
+    // but returns num_episodes_watched
+    data_fields = data_fields.map(([key, val]) => key === 'num_episodes_watched' ? ['num_watched_episodes', val] : [key, val])
     const data = new URLSearchParams(data_fields).toString();
     const headers = {
         'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
