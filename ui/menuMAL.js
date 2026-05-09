@@ -147,7 +147,10 @@ async function updateEntryMenu (entry, l) {
     // second parameter 'l' (standing for lists) is supposed to be used
     // when calling updateEntryMenu from outside menuMAL.js (l = lists)
     //
-    const STATUS = 0, SCORE = 1, PROGRESS = 2, START_DATE = 3, FINISH_DATE = 4, ISRE = 5, COMMENTS = 6;
+    const STATUS = 0, SCORE = 1, EPISODES = 2, VOLUMES = 2, CHAPTERS = 3;
+    const append = getType(entry.list_status); // manga adds one selectable option
+    const START_DATE = 3 + append, FINISH_DATE = 4 + append, ISRE = 5 + append, COMMENTS = 6 + append;
+
     const PADEND = 12, PADSTART = 0, NOT_SET = 'Not set';
     let input = 0, changedFields = [], listsReference = l === undefined ? lists : l;
 
@@ -187,10 +190,21 @@ async function updateEntryMenu (entry, l) {
         const s2_score = `${score > 0 ? score : NOT_SET }`;                                      // 0 - 10 || 0
         const s_score  = s1_score.padEnd(PADEND, ' ') + ': ' + s2_score.padStart(PADSTART, ' '); // score with padding
 
-        const s1_progress = 'Progress';
-        const s2_progress = getType(list_status) === ANIME ? (`${num_episodes_watched} / ${num_episodes > 0 ? num_episodes : '?'}`) : // anime = num_episodes_watched
-                                                             (`${num_chapters_read} / ${num_chapters > 0 ? num_chapters : '?'}`);     // manga = num_chapters_read
-        const s_progress  = s1_progress.padEnd(PADEND, ' ') + ': ' + s2_progress.padStart(PADSTART, ' '); // progress with padding
+
+        const s1_episodes = 'Episodes';
+        const s2_episodes = `${num_episodes_watched} / ${num_episodes > 0 ? num_episodes : '?'}`
+        const s_episodes  = s1_episodes.padEnd(PADEND, ' ') + ': ' + s2_episodes.padStart(PADSTART, ' '); 
+        
+        const s1_chapters = 'Chapters';
+        const s2_chapters = `${num_chapters_read} / ${num_chapters > 0 ? num_chapters : '?'}`;
+        const s_chapters  = s1_chapters.padEnd(PADEND, ' ') + ': ' + s2_chapters.padStart(PADSTART, ' '); 
+
+        const s1_volumes = 'Volumes';
+        const s2_volumes = `${num_volumes_read} / ${num_volumes > 0 ? num_volumes : '?'}`;
+        const s_volumes  = s1_volumes.padEnd(PADEND, ' ') + ': ' + s2_volumes.padStart(PADSTART, ' ');
+        
+        const s_progress = getType(list_status) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
+
 
         const s1_startDate = 'Start date';
         const s2_startDate = `${start_date?.length > 0 ? start_date : NOT_SET}`;                             // yyyy-mm-dd
@@ -217,7 +231,7 @@ async function updateEntryMenu (entry, l) {
                 '_', 
                 [s_status], 
                 [s_score], 
-                [s_progress], 
+                ...s_progress, 
                 [s_startDate], 
                 [s_finishDate], 
                 [s_isRe], 
@@ -235,7 +249,10 @@ async function updateEntryMenu (entry, l) {
         const selectableFields = {
             [STATUS]:      { field: 'status',                                          updater: updateStatusMenu     },
             [SCORE]:       { field: 'score',                                           updater: updateScoreMenu      },
-            [PROGRESS]:    { field: 'progress',                                        updater: updateProgressMenu   },
+            ...(getType(list_status) === ANIME
+                ? {[EPISODES]: { field: 'episodes', updater: updateEpisodesMenu }}  
+                : {[VOLUMES]:  { field: 'volumes',  updater: updateVolumesMenu  }, [CHAPTERS]: { field: 'chapters', updater: updateChaptersMenu }}
+            ),
             [START_DATE]:  { field: 'start_date',                                      updater: updateStartDateMenu  },
             [FINISH_DATE]: { field: 'finish_date',                                     updater: updateFinishDateMenu },
             [ISRE]:        { field: (is_rereading ? 'is_rereading' : 'is_rewatching'), updater: updateIsReMenu       },
@@ -247,11 +264,13 @@ async function updateEntryMenu (entry, l) {
         if (selected) { 
             const { field, updater } = selected;
             const old_list_status = structuredClone(list_status);
-            field === 'progress' ? await updater(entry_clone) : await updater(list_status);
+            const requiresEntryAsParameter = ['episodes', 'volumes', 'chapters'].some(v => v === field);
+            requiresEntryAsParameter ? await updater(entry_clone) : await updater(list_status);
             // check for updates
             changedFields = Object.entries(list_status).filter(([key, _]) => { 
                 const oldVal = old_list_status[key];
                 const newVal = list_status[key];
+                // arrays compared as string because arr[1] === arr[2] would be true
                 if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
                 else return oldVal !== newVal;
             });
@@ -319,71 +338,137 @@ async function updateScoreMenu (list_status) {
     }
 }
 
-async function updateProgressMenu (entry) {
-    // episodes watched/chapters read
-    const list_status = entry.list_status;
-    const progressBeforeChange = getProgress(list_status);
-    let input = 0;
-
-    // TODO:
-    // - if changing progress to max doesn't update status of series to completed
-    //   consider giving the user the option to update status to completed after 
+async function updateEpisodesMenu (entry) {
+    const { list_status, node: { num_episodes } } = entry;
+    const { num_episodes_watched } = list_status;
+    let input = null;
 
     while (input !== 'e') 
     {
+        const episodesLabel = `Update episodes`;
+        const progressLabel = num_episodes_watched === list_status.num_episodes_watched 
+            ? `current: ${num_episodes_watched} / ${num_episodes}`
+            : `update to: ${list_status.num_episodes_watched} / ${num_episodes} - from: ${num_episodes_watched} / ${num_episodes}`; 
+        const header = `${episodesLabel} (${progressLabel})`;
+
+        const episodes = num_episodes > 0 ? num_episodes : '?';
+        const optionsArray = [
+            ['±', 'Increase/Decrease progress'], 
+            ['?', `Input a value [0 - ${episodes}]`], 
+            '_'
+        ];
+
         printMenuOptions(
-            `Update progress (${progressBeforeChange === getProgress(list_status) ? `current: ${getProgress(list_status)} / ${getTotal(entry)}` :
-                                                                                    `update to: ${getProgress(list_status)} / ${getTotal(entry)} - from: ${progressBeforeChange} / ${getTotal(entry)}`})`,
-            [
-                ['±', 'Increase/Decrease progress'], 
-                ['?', `Input a value 0-${getTotal(entry) > 0 ? getTotal(entry) : '?' }`], 
-                '_'
-            ]
+            header,
+            optionsArray
         );
 
-        input = await takeUserInput(true); // take whole num as user input
-
-        if ((input >= 0 && input <= getTotal(entry)) || (!getTotal(entry) && input >= 0)) { // update progress by given user input
-            setProgress(list_status, input); 
-        } else if (input === '+') { // progress++
-            // if total = 0 -- allows incrementing indefinitely
-            // if total > 0 -- allows incrementing until getTotal(entry) [episode count]
-            if (!getTotal(entry) || getProgress(list_status) < getTotal(entry)) {
-                const amount = getProgress(list_status) + 1;
-                setProgress(list_status, amount);
-            }
-        } else if (input === '-' && getProgress(list_status) > 0) { // progress--
-            const amount = getProgress(list_status) - 1;
-            setProgress(list_status, amount);
-        } else if (input === '++' && getTotal(entry)) { // progress = max (only works when max > 0)
-            const amount = getTotal(entry); 
-            setProgress(list_status, amount);
-        } else if (input === '--') { // progress = min (always sets progress to 0)
-            setProgress(list_status, 0);
+        input = await takeUserInput(true);
+        
+        if (input >= 0 && input <= num_episodes || !num_episodes && input >= 0) {
+            list_status.num_episodes_watched = input;
+        } else if (input === '+' && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
+            list_status.num_episodes_watched++;
+        } else if (input === '-' && list_status.num_episodes_watched - 1 >= 0) {
+            list_status.num_episodes_watched--;
+        } else if (input === '++' && num_episodes) {
+            list_status.num_episodes_watched = num_episodes;
+        } else if (input === '--') {
+            list_status.num_episodes_watched = 0;
         } else if (input !== 'e') {
             console.log('\n  Please input a valid option');
         }
-    }  
+    }
+}
+
+async function updateVolumesMenu (entry) {
+    const { list_status, node: { num_volumes } } = entry;
+    const { num_volumes_read } = list_status;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        const volumesLabel = `Update volumes`;
+        const progressLabel = num_volumes_read === list_status.num_volumes_read 
+            ? `current: ${num_volumes_read} / ${num_volumes}`
+            : `update to: ${list_status.num_volumes_read} / ${num_volumes} - from: ${num_volumes_read} / ${num_volumes}`; 
+        const header = `${volumesLabel} (${progressLabel})`;
+
+        const volumes = num_volumes > 0 ? num_volumes : '?';
+        const optionsArray = [
+            ['±', 'Increase/Decrease progress'], 
+            ['?', `Input a value [0 - ${volumes}]`], 
+            '_'
+        ];
+
+        printMenuOptions(
+            header, 
+            optionsArray
+        );
+
+        input = await takeUserInput(true);
+
+        if (input >= 0 && input <= num_volumes || !num_volumes && input >= 0) {
+            list_status.num_volumes_read = input;
+        } else if (input === '+' && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
+            list_status.num_volumes_read++;
+        } else if (input === '-' && list_status.num_volumes_read - 1 >= 0) {
+            list_status.num_volumes_read--;
+        } else if (input === '++' && num_volumes) {
+            list_status.num_volumes_read = num_volumes;
+        } else if (input === '--') {
+            list_status.num_volumes_read = 0;
+        } else if (input !== 'e') {
+            console.log('\n  Please input a valid option');
+        }
+    }
+}
+
+async function updateChaptersMenu (entry) {
+    const { list_status, node: { num_chapters } } = entry;
+    const { num_chapters_read } = list_status;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        const chaptersLabel = `Update chapters`;
+        const progressLabel = num_chapters_read === list_status.num_chapters_read 
+            ? `current: ${num_chapters_read} / ${num_chapters}`
+            : `update to: ${list_status.num_chapters_read} / ${num_chapters} - from: ${num_chapters_read} / ${num_chapters}`; 
+        const header = `${chaptersLabel} (${progressLabel})`;
+
+        const chapters = num_chapters > 0 ? num_chapters : '?';
+        const optionsArray = [
+            ['±', 'Increase/Decrease progress'], 
+            ['?', `Input a value [0 - ${chapters}]`], 
+            '_'
+        ];
+
+        printMenuOptions(
+            header, 
+            optionsArray
+        );
+
+        input = await takeUserInput(true);
+
+        if (input >= 0 && input <= num_chapters || !num_chapters && input >= 0) {
+            list_status.num_chapters_read = input;
+        } else if (input === '+' && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
+            list_status.num_chapters_read++;
+        } else if (input === '-' && list_status.num_chapters_read - 1 >= 0) {
+            list_status.num_chapters_read--;
+        } else if (input === '++' && num_chapters) {
+            list_status.num_chapters_read = num_chapters;
+        } else if (input === '--') {
+            list_status.num_chapters_read = 0;
+        } else if (input !== 'e') {
+            console.log('\n  Please input a valid option');
+        }
+    }
 }
 
 function getType (list_status) {
     return list_status.num_episodes_watched === undefined ? MANGA : ANIME;
-}
-
-function getProgress (list_status) {
-    return getType(list_status) ? list_status.num_chapters_read : list_status.num_episodes_watched; 
-}
-
-function getTotal (entry) {
-    return getType(entry.list_status) ? entry.node.num_chapters : entry.node.num_episodes; 
-}
-
-function setProgress (list_status, amount) {
-    if (!getType(list_status)) { // anime
-        list_status.num_episodes_watched = amount;
-    } else { // manga
-        list_status.num_chapters_read = amount;
-    }
 }
 
 async function updateStartDateMenu (list_status) {
