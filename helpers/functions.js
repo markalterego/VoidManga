@@ -43,6 +43,10 @@ function clearScreen() {
     process.stdout.write('\x1Bc'); 
 }
 
+function printInvalidInput() {
+    console.log('\n\n  Please input a valid option');
+}
+
 function customFetchMangadexDisplay (options) {
     console.log(`\n\n  Manga fetch size: ${options.limit_manga}`);
     console.log(`  Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
@@ -175,5 +179,6 @@ export {
     truncateString,
     isValidLangCode,
     escapeRegex,
-    printMenuOptions
+    printMenuOptions,
+    printInvalidInput
 };
