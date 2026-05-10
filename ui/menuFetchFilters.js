@@ -1,4 +1,4 @@
-import { takeUserInput, menuFetchFiltersDisplay, capitalFirstLetterString } from '../helpers/functions.js';
+import { takeUserInput, menuFetchFiltersDisplay, capitalFirstLetterString, printInvalidInput } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
 
@@ -61,7 +61,7 @@ async function filterTypeMenu() {
             }
             console.log('\n  Excluded all titles from fetch');
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -116,7 +116,7 @@ async function filterStatusMenu (type) {
             }
             console.log(`\n  Excluded all ${type ? 'manga' : 'anime'} titles from fetch\n`);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -156,7 +156,7 @@ async function filterEntriesMenu (type, status) {
             }
             console.log(`\n  Excluded all ${type ? mangaStatus[status] : animeStatus[status]} titles from fetch\n`);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }

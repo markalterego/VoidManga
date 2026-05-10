@@ -1,6 +1,7 @@
 import open from 'open';
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
-         printMenuOptions, isValidLangCode, escapeRegex, truncateString } from '../helpers/functions.js';
+         printMenuOptions, isValidLangCode, escapeRegex, truncateString,
+         printInvalidInput } from '../helpers/functions.js';
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
 import stringWidth from 'string-width';
@@ -37,7 +38,7 @@ async function menuLogMangadex (mangadexData, l, config) {
         } else if (input === SEARCHMANGAS) {
             await searchMangas(mangadexData);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -107,7 +108,7 @@ async function traverseMangas (mangadexData) {
         } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
             pageDetails = pagingOptions(input, sortedMangas, pageDetails);
         } else if (input !== 'e') { 
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }    
 }
@@ -165,7 +166,7 @@ async function searchMangas (mangadexData) {
         if (input === MANGATITLE) {
             await findMangaByMangaTitle(mangadexData);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -192,7 +193,7 @@ async function findMangaByMangaTitle (mangadexData) {
                 await traverseMangas(matching);
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -227,7 +228,7 @@ async function mangaOptionsMenu (selectedManga) {
         } else if (input === FINDCHAPTEROFMANGA) { 
             await searchChapters(title, selectedManga);
         } else if (input !== 'e') { 
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -309,7 +310,7 @@ async function traverseChapters (selectedManga, chapterArr) {
         } else if (options.enablePagingChapter && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
             pageDetails = pagingOptions(input, sortedChapters, pageDetails);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -456,7 +457,7 @@ async function searchChapters (title, selectedManga) {
         } else if (input === CHAPTERTITLE) {
             await findChapterByChapterTitle(selectedManga);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -555,7 +556,7 @@ async function findChapterByChapterNumber (selectedManga) {
                 await traverseChapters(manga, foundChapters);
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -583,7 +584,7 @@ async function findChapterByChapterTitle (selectedManga) {
                 await traverseChapters(manga, matching);
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -628,7 +629,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
                 await updateEntryMenu(mangaEntry, lists);
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -689,7 +690,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
                 await logDataDeepMenu(object, key, isFlattenable, forceSkipSorting); // isFlattenable triggers alphabetical sorting if true
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -853,7 +854,7 @@ async function openChaptersInBrowserMenu (fetchResults) {
                 }
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }    
         selectableIndex = 0;
     }

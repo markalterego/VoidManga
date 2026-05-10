@@ -1,6 +1,6 @@
 import { menuMAL } from "./menuMAL.js";
 import { filehandle, writeEnv } from "../filehandling/filehandle.js";
-import { printMenuOptions, takeUserInput } from "../helpers/functions.js";
+import { printMenuOptions, takeUserInput, printInvalidInput } from "../helpers/functions.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
@@ -55,7 +55,7 @@ async function rootMenu() {
             case 'e': 
                 break;                 
             default:
-                console.log('\n  Please input a valid option');
+                printInvalidInput();
         }
         filehandle('config', config); // save config file
     }
@@ -93,7 +93,7 @@ async function settingsMenu() {
             case 'e':
                 break;
             default:
-                console.log('\n  Please input a valid option');
+                printInvalidInput();
         }
     }
 }

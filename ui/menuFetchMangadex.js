@@ -1,5 +1,5 @@
 import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay, 
-         printMenuOptions, capitalFirstLetterString, isValidLangCode } from "../helpers/functions.js";
+         printMenuOptions, capitalFirstLetterString, isValidLangCode, printInvalidInput } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, fetchMangadexOptions, SYM } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
@@ -61,7 +61,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
             case 'e':
                 break;
             default: 
-                console.log('\n  Please input a valid option');
+                printInvalidInput();
         }
     }
 }
@@ -199,7 +199,7 @@ async function fetchOptionsMenu (options) {
         } else if (input === CHANGECONTENTRATING) { // change content ratings (manga && chapter both use the same content rating option)
             await optionContentRatings(options);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option'); // invalid input
+            printInvalidInput(); // invalid input
         }
     }
 }
@@ -260,7 +260,7 @@ async function optionMangaLimit (options) {
         } else if (input > 100 || input < 0) {
             console.log('  The given value has to be be between 0-100');
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -295,7 +295,7 @@ async function optionMangaOrder (options) {
             if (options.mangaOrderDirection === 'asc') options.mangaOrderDirection = 'desc';
             else options.mangaOrderDirection = 'asc';
         } else if (input !== 'e') { // invalid input
-            console.log('\n  Please input a valid option'); // invalid input
+            printInvalidInput(); // invalid input
         }
     }
 }
@@ -372,7 +372,7 @@ async function optionChapterLimit (options) {
         } else if (input > 100 || input < 0) {
             console.log('  The given value has to be be between 0-100');
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -407,7 +407,7 @@ async function optionChapterOrder (options) {
             if (options.chapterOrderDirection === 'asc') options.chapterOrderDirection = 'desc';
             else options.chapterOrderDirection = 'asc';
         } else if (input !== 'e') { // invalid input
-            console.log('\n  Please input a valid option'); // invalid input
+            printInvalidInput(); // invalid input
         }
     }
 }
@@ -440,7 +440,7 @@ async function optionChapterOffset (options) {
         } else if (input < 0 || input > maxOffset) {
             console.log(`\n|| The given value has to be between 0 and ${maxOffset}`);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     } 
 }
@@ -489,7 +489,7 @@ async function optionChapterLanguages (options) {
             options.chapterTranslatedLanguage.push(input);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -524,7 +524,7 @@ async function optionContentRatings (options) {
         } else if (input === 'c') {
             options.contentRating = [];
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }

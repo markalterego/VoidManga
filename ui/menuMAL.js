@@ -1,5 +1,5 @@
 import { filehandle } from "../filehandling/filehandle.js";
-import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
+import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex, printInvalidInput } from "../helpers/functions.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logDataDeepMenu, updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists } from "../fetch/fetchMAL.js";
@@ -45,7 +45,7 @@ async function menuMAL (l, config) {
             lists = await fetchMALUserLists(lists); // searches and returns MAL lists
             filehandle('mal', lists);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
     return lists;
@@ -88,7 +88,7 @@ async function traverseStatus (typeIndex) {
             const statusIndex = input; // selected status
             await traverseEntry(typeIndex, statusIndex); // traverse entries for lists[typeIndex][statusIndex]
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -137,7 +137,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -277,7 +277,7 @@ async function updateEntryMenu (entry, l) {
         } else if (input === 'l') {
             await logDataDeepMenu(entry, entryTitle, false, true);
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
 
         // update changes
@@ -311,7 +311,7 @@ async function updateStatusMenu (list_status) {
         if (input >= 0 && input < statuses.length) {
             list_status.status = statuses[input]; // update entry_clone status
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -333,7 +333,7 @@ async function updateScoreMenu (list_status) {
         if (input >= 0 && input <= 10) {
             list_status.score = input; // save user input
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -376,7 +376,7 @@ async function updateEpisodesMenu (entry) {
         } else if (input === '--') {
             list_status.num_episodes_watched = 0;
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -419,7 +419,7 @@ async function updateVolumesMenu (entry) {
         } else if (input === '--') {
             list_status.num_volumes_read = 0;
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -462,7 +462,7 @@ async function updateChaptersMenu (entry) {
         } else if (input === '--') {
             list_status.num_chapters_read = 0;
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -644,7 +644,7 @@ async function updateIsReMenu (list_status) {
             const value = input === 0 ? false : true; // isRe value
             setIsRe(list_status, value);          // update isRe
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         } 
     }
 }
@@ -710,7 +710,7 @@ async function searchListsMenu() {
         if (input === SEARCH_BY_TITLE) {
             await searchListsByTitleMenu(); // search lists by title
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
@@ -737,7 +737,7 @@ async function searchListsByTitleMenu() {
                 await traverseEntry(null, null, matching);
             }
         } else if (input !== 'e') {
-            console.log('\n  Please input a valid option');
+            printInvalidInput();
         }
     }
 }
