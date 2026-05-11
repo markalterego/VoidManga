@@ -117,9 +117,9 @@ async function updateAPIKeyMenu () {
 
         if (isValidAPIKey) {
             writeEnv({ MAL_API_CLIENT_ID: input }, true); // write MAL_API_CLIENT_ID to .env
-            console.log('  MAL_API_CLIENT_ID updated successfully');
+            console.log('\n\n  MAL_API_CLIENT_ID updated successfully');
         } else if (input !== 'e') {
-            console.log('  MAL_API_CLIENT_ID needs to be 32 characters in length');
+            console.log('\n\n  MAL_API_CLIENT_ID needs to be 32 characters in length');
         }
     }
 }
