@@ -61,25 +61,20 @@ function customFetchMangadexDisplay (options) {
 }
 
 function menuFetchFiltersDisplay (lists, key) {
-    // display current filters
-    let selectionFound = false;
-    lists?.forEach((type, type_index) => { // anime/manga
-        if (type_index === 0) {
-            console.log('\n\n  Current selection:\n');
-        }
-        type.forEach(status => { // status
-            status.forEach(entry => { // entry
-                if (entry[key]) { // key is set to true
-                    console.log(` - ${entry.node.title} (${entry.list_status.status})`);
-                    selectionFound = true;
-                }
-            });
-        });
-        if (type_index === lists.length-1) {
-            if (!selectionFound) console.log('  - No titles selected');
-            console.log();
-        }
-    });
+    const entries = lists.flat(2);
+    const selectedTitles = entries.filter(entry => entry[key]);
+    const titles = selectedTitles.length 
+        ? selectedTitles.map(entry => ['-', entry.node.title, `(${entry.list_status.status})`])
+        : [['-', 'No titles', 'selected']]
+    const optionsArray = [
+        ['', '\n\n  Current selection', '\n'],
+        ...titles,
+    ];
+    printMenuOptions(
+        null,
+        optionsArray,
+        { printHeader: false, printExit: false }
+    );
 }
 
 function capitalFirstLetterString (string) {
