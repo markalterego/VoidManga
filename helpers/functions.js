@@ -1,6 +1,6 @@
 import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
-import { mangaOrderTypes, chapterOrderTypes } from './export.js';
+import { mangaOrderTypes, chapterOrderTypes, SYM } from './export.js';
 
 async function takeUserInput (useWhole = false, forceString = false, { useMixedCase = false, useUpperCase = false } = {}, skipClear = false) {
     //
@@ -109,7 +109,7 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
     // header = string
     // optionsArray = array of arrays (expect skipLine, separatorLine, pageFooter)
     // { pageDetails = object, printExit = boolean, printHeader = boolean }
-    
+    const { BORDER_H, POINTS_TO } = SYM;
     const emptyLine = '_',     // console.log()
           separatorLine = '-', // console.log('  --------------------')
           pageFooter = 'p';    // logs 'Page: currentPage / lastPage'
@@ -123,9 +123,9 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
         // format options
         const formattedOptions = optionsArray.map((val) => {
             if (Array.isArray(val) && val.length === 1) {
-                return [i++, '->', val[0]];
+                return [i++, POINTS_TO, val[0]];
             } else if (Array.isArray(val) && val.length === 2) {
-                return [val[0], '->', val[1]];
+                return [val[0], POINTS_TO, val[1]];
             } else if (Array.isArray(val) && val.length === 3) {
                 return [val[0], val[1], val[2]];
             }
@@ -137,12 +137,12 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
             if (arr === emptyLine) {
                 console.log();
             } else if (arr === separatorLine) {
-                console.log('  ' + '\u2500'.repeat(20));
+                console.log('  ' + BORDER_H.repeat(20));
             } else if (arr === pageFooter) {
                 if (pageDetails) {
                     const pageProgressString = `${pageDetails.currentPageIndex + 1} / ${pageDetails.lastPageIndex + 1}`.padStart(9, ' ');
                     const label = 'Page: '.padEnd(10, ' ');
-                    console.log('\n  ' + '\u2500'.repeat(20) + `\n\n  ${label} ${pageProgressString}`);
+                    console.log('\n  ' + BORDER_H.repeat(20) + `\n\n  ${label} ${pageProgressString}`);
                 }
             } else if (arr !== null) {
                 // format menuOption
@@ -158,7 +158,7 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
         } 
 
         // end of print
-        if (printExit) console.log('  e -> Go back\n');
+        if (printExit) console.log(`  e ${POINTS_TO} Go back\n`);
     } catch (error) {
         logErrorDetails(error);
     }
