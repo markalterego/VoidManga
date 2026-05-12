@@ -1,6 +1,6 @@
 import { filehandle } from "../filehandling/filehandle.js";
-import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex, printInvalidInput } from "../helpers/functions.js";
-import { animeStatus, mangaStatus } from "../helpers/export.js";
+import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
+import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { logDataDeepMenu, updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
@@ -45,7 +45,7 @@ async function menuMAL (l, config) {
             lists = await fetchMALUserLists(lists); // searches and returns MAL lists
             filehandle('mal', lists);
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
     return lists;
@@ -88,7 +88,7 @@ async function traverseStatus (typeIndex) {
             const statusIndex = input; // selected status
             await traverseEntry(typeIndex, statusIndex); // traverse entries for lists[typeIndex][statusIndex]
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -113,12 +113,11 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             '-',
             '_',
             ...titles,
-            '_',
             pageFooter,
             '_',
             '_',
             ['t', `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            (options.enablePagingEntries ? ['±', 'Next/Previous page'] : null)
+            (options.enablePagingEntries ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
         ];
 
         printMenuOptions(
@@ -137,7 +136,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -277,7 +276,7 @@ async function updateEntryMenu (entry, l) {
         } else if (input === 'l') {
             await logDataDeepMenu(entry, entryTitle, false, true);
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
 
         // update changes
@@ -311,7 +310,7 @@ async function updateStatusMenu (list_status) {
         if (input >= 0 && input < statuses.length) {
             list_status.status = statuses[input]; // update entry_clone status
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -333,7 +332,7 @@ async function updateScoreMenu (list_status) {
         if (input >= 0 && input <= 10) {
             list_status.score = input; // save user input
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -353,7 +352,7 @@ async function updateEpisodesMenu (entry) {
 
         const episodes = num_episodes > 0 ? num_episodes : '?';
         const optionsArray = [
-            ['±', 'Increase/Decrease progress'], 
+            [SYM.ADJUST, 'Increase/Decrease progress'], 
             ['?', `Input a value [0 - ${episodes}]`], 
             '_'
         ];
@@ -376,7 +375,7 @@ async function updateEpisodesMenu (entry) {
         } else if (input === '--') {
             list_status.num_episodes_watched = 0;
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -396,7 +395,7 @@ async function updateVolumesMenu (entry) {
 
         const volumes = num_volumes > 0 ? num_volumes : '?';
         const optionsArray = [
-            ['±', 'Increase/Decrease progress'], 
+            [SYM.ADJUST, 'Increase/Decrease progress'], 
             ['?', `Input a value [0 - ${volumes}]`], 
             '_'
         ];
@@ -419,7 +418,7 @@ async function updateVolumesMenu (entry) {
         } else if (input === '--') {
             list_status.num_volumes_read = 0;
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -439,7 +438,7 @@ async function updateChaptersMenu (entry) {
 
         const chapters = num_chapters > 0 ? num_chapters : '?';
         const optionsArray = [
-            ['±', 'Increase/Decrease progress'], 
+            [SYM.ADJUST, 'Increase/Decrease progress'], 
             ['?', `Input a value [0 - ${chapters}]`], 
             '_'
         ];
@@ -462,7 +461,7 @@ async function updateChaptersMenu (entry) {
         } else if (input === '--') {
             list_status.num_chapters_read = 0;
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -579,38 +578,38 @@ function isValidDate (date) {
     
     // check for NaN values
     if (Number.isNaN(yyyy)) {
-        console.log('  The given year is not a number');
+        console.log('\n\n  The given year is not a number');
         return false;
     } else if (Number.isNaN(mm)) {
-        console.log('  The given month is not a number');
+        console.log('\n\n  The given month is not a number');
         return false;
     } else if (Number.isNaN(dd)) {
-        console.log('  The given day is not a number');
+        console.log('\n\n  The given day is not a number');
         return false;
     }
 
     // date doesn't follow Year -> Month -> Day order
     if (yyyy === 0 && mm > 0) { 
-        console.log(`  Given year can't be set to 0 when given month is over 0`);
+        console.log(`\n\n  Given year can't be set to 0 when given month is over 0`);
         return false;
     } else if (mm === 0 && dd > 0) { 
-        console.log(`  Given month can't be set to 0 when given day is over 0`);
+        console.log(`\n\n  Given month can't be set to 0 when given day is over 0`);
         return false;
     } else if (yyyy > 0 && (yyyy < 1000 || yyyy > 2999)) {
-        console.log('  Given year has to be between 1000 - 2999');
+        console.log('\n\n  Given year has to be between 1000 - 2999');
         return false;
     }
 
     // check date normally
     if (mm > 0 && dd > 0) {
         if (mm > 12) { // month > 12
-            console.log('  Given month has to be between 1 - 12');
+            console.log('\n\n  Given month has to be between 1 - 12');
             return false;
         } else if (dd > 31) { // day > 31
-            console.log('  Given day has to be between 1 - 31');
+            console.log('\n\n  Given day has to be between 1 - 31');
             return false;
         } else if (dd > daysByMonth[mm-1]) { // invalid day for month
-            console.log('  Given date is invalid for given month');
+            console.log('\n\n  Given date is invalid for given month');
             return false;
         } 
     }
@@ -644,7 +643,7 @@ async function updateIsReMenu (list_status) {
             const value = input === 0 ? false : true; // isRe value
             setIsRe(list_status, value);          // update isRe
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         } 
     }
 }
@@ -684,7 +683,7 @@ async function updateCommentsMenu (list_status) {
         if (input === 'c') { // clear comment
             list_status.comments = ''; 
         } else if (input !== 'e' && (input === undefined || String(input).length < 3)) { // comment is too short
-            console.log(`  Minimum required comment length: ${MIN_LENGTH} characters`);
+            console.log(`\n\n  Minimum required comment length: ${MIN_LENGTH} characters`);
         } else if (input !== 'e') { // comment is valid
             list_status.comments = String(input); // update comments
         }
@@ -710,7 +709,7 @@ async function searchListsMenu() {
         if (input === SEARCH_BY_TITLE) {
             await searchListsByTitleMenu(); // search lists by title
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -737,7 +736,7 @@ async function searchListsByTitleMenu() {
                 await traverseEntry(null, null, matching);
             }
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }

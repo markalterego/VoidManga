@@ -1,6 +1,6 @@
 import { takeUserInput, menuFetchFiltersDisplay, capitalFirstLetterString, 
-         printInvalidInput, printMenuOptions } from '../helpers/functions.js';
-import { animeStatus, mangaStatus, expectedFilters, SYM } from '../helpers/export.js';
+         printMenuOptions } from '../helpers/functions.js';
+import { animeStatus, mangaStatus, expectedFilters, SYM, MESSAGE } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
 
 const ANIME = 0, MANGA = 1;
@@ -50,7 +50,7 @@ async function filterTypeMenu() {
             lists.flat(2).forEach(e => e[key] = false);
             console.log('\n\n  Excluded all titles');
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -104,7 +104,7 @@ async function filterStatusMenu (type) {
             }
             console.log(`\n\n  Excluded all ${type ? 'manga' : 'anime'} titles`);
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -148,7 +148,7 @@ async function filterEntriesMenu (type, status) {
             }
             console.log(`\n\n  Excluded all ${type ? mangaStatus[status] : animeStatus[status]} titles`);
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }

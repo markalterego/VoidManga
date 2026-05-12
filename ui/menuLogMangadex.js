@@ -624,7 +624,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         } else if (input === OPENATLISTS) {
             const mangaEntry = findEntryAtLists(manga);
             if (!mangaEntry) {
-                console.log('\n  Manga is not in your lists');
+                MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
             } else {
                 await updateEntryMenu(mangaEntry, lists);
             }

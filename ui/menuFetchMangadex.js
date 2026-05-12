@@ -1,7 +1,7 @@
 import { takeUserInput, customFetchMangadexDisplay, menuFetchFiltersDisplay, 
-         printMenuOptions, capitalFirstLetterString, isValidLangCode, printInvalidInput } from "../helpers/functions.js";
+         printMenuOptions, capitalFirstLetterString, isValidLangCode } from "../helpers/functions.js";
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
-         mangaOrderTypes, fetchMangadexOptions, SYM } from "../helpers/export.js";
+         mangaOrderTypes, fetchMangadexOptions, SYM, MESSAGE } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
 import { filehandle } from "../filehandling/filehandle.js";
@@ -53,7 +53,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
                     const value = fetchMangadexOptions[key];
                     options[key] = Array.isArray(options[key]) ? [...value] : value;
                 });
-                console.log('  Options reset to default');
+                console.log('\n\n  Options reset to default');
                 break;
             case 4: // toggle fetchAllChapters
                 options.fetchAllChapters = !options.fetchAllChapters;
@@ -61,7 +61,7 @@ async function menuFetchMangadex (lists, config, mangadexData) {
             case 'e':
                 break;
             default: 
-                printInvalidInput();
+                MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -69,28 +69,28 @@ async function menuFetchMangadex (lists, config, mangadexData) {
 async function fetchWithOptions (lists, options, mangadexData) {
     // attempts finding a title included to search at lists
     if (!anySelectedTitles(lists)) { // no titles selected
-        console.log('\n  No MAL titles selected for search');
+        console.log('\n\n  No MAL titles selected for search');
         return;
     } 
     // attempts fetching mangas by selected MAL titles
     const mangaData = await fetchMangadexMangas(lists, options);
     const foundManga = mangaData?.some(mangaSearch => mangaSearch?.searchResults?.length > 0); // mangas found for at least one search
     if (!foundManga) { // no mangas found for search
-        console.log('\n  No mangas were found');
+        console.log('\n\n  No mangas were found');
         return;
     } 
     // presents an indexed list of found mangas to user, from which
     // the user can select one/multiple mangas to include in chapter search
     const selectedMangas = await selectMangasFromFetchResults(mangaData);
     if (!selectedMangas.length) { // no mangas selected
-        console.log('\n  No mangas were selected');
+        console.log('\n\n  No mangas were selected');
         return;
     } 
     // attempts to fetch chapters for each manga included in chapter search
     const combinedData = await fetchMangadexChapters(selectedMangas, options); // returns an array of { manga: {}, chapters: [] }
     const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
     if (!hasChapters) { // no chapters found
-        console.log('\n  No chapters were found');
+        console.log('\n\n  No chapters were found');
         return;
     } 
 
@@ -199,7 +199,7 @@ async function fetchOptionsMenu (options) {
         } else if (input === CHANGECONTENTRATING) { // change content ratings (manga && chapter both use the same content rating option)
             await optionContentRatings(options);
         } else if (input !== 'e') {
-            printInvalidInput(); // invalid input
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -229,8 +229,8 @@ async function mangaOptionsMenu (options) {
             await optionMangaLimit(options);
         } else if (input === MANGAORDER) { // mangaOrderType && mangaOrderDirection
             await optionMangaOrder(options);
-        } else if (input !== 'e') { // invalid input
-            console.log('\n  Please input a valid option')
+        } else if (input !== 'e') { 
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -258,9 +258,9 @@ async function optionMangaLimit (options) {
         if (input >= 0 && input <= 100) {
             options.limit_manga = input;
         } else if (input > 100 || input < 0) {
-            console.log('  The given value has to be be between 0-100');
+            console.log('\n\n  The given value has to be be between 0-100');
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -294,8 +294,8 @@ async function optionMangaOrder (options) {
         } else if (input === 't') { // toggle order direction -- highest selectable index
             if (options.mangaOrderDirection === 'asc') options.mangaOrderDirection = 'desc';
             else options.mangaOrderDirection = 'asc';
-        } else if (input !== 'e') { // invalid input
-            printInvalidInput(); // invalid input
+        } else if (input !== 'e') { 
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -341,8 +341,8 @@ async function chapterOptionsMenu (options) {
             await optionChapterOffset(options);
         } else if (input === CHAPTERLANGUAGES) { // chapterTranslatedLanguage
             await optionChapterLanguages(options);
-        } else if (input !== 'e') { // invalid input
-            console.log('\n  Please input a valid option')
+        } else if (input !== 'e') { 
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -370,9 +370,9 @@ async function optionChapterLimit (options) {
         if (input >= 0 && input <= 100) {
             options.limit_chapter = input;
         } else if (input > 100 || input < 0) {
-            console.log('  The given value has to be be between 0-100');
+            console.log('\n\n  The given value has to be be between 0-100');
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -406,8 +406,8 @@ async function optionChapterOrder (options) {
         } else if (input === 't') { // toggle order direction -- highest selectable index
             if (options.chapterOrderDirection === 'asc') options.chapterOrderDirection = 'desc';
             else options.chapterOrderDirection = 'asc';
-        } else if (input !== 'e') { // invalid input
-            printInvalidInput(); // invalid input
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -438,9 +438,9 @@ async function optionChapterOffset (options) {
         if (input >= 0 && input <= maxOffset) {
             options.offset_chapter = input;
         } else if (input < 0 || input > maxOffset) {
-            console.log(`\n|| The given value has to be between 0 and ${maxOffset}`);
+            console.log(`\n\n  The given value has to be between 0 and ${maxOffset}`);
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     } 
 }
@@ -489,7 +489,7 @@ async function optionChapterLanguages (options) {
             options.chapterTranslatedLanguage.push(input);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -524,7 +524,7 @@ async function optionContentRatings (options) {
         } else if (input === 'c') {
             options.contentRating = [];
         } else if (input !== 'e') {
-            printInvalidInput();
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
@@ -604,7 +604,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
             '_',
             ['s', 'Search chapters'],
             ['p', 'Select perfect matches'],
-            ['±', 'Include/Exclude all']
+            [SYM.TOGGLE, 'Include/Exclude all']
         ];  
 
         printMenuOptions(
@@ -619,7 +619,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
             const selectedManga = allResults[input];
             appendSelectedMangas(selectedManga);
         } else if (input === 's' && !hasSelectedMangas(selectedMangas)) { 
-            console.log('\n  Select at least one title to perform a search');
+            console.log('\n\n  Select at least one title to perform a search');
             input = null;
         } else if (input === 'p') { // select all perfect matches
             const mangaOnlySearches = mangaSearches.filter(({ query: { type: MAL_type }}) => MAL_type === 'manga');
