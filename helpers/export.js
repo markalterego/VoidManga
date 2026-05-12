@@ -1,7 +1,20 @@
 export const SYM = {
-    UP_TO_DATE: '\u2022',
-    UPDATED: '\u2191',
-    NEW: '\u002B'
+    UP_TO_DATE:  '\u2022', // •
+    UPDATED:     '\u2191', // ↑
+    NEW:         '\u002B', // +
+    BORDER_H:    '\u2500', // ─
+    POINTS_TO:   '\u2192', // →
+    TOGGLE:      '\u00B1', // ±
+    CHANGE_PAGE: '\u00B1'  // - || -
+};
+export const MESSAGE = {
+    INVALID_INPUT:     'Please input a valid option',
+    MANGA_NOT_FOUND:   'Manga not found',
+    CHAPTER_NOT_FOUND: 'Chapter not found',
+    MATCHES_NOT_FOUND: 'No matches found',
+    print (message) {
+        console.log(`\n\n  ${message}`);
+    }
 };
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
