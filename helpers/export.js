@@ -5,7 +5,8 @@ export const SYM = {
     BORDER_H:    '\u2500', // ─
     POINTS_TO:   '\u2192', // →
     TOGGLE:      '\u00B1', // ±
-    CHANGE_PAGE: '\u00B1'  // - || -
+    CHANGE_PAGE: '\u00B1', // - || -
+    ADJUST:      '\u00B1', // - || -
 };
 export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
