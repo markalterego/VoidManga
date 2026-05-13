@@ -2,11 +2,13 @@ export const SYM = {
     UP_TO_DATE:  '\u2022', // •
     UPDATED:     '\u2191', // ↑
     NEW:         '\u002B', // +
+    INCLUDE:     '\u002B', // sab (same as before)
+    EXCLUDE:     '\u002D', // -
     BORDER_H:    '\u2500', // ─
     POINTS_TO:   '\u2192', // →
     TOGGLE:      '\u00B1', // ±
-    CHANGE_PAGE: '\u00B1', // - || -
-    ADJUST:      '\u00B1', // - || -
+    CHANGE_PAGE: '\u00B1', // sab
+    ADJUST:      '\u00B1', // sab
 };
 export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
