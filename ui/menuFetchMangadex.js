@@ -101,7 +101,7 @@ async function fetchWithOptions (mangadexData) {
                 title, 
                 status: 'NEW', 
                 updatedCount: fetchedChapters.length,
-                updatedIds: fetchedChapters.length ? [...fetchedChapters.map(chapter => chapter.id)] : [] 
+                chapterIds: fetchedChapters.length ? [...fetchedChapters.map(chapter => chapter.id)] : [] 
             };
         }
 
@@ -122,7 +122,7 @@ async function fetchWithOptions (mangadexData) {
             title,
             status: newChapters.length ? 'UPDATED' : 'UP_TO_DATE',
             updatedCount: newChapters.length,
-            updatedIds: newChapters.length ? [...newChapters.map(chapter => chapter.id)] : []
+            chapterIds: newChapters.length ? [...newChapters.map(chapter => chapter.id)] : []
         };
     });
 
