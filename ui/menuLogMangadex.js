@@ -5,6 +5,8 @@ import { MESSAGE, SYM } from '../helpers/export.js';
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
 import stringWidth from 'string-width';
+import { filehandle } from '../filehandling/filehandle.js';
+import { existsSync } from 'fs';
 
 // TODO:
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
@@ -148,7 +150,8 @@ function sortMangas (mangadexData) {
 }
 
 async function searchMangas (mangadexData) {
-    const MANGATITLE = 0;
+    const UPDATED_MANGA = 0, NEW_MANGA = 1, MANGATITLE = 2;
+    const mangadex_latest = filehandle('mangadex_latest');
     let input = null;
 
     while (input !== 'e') 
@@ -156,6 +159,8 @@ async function searchMangas (mangadexData) {
         printMenuOptions(
             'Search mangas',
             [
+                ['Updated manga'],
+                ['New manga'],
                 ['Manga title'],
                 '_'
             ]
@@ -163,12 +168,41 @@ async function searchMangas (mangadexData) {
 
         input = await takeUserInput(true);
 
-        if (input === MANGATITLE) {
+        if (input === UPDATED_MANGA) {
+            await findUpdatedManga(mangadexData, mangadex_latest);
+        } else if (input === NEW_MANGA) {
+            await findNewlyAddedManga(mangadexData, mangadex_latest);
+        } else if (input === MANGATITLE) {
             await findMangaByMangaTitle(mangadexData);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
+}
+
+async function findUpdatedManga (mangadexData, mangadex_latest) {
+    const mangaIds = Object.values(mangadex_latest).filter(({ status }) => status === 'UPDATED').map(({ id }) => id);
+    const updatedMangas = mangadexData.filter(({ manga: { id }}) => mangaIds.some(mangaId => mangaId === id));
+    if (!updatedMangas.length) {
+        MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
+    } else {
+        // map new chapters to data.chapters
+        const updated = updatedMangas.map((data) => {
+            const { manga, chapters } = data;
+            const newChapterIds = mangadex_latest.find(({ id }) => id === manga.id).chapterIds;
+            const newChapters = chapters.filter(({ id }) => newChapterIds.some(chapterId => id === chapterId));
+            return { manga: manga, chapters: newChapters };
+        });
+        if (updated.length === 1) { 
+            await mangaOptionsMenu(updated[0]); // open found manga
+        } else {
+            await traverseMangas(updated); // traverse found mangas
+        }
+    }
+}
+
+async function findNewlyAddedManga (mangadexData, mangadex_latest) {
+    console.log('\n\n  This function is currently in development');
 }
 
 async function findMangaByMangaTitle (mangadexData) {
