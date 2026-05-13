@@ -96,7 +96,13 @@ async function fetchWithOptions (mangadexData) {
         // short circuit
         if (!existingData) {
             mangadexData.push({ manga: fetchedManga, chapters: fetchedChapters });
-            return { id: fetchedManga.id, title, status: 'NEW', updatedCount: fetchedChapters.length };
+            return { 
+                id: fetchedManga.id, 
+                title, 
+                status: 'NEW', 
+                updatedCount: fetchedChapters.length,
+                updatedIds: fetchedChapters.length ? [...fetchedChapters.map(chapter => chapter.id)] : [] 
+            };
         }
 
         // spread fetched manga data to existing data
@@ -104,7 +110,7 @@ async function fetchWithOptions (mangadexData) {
         
         // filter new chapters
         const newChapters = fetchedChapters.filter(chapter => 
-            !existingData.chapters.some(existing => existing.id = chapter.id)
+            !existingData.chapters.some(existing => existing.id === chapter.id)
         );
 
         // append new chapters to existing chapters
@@ -115,7 +121,8 @@ async function fetchWithOptions (mangadexData) {
             id: fetchedManga.id,
             title,
             status: newChapters.length ? 'UPDATED' : 'UP_TO_DATE',
-            updatedCount: newChapters.length
+            updatedCount: newChapters.length,
+            updatedIds: newChapters.length ? [...newChapters.map(chapter => chapter.id)] : []
         };
     });
 
