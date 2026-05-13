@@ -7,9 +7,13 @@ import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangad
 import { filehandle } from "../filehandling/filehandle.js";
 import stringWidth from 'string-width';
 
-async function menuFetchMangadex (lists, config, mangadexData) {
-    const options = config.fetchMangadexOptions;
-    let input = 0;
+let lists = null;
+let options = null;
+
+async function menuFetchMangadex (l, config, mangadexData) {
+    const FETCH_MANGADEX = 0, CHANGE_OPTIONS = 1, FILTER_ENTRIES = 2, RESET_DEFAULT_OPTIONS = 3, TOGGLE_FETCH_ALL_CHAPTERS = 4;
+    let input = null;
+    lists = l, options = config.fetchMangadexOptions;
 
     // TODO: 
     // - log to user how much stuff was fetched etc... after a succesful fetch
@@ -37,36 +41,26 @@ async function menuFetchMangadex (lists, config, mangadexData) {
 
         input = await takeUserInput(true);
 
-        switch (input)
-        {
-            case 0: // fetching with given options
-                await fetchWithOptions(lists, options, mangadexData);
-                break;
-            case 1: // running menu for changing options
-                await fetchOptionsMenu(options);
-                break;
-            case 2: // filtering items not wanted to be fetched
-                await filterEntriesFromFetch(lists, 'includeInMangadexFetch');
-                break;
-            case 3: // re-assigning default options from fetchMangadexOptions to options
-                Object.keys(options).forEach((key) => {
-                    const value = fetchMangadexOptions[key];
-                    options[key] = Array.isArray(options[key]) ? [...value] : value;
-                });
-                console.log('\n\n  Options reset to default');
-                break;
-            case 4: // toggle fetchAllChapters
-                options.fetchAllChapters = !options.fetchAllChapters;
-                break;
-            case 'e':
-                break;
-            default: 
-                MESSAGE.print(MESSAGE.INVALID_INPUT);
+        if (input === FETCH_MANGADEX) {
+            await fetchWithOptions(mangadexData);
+        } else if (input === CHANGE_OPTIONS) {
+            await fetchOptionsMenu();
+        } else if (input === FILTER_ENTRIES) {
+            await filterEntriesFromFetch(lists, 'includeInMangadexFetch');
+        } else if (input === RESET_DEFAULT_OPTIONS) {
+            // when an object is converted to string (JSON.stringify), the object's format changes and therefore reference breaks
+            // we can then convert the changed string into an object (JSON.parse), which means we've succesfully cloned an object
+            options = JSON.parse(JSON.stringify(fetchMangadexOptions));
+            console.log('\n\n  Options reset to default');
+        } else if (input === TOGGLE_FETCH_ALL_CHAPTERS) {
+            options.fetchAllChapters = !options.fetchAllChapters;
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function fetchWithOptions (lists, options, mangadexData) {
+async function fetchWithOptions (mangadexData) {
     // attempts finding a title included to search at lists
     if (!anySelectedTitles(lists)) { // no titles selected
         console.log('\n\n  No MAL titles selected for search');
@@ -155,22 +149,13 @@ async function fetchWithOptions (lists, options, mangadexData) {
     filehandle('mangadex', mangadexData);
 }
 
-function anySelectedTitles (lists) {
+function anySelectedTitles() {
     // determines if any MAL title at lists has the
     // value of includeInMangadexFetch set to true
-    if (Array.isArray(lists)) {
-        for (const type of lists) {
-            for (const status of type) {
-                for (const entry of status) {
-                    if (entry.includeInMangadexFetch) return true;
-                }
-            }
-        }
-    }
-    return false;
+    return lists.flat(2).some(e => e.includeInMangadexFetch);
 }
 
-async function fetchOptionsMenu (options) {
+async function fetchOptionsMenu() {
     const MANGAFETCH = 0, CHAPTERFETCH = 1, CHANGECONTENTRATING = 2;
     let input = 0;
 
@@ -193,18 +178,18 @@ async function fetchOptionsMenu (options) {
         input = await takeUserInput(true);
         
         if (input === MANGAFETCH) { // manga fetch options
-            await mangaOptionsMenu(options);
+            await mangaOptionsMenu();
         } else if (input === CHAPTERFETCH) { // chapter fetch options
-            await chapterOptionsMenu(options);
+            await chapterOptionsMenu();
         } else if (input === CHANGECONTENTRATING) { // change content ratings (manga && chapter both use the same content rating option)
-            await optionContentRatings(options);
+            await optionContentRatings();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function mangaOptionsMenu (options) {
+async function mangaOptionsMenu() {
     const MANGAFETCHSIZE = 0, MANGAORDER = 1;
     let input = 0;
 
@@ -226,16 +211,16 @@ async function mangaOptionsMenu (options) {
         input = await takeUserInput();
         
         if (input === MANGAFETCHSIZE) { // limit_manga
-            await optionMangaLimit(options);
+            await optionMangaLimit();
         } else if (input === MANGAORDER) { // mangaOrderType && mangaOrderDirection
-            await optionMangaOrder(options);
+            await optionMangaOrder();
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function optionMangaLimit (options) {
+async function optionMangaLimit () {
     let input = 0;
 
     while (input !== 'e') 
@@ -265,7 +250,7 @@ async function optionMangaLimit (options) {
     }
 }
 
-async function optionMangaOrder (options) {
+async function optionMangaOrder () {
     let input = 0;
 
     // order types: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
@@ -300,7 +285,7 @@ async function optionMangaOrder (options) {
     }
 }
 
-async function chapterOptionsMenu (options) {
+async function chapterOptionsMenu () {
     const CHAPTERFETCHSIZE = options.fetchAllChapters ? null : 0, 
           CHAPTERORDER = options.fetchAllChapters ? null : 1, 
           CHAPTEROFFSET = options.fetchAllChapters ? null : 2, 
@@ -334,20 +319,20 @@ async function chapterOptionsMenu (options) {
         input = await takeUserInput();
 
         if (!options.fetchAllChapters && input === CHAPTERFETCHSIZE) { // limit_chapter
-            await optionChapterLimit(options);
+            await optionChapterLimit();
         } else if (!options.fetchAllChapters && input === CHAPTERORDER) { // chapterOrderType && chapterOrderDirection
-            await optionChapterOrder(options);
+            await optionChapterOrder();
         } else if (!options.fetchAllChapters && input === CHAPTEROFFSET) { // offset_chapter
-            await optionChapterOffset(options);
+            await optionChapterOffset();
         } else if (input === CHAPTERLANGUAGES) { // chapterTranslatedLanguage
-            await optionChapterLanguages(options);
+            await optionChapterLanguages();
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function optionChapterLimit (options) {
+async function optionChapterLimit () {
     let input = 0;
 
     while (input !== 'e') 
@@ -377,7 +362,7 @@ async function optionChapterLimit (options) {
     }
 }
 
-async function optionChapterOrder (options) {
+async function optionChapterOrder () {
     let input = 0;
 
     // order types: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
@@ -412,7 +397,7 @@ async function optionChapterOrder (options) {
     }
 }
 
-async function optionChapterOffset (options) {
+async function optionChapterOffset () {
     let input = 0;
 
     // TODO:
@@ -445,7 +430,7 @@ async function optionChapterOffset (options) {
     } 
 }
 
-async function optionChapterLanguages (options) {
+async function optionChapterLanguages () {
     let input = 0;
 
     /*
@@ -494,7 +479,7 @@ async function optionChapterLanguages (options) {
     }
 }
 
-async function optionContentRatings (options) {
+async function optionContentRatings () {
     let input = 0;
 
     while (input !== 'e') 
@@ -507,21 +492,20 @@ async function optionContentRatings (options) {
             'Choose content ratings',
             [
                 ...contentRatings.map(contentRating => [capitalFirstLetterString(contentRating)]), 
-                ['Select all'], 
                 '_',
-                ['c', 'Clear ratings']
+                [SYM.TOGGLE, 'Include/Exclude all']
             ]
         );
 
         input = await takeUserInput();
 
         // setting option / clearing options
-        if (input > -1 && input < contentRatings.length) {
+        if (input >= 0 && input < contentRatings.length) {
             options.contentRating.push(contentRatings[input]); 
             options.contentRating = [...new Set(options.contentRating)]; // get rid of duplicate values
-        } else if (input === contentRatings.length) {
+        } else if (input === '+') {
             options.contentRating = [...contentRatings];
-        } else if (input === 'c') {
+        } else if (input === '-') {
             options.contentRating = [];
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
