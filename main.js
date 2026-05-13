@@ -53,6 +53,10 @@ dotenv.config(); // load .env file to process.env
         mangadexData = filehandle('mangadex'); // reads mangadex.file
     }
 
+    if (!existsSync('./data/mangadex_latest.file')) {
+        filehandle('mangadex_latest', []); // writes mangadex_latest.file
+    }
+
     await menu(lists, config, mangadexData); // menu ui
     await cleanup(); // clears interfaces etc...
 })();
