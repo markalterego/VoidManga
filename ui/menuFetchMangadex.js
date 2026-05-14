@@ -9,14 +9,13 @@ import stringWidth from 'string-width';
 
 let lists = null;
 let options = null;
+let mangadexData = null;
+let mangadexFetchInfo = null;
 
-async function menuFetchMangadex (l, config, mangadexData) {
+async function menuFetchMangadex (l, { fetchMangadexOptions }, m, mfi) {
     const FETCH_MANGADEX = 0, CHANGE_OPTIONS = 1, FILTER_ENTRIES = 2, RESET_DEFAULT_OPTIONS = 3, TOGGLE_FETCH_ALL_CHAPTERS = 4;
     let input = null;
-    lists = l, options = config.fetchMangadexOptions;
-
-    // TODO: 
-    // - log to user how much stuff was fetched etc... after a succesful fetch
+    lists = l, options = fetchMangadexOptions, mangadexData = m, mangadexFetchInfo = mfi;
 
     while (input !== 'e') 
     {
@@ -42,7 +41,7 @@ async function menuFetchMangadex (l, config, mangadexData) {
         input = await takeUserInput(true);
 
         if (input === FETCH_MANGADEX) {
-            await fetchWithOptions(mangadexData);
+            await fetchWithOptions();
         } else if (input === CHANGE_OPTIONS) {
             await fetchOptionsMenu();
         } else if (input === FILTER_ENTRIES) {
@@ -60,7 +59,7 @@ async function menuFetchMangadex (l, config, mangadexData) {
     }
 }
 
-async function fetchWithOptions (mangadexData) {
+async function fetchWithOptions() {
     // attempts finding a title included to search at lists
     if (!anySelectedTitles(lists)) { // no titles selected
         console.log('\n\n  No MAL titles selected for search');
@@ -88,58 +87,84 @@ async function fetchWithOptions (mangadexData) {
         return;
     } 
 
-    // appending combinedData into mangadexData
-    const fetchInfoArr = combinedData.map(({ manga: fetchedManga, chapters: fetchedChapters }) => { 
-        const title = Object.values(fetchedManga.attributes.title)[0];
-        const existingData = mangadexData.find(obj => obj.manga.id === fetchedManga.id);
+    // helpers
+    const findMangaById  = (mangaId) => mangadexData.find(({ manga: { id }}) => id === mangaId);
+    const getMangaTitle  = (manga) => Object.values(manga.attributes.title)[0];
+    const getNewChapters = (mangaId, newChapters) => newChapters.filter(chapter => !findMangaById(mangaId)?.chapters.some(existing => existing.id === chapter.id));
 
-        // short circuit
+    // format fetch info
+    const fetchInfo = combinedData.reduce((acc, { manga, chapters }) => { 
+        const { id: mangaId } = manga;
+        const newChapters     = getNewChapters(mangaId, chapters);
+        const newChapterIds   = newChapters.map(ch => ch.id);
+        return { 
+            ...acc, 
+            [mangaId]: {
+                title: getMangaTitle(manga),
+                status: findMangaById(mangaId) ? (newChapters.length ? 'UPDATED' : 'UP_TO_DATE') : 'NEW',
+                updatedCount: newChapters.length,
+                chapterIds: newChapterIds
+            }
+        };
+    }, {});
+
+    const fetchInfoValues = Object.values(fetchInfo);
+    const countStatus = (status_string) => fetchInfoValues.reduce((acc, { status }) => status === status_string ? acc + 1 : acc, 0);
+
+    // including additional details
+    fetchInfo.details = {
+        fetchedAt: Date.now(),
+        newMangas: countStatus('NEW'),
+        updatedMangas: countStatus('UPDATED'),
+        upToDateMangas: countStatus('UP_TO_DATE')
+    };
+
+    // append new info
+    mangadexFetchInfo.push(fetchInfo);
+
+    // log fetch details
+    logFetchInfo(fetchInfoValues);
+
+    // update mangadexData
+    combinedData.forEach(({ manga: fetchedManga, chapters: fetchedChapters }) => {
+        const mangaId      = fetchedManga.id;
+        const existingData = findMangaById(mangaId);
+        // update mangadexData
         if (!existingData) {
             mangadexData.push({ manga: fetchedManga, chapters: fetchedChapters });
-            return { 
-                id: fetchedManga.id, 
-                title, 
-                status: 'NEW', 
-                updatedCount: fetchedChapters.length,
-                chapterIds: fetchedChapters.length ? [...fetchedChapters.map(chapter => chapter.id)] : [] 
-            };
+        } else {
+            existingData.manga = { ...existingData.manga, ...fetchedManga }; // update manga data
+            existingData.chapters = [ ...existingData.chapters, ...getNewChapters(mangaId, fetchedChapters) ]; // update chapter data
         }
-
-        // spread fetched manga data to existing data
-        existingData.manga = { ...existingData.manga, ...fetchedManga }; 
-        
-        // filter new chapters
-        const newChapters = fetchedChapters.filter(chapter => 
-            !existingData.chapters.some(existing => existing.id === chapter.id)
-        );
-
-        // append new chapters to existing chapters
-        newChapters.forEach(chapter => existingData.chapters.push(chapter));
-
-        // fetch info
-        return {
-            id: fetchedManga.id,
-            title,
-            status: newChapters.length ? 'UPDATED' : 'UP_TO_DATE',
-            updatedCount: newChapters.length,
-            chapterIds: newChapters.length ? [...newChapters.map(chapter => chapter.id)] : []
-        };
     });
 
-    // log fetch info
+    // save fetch info to file
+    filehandle('mangadexFetchInfo', mangadexFetchInfo);
+    // save fetched data to file
+    filehandle('mangadex', mangadexData);
+}
+
+function anySelectedTitles() {
+    // determines if any MAL title at lists has the
+    // value of includeInMangadexFetch set to true
+    return lists.flat(2).some(e => e.includeInMangadexFetch);
+}
+
+function logFetchInfo (fetchInfoValues) {
+    // pads given string to desired length
     const pad = (str, targetWidth) => {
         const spaces = targetWidth - stringWidth(str);
         return str + ' '.repeat(Math.max(0, spaces));
     }
 
     // padding = widest title
-    const titlePadding = fetchInfoArr.reduce((longest, { title }) => { 
+    const titlePadding = fetchInfoValues.reduce((longest, { title }) => { 
         const width = stringWidth(title);
         return width > longest ? width : longest;
     }, 0);
     
     console.log('\n  [Info]');
-    for (const { title, status, updatedCount } of fetchInfoArr) {
+    for (const { title, status, updatedCount } of fetchInfoValues) {
         const paddedTitle = pad(title, titlePadding);
         if (status === 'UP_TO_DATE') {
             console.log(`    ${SYM[status]} ${paddedTitle} - up to date`);
@@ -149,17 +174,6 @@ async function fetchWithOptions (mangadexData) {
             console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
         }
     }
-
-    // save last fetch info to file
-    filehandle('mangadex_latest', fetchInfoArr);
-    // save fetched data to file
-    filehandle('mangadex', mangadexData);
-}
-
-function anySelectedTitles() {
-    // determines if any MAL title at lists has the
-    // value of includeInMangadexFetch set to true
-    return lists.flat(2).some(e => e.includeInMangadexFetch);
 }
 
 async function fetchOptionsMenu() {
@@ -227,7 +241,7 @@ async function mangaOptionsMenu() {
     }
 }
 
-async function optionMangaLimit () {
+async function optionMangaLimit() {
     let input = 0;
 
     while (input !== 'e') 
@@ -257,7 +271,7 @@ async function optionMangaLimit () {
     }
 }
 
-async function optionMangaOrder () {
+async function optionMangaOrder() {
     let input = 0;
 
     // order types: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
@@ -292,7 +306,7 @@ async function optionMangaOrder () {
     }
 }
 
-async function chapterOptionsMenu () {
+async function chapterOptionsMenu() {
     const CHAPTERFETCHSIZE = options.fetchAllChapters ? null : 0, 
           CHAPTERORDER = options.fetchAllChapters ? null : 1, 
           CHAPTEROFFSET = options.fetchAllChapters ? null : 2, 
@@ -339,7 +353,7 @@ async function chapterOptionsMenu () {
     }
 }
 
-async function optionChapterLimit () {
+async function optionChapterLimit() {
     let input = 0;
 
     while (input !== 'e') 
@@ -369,7 +383,7 @@ async function optionChapterLimit () {
     }
 }
 
-async function optionChapterOrder () {
+async function optionChapterOrder() {
     let input = 0;
 
     // order types: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
@@ -404,7 +418,7 @@ async function optionChapterOrder () {
     }
 }
 
-async function optionChapterOffset () {
+async function optionChapterOffset() {
     let input = 0;
 
     // TODO:
@@ -437,7 +451,7 @@ async function optionChapterOffset () {
     } 
 }
 
-async function optionChapterLanguages () {
+async function optionChapterLanguages() {
     let input = 0;
 
     /*
@@ -486,7 +500,7 @@ async function optionChapterLanguages () {
     }
 }
 
-async function optionContentRatings () {
+async function optionContentRatings() {
     let input = 0;
 
     while (input !== 'e') 
