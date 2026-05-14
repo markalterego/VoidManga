@@ -16,11 +16,13 @@ import { existsSync } from 'fs';
 
 let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
+let mangadexData = null; // mangas and their chapters
+let mangadexFetchInfo = null; // fetch related info
 
-async function menuLogMangadex (mangadexData, l, config) {
+async function menuLogMangadex (m, l, { logMangadexOptions }, mfi) {
     const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1;
     let input = null;
-    options = config.logMangadexOptions, lists = l;
+    mangadexData = m, options = logMangadexOptions, lists = l, mangadexFetchInfo = mfi;
 
     while (input !== 'e') 
     {
@@ -36,16 +38,16 @@ async function menuLogMangadex (mangadexData, l, config) {
         input = await takeUserInput(true);
 
         if (input === TRAVERSEMANGAS) {
-            await traverseMangas(mangadexData);
+            await traverseMangas();
         } else if (input === SEARCHMANGAS) {
-            await searchMangas(mangadexData);
+            await searchMangas();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function traverseMangas (mangadexData) {
+async function traverseMangas (traversable = null) {
     let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
     const formatMangaTitle = (index, title, chaptersLength) => {
         const indexWithPadding = String(index).padEnd(4); // pads up to 4 digits
@@ -62,7 +64,7 @@ async function traverseMangas (mangadexData) {
 
     while (input !== 'e') 
     {
-        sortedMangas = input === 'f' || input === 'h' || input === 's'  || input === 'o' || input === null ? sortMangas(mangadexData) : sortedMangas; 
+        sortedMangas = input === 'f' || input === 'h' || input === 's'  || input === 'o' || input === null ? sortMangas(traversable ?? mangadexData) : sortedMangas; 
         pageDetails = options.enablePagingManga ? updatePageDetails(pageDetails, sortedMangas) : pageDetails;
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
@@ -115,25 +117,26 @@ async function traverseMangas (mangadexData) {
     }    
 }
 
-function sortMangas (mangadexData) {
-    // shallow copy of mangadexData
-    let sortedMangas = [...mangadexData];
+function sortMangas (data) {
+    const { filterByMangasFoundAtMangalist, hideZeroLengthManga, sortMangasAlphabetical,
+            logMangaDirection } = options;
+    let sortedMangas = [...data];
     // filter by mangas found at user's mangalist
-    if (options.filterByMangasFoundAtMangalist) {
+    if (filterByMangasFoundAtMangalist) {
         sortedMangas = sortedMangas.filter(obj => findEntryAtLists(obj.manga));
     }
     // filter mangas with no chapters
-    if (options.hideZeroLengthManga) { 
+    if (hideZeroLengthManga) { 
         sortedMangas = sortedMangas.filter(obj => obj.chapters.length > 0);    
     } 
     // sorting methods used
-    if (options.sortMangasAlphabetical) { // sort ascending (A-Z) / descending (Z-A) - alphabetical
-        if (options.logMangaDirection === 'asc') { 
+    if (sortMangasAlphabetical) {  
+        if (logMangaDirection === 'asc') { // sort ascending (A-Z)
             sortedMangas.sort((a, b) => 
                 Object.values(a.manga.attributes.title)[0]
                 .localeCompare(Object.values(b.manga.attributes.title)[0])
             );
-        } else { // sort descending (Z-A) / ascending (A-Z) - alphabetical
+        } else { // sort descending (Z-A) 
             sortedMangas.sort((a, b) => 
                 Object.values(b.manga.attributes.title)[0]
                 .localeCompare(Object.values(a.manga.attributes.title)[0])
@@ -149,9 +152,8 @@ function sortMangas (mangadexData) {
     return sortedMangas;
 }
 
-async function searchMangas (mangadexData) {
+async function searchMangas() {
     const UPDATED_MANGA = 0, NEW_MANGA = 1, MANGATITLE = 2;
-    const mangadex_latest = filehandle('mangadex_latest');
     let input = null;
 
     while (input !== 'e') 
@@ -169,19 +171,19 @@ async function searchMangas (mangadexData) {
         input = await takeUserInput(true);
 
         if (input === UPDATED_MANGA) {
-            await findUpdatedManga(mangadexData, mangadex_latest);
+            await findUpdatedManga();
         } else if (input === NEW_MANGA) {
-            await findNewlyAddedManga(mangadexData, mangadex_latest);
+            await findNewlyAddedManga();
         } else if (input === MANGATITLE) {
-            await findMangaByMangaTitle(mangadexData);
+            await findMangaByMangaTitle();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function findUpdatedManga (mangadexData, mangadex_latest) {
-    const mangaIds = Object.values(mangadex_latest).filter(({ status }) => status === 'UPDATED').map(({ id }) => id);
+async function findUpdatedManga() {
+    const mangaIds = Object.values(mangadexFetchInfo).filter(({ status }) => status === 'UPDATED').map(({ id }) => id);
     const updatedMangas = mangadexData.filter(({ manga: { id }}) => mangaIds.some(mangaId => mangaId === id));
     if (!updatedMangas.length) {
         MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
@@ -189,7 +191,7 @@ async function findUpdatedManga (mangadexData, mangadex_latest) {
         // map new chapters to data.chapters
         const updated = updatedMangas.map((data) => {
             const { manga, chapters } = data;
-            const newChapterIds = mangadex_latest.find(({ id }) => id === manga.id).chapterIds;
+            const newChapterIds = mangadexFetchInfo.find(({ id }) => id === manga.id).chapterIds;
             const newChapters = chapters.filter(({ id }) => newChapterIds.some(chapterId => id === chapterId));
             return { manga: manga, chapters: newChapters };
         });
@@ -201,11 +203,11 @@ async function findUpdatedManga (mangadexData, mangadex_latest) {
     }
 }
 
-async function findNewlyAddedManga (mangadexData, mangadex_latest) {
+async function findNewlyAddedManga() {
     console.log('\n\n  This function is currently in development');
 }
 
-async function findMangaByMangaTitle (mangadexData) {
+async function findMangaByMangaTitle() {
     let input = null;
 
     while (input !== 'e') 
