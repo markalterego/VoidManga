@@ -7,9 +7,10 @@ import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
 import dotenv from 'dotenv';
 
-let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
-let config = null; // holds user specific options
-let mangadexData = null; // holds mangas and chapters fetched from Mangadex
+let lists = null; // animelist and mangalist
+let config = null; // user specific options
+let mangadexData = null; // mangas and chapters
+let mangadexFetchInfo = null; // fetch related info
 const rl = readline.createInterface({ input , output }); // enabling input/output
 dotenv.config(); // load .env file to process.env
 
@@ -17,47 +18,47 @@ dotenv.config(); // load .env file to process.env
 (async () => {
     clearScreen(); // starting app on a fresh screen
 
-    // prior to running menu.js, lists, config and mangadexData are
-    // either initialized and saved to file or simply retrieved from 
-    // their respective files (lists = mal.file, config = config.file, 
-    // mangadexData = mangadex.file)
+    // prior to running menu.js, lists, config, mangadexData and mangadexFetchInfo
+    // are either initialized and saved to file or simply retrieved from their respective
+    // files (lists = mal.file, config = config.file, mangadexData = mangadex.file, 
+    // mangadexFetchInfo = mangadexFetchInfo.file)
 
     if (!existsSync('./data/mal.file')) {
-        // initializing lists
         lists = [ 
             Array(animeStatus.length).fill(null).map(() => []), // animelist
             Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
         ];
-        filehandle('mal', lists); // writes mal.file
+        filehandle('mal', lists); 
     } else {
-        lists = filehandle('mal'); // reads mal.file
+        lists = filehandle('mal'); 
     }
 
     if (!existsSync('./data/config.file')) {
-        // setting initial menu preference
         config = {  
             menuMALOptions: menuMALOptions,
             fetchMangadexOptions: fetchMangadexOptions,
             logMangadexOptions: logMangadexOptions 
         }; 
-        filehandle('config', config); // writes config.file
+        filehandle('config', config);
     } else {    
-        config = filehandle('config'); // reads config.file
+        config = filehandle('config');
     }
 
     if (!existsSync('./data/mangadex.file')) {
-        // initializing mangadexData with an empty array
         mangadexData = [];
-        filehandle('mangadex', mangadexData); // writes mangadex.file
+        filehandle('mangadex', mangadexData);
     } else {
-        mangadexData = filehandle('mangadex'); // reads mangadex.file
+        mangadexData = filehandle('mangadex');
     }
 
-    if (!existsSync('./data/mangadex_latest.file')) {
-        filehandle('mangadex_latest', []); // writes mangadex_latest.file
+    if (!existsSync('./data/mangadexFetchInfo.file')) {
+        mangadexFetchInfo = [];
+        filehandle('mangadexFetchInfo', mangadexFetchInfo);
+    } else {
+        mangadexFetchInfo = filehandle('mangadexFetchInfo');
     }
 
-    await menu(lists, config, mangadexData); // menu ui
+    await menu(lists, config, mangadexData, mangadexFetchInfo); // menu ui
     await cleanup(); // clears interfaces etc...
 })();
 
