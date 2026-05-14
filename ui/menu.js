@@ -6,13 +6,14 @@ import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 
-let lists = null; // holds animelist and mangalist, more info regarding syntax at the bottom of menu.js
-let config = null; // holds user specific options
-let mangadexData = null; // holds mangas and chapters fetched from Mangadex
+let lists = null; // animelist and mangalist
+let config = null; // user specific options
+let mangadexData = null; // mangas and chapters
+let mangadexFetchInfo = null; // fetch related info
 
-async function menu (l, c, input) {
+async function menu (l, c, m, mfi) {
     try {
-        lists = l, config = c, mangadexData = input; // assigning lists, config and mangadexData
+        lists = l, config = c, mangadexData = m, mangadexFetchInfo = mfi; // assigning params
         await rootMenu(); // displays rootMenu
     } catch (error) {
         if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
@@ -45,10 +46,10 @@ async function rootMenu() {
                 lists = await menuMAL(lists, config); // menuMAL options
                 break; 
             case LOGMANGADEX: 
-                await menuLogMangadex(mangadexData, lists, config); // <-- log mangadex
+                await menuLogMangadex(mangadexData, lists, config, mangadexFetchInfo); // <-- log mangadex
                 break;
             case FETCHMANGADEX:
-                await menuFetchMangadex(lists, config, mangadexData); // fetch Mangadex by preference
+                await menuFetchMangadex(lists, config, mangadexData, mangadexFetchInfo); // fetch Mangadex by preference
                 break;
             case 's':
                 await settingsMenu();
@@ -88,8 +89,7 @@ async function settingsMenu() {
                 await updateAPIKeyMenu();
                 break;
             case FETCHMALONMENUOPEN:
-                if (config.menuMALOptions.fetchMALOnMenuOpen) config.menuMALOptions.fetchMALOnMenuOpen = false;
-                else config.menuMALOptions.fetchMALOnMenuOpen = true;
+                config.menuMALOptions.fetchMALOnMenuOpen = !config.menuMALOptions.fetchMALOnMenuOpen;
                 break;
             case 'e':
                 break;
