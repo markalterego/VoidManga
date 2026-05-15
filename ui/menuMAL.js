@@ -16,7 +16,7 @@ async function menuMAL (l, config) {
     if (!options.fetchMALOnMenuOpen) {
         lists = l; // reference to lists
     } else {
-        lists = await fetchMALUserLists(l); // searches and returns MAL lists
+        lists = await fetchMALUserLists(l, options.logAuthURL); // searches and returns MAL lists
         filehandle('mal', lists);
     }
 
@@ -42,7 +42,7 @@ async function menuMAL (l, config) {
         } else if (input === SEARCH_LISTS) {
             await searchListsMenu(); // search lists
         } else if (input === FETCHLISTS) {
-            lists = await fetchMALUserLists(lists); // searches and returns MAL lists
+            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
             filehandle('mal', lists);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -281,7 +281,7 @@ async function updateEntryMenu (entry, l) {
 
         // update changes
         if (changedFields.length) {
-            listsReference = await updateMAL(listsReference, changedFields, entry); // update MAL entry
+            listsReference = await updateMAL(listsReference, changedFields, entry, options.logAuthURL); // update MAL entry
             filehandle('mal', listsReference); // save updates to file
             changedFields = []; // clear changedFields
             // re-find entry reference

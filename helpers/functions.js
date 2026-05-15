@@ -101,10 +101,10 @@ function escapeRegex (input) {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 } 
 
-async function openURLInBrowser (url, label = '') {
+async function openURLInBrowser (url, label = '', logURL = true) {
     if (!url) return MESSAGE.print(MESSAGE.URL_NOT_FOUND);
     const target = label ? `${label} ${SYM.POINTS_TO} ${url}` : url;
-    MESSAGE.print(`Opening ${target}`);
+    if (logURL) MESSAGE.print(`Opening ${target}`);
     await open(url);
 }
 

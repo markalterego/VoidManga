@@ -1,11 +1,11 @@
 import axios from 'axios';
 import { setTimeout } from "timers/promises";
-import open from 'open';
 import express from 'express';
 import { writeEnv } from '../filehandling/filehandle.js';
 import { logErrorDetails } from '../helpers/errorLogger.js';
+import { openURLInBrowser } from '../helpers/functions.js';
 
-async function checkAndUpdateTokens() {
+async function checkAndUpdateTokens (logAuthURL = false) {
     // This function is meant to be ran prior to
     // fetching anything from MAL. 
 
@@ -27,7 +27,7 @@ async function checkAndUpdateTokens() {
         writeEnv(tokens); // write found tokens to env
     } else if (!isValidAccessToken && !isValidRefreshToken) { // start OAuth again
         const code_verifier = generateCodeVerifier(); // used for code_challenge
-        const authorization_code = await fetchAuthorizationCode(code_verifier); // returns authorization_code
+        const authorization_code = await fetchAuthorizationCode(code_verifier, logAuthURL); // returns authorization_code
         const tokens = await fetchTokens(code_verifier, authorization_code); // returns tokens as obj (e.g. access_token = '1234')
         writeEnv(tokens); // write found tokens to env
     }
@@ -46,7 +46,7 @@ function generateCodeVerifier() {
     return code_verifier; // return code_verifier
 }
 
-async function fetchAuthorizationCode (code_verifier) { 
+async function fetchAuthorizationCode (code_verifier, logAuthURL = false) { 
     /*
     https://myanimelist.net/v1/oauth2/authorize?
     response_type=code <-- required - must be string = 'code'
@@ -70,7 +70,7 @@ async function fetchAuthorizationCode (code_verifier) {
             code_challenge: code_verifier, 
         };
         const url = base_url + new URLSearchParams(params).toString(); // authentication url
-        await open(url); // open authorization page in browser
+        await openURLInBrowser(url, 'authorization', logAuthURL); // open authorization page in browser
         authorization_code = await waitForCallback(); // waits for callback servers response
     } catch (error) {
         logErrorDetails(error);

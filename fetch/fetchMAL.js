@@ -13,9 +13,9 @@ import { withRetry, rateLimitedFetch } from './fetchUtils.js';
 //   what it's supposed to fetch and runs a specific function 
 //   based on that input
 
-async function fetchMALUserLists (lists) {
+async function fetchMALUserLists (lists, logAuthURL = false) {
     try {
-        await checkAndUpdateTokens(); // check token validity + update if necessary
+        await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
         console.log(`\n\n  Now fetching MAL lists`);
         const animelist = await fetchAnimeList(); // fetch Anime endpoint
         const mangalist = await fetchMangaList(); // fetch Manga endpoint
@@ -139,9 +139,9 @@ function decodeComments (lists) {
     return lists;
 }
 
-async function updateListEntry (changedFields, entry) {
+async function updateListEntry (changedFields, entry, logAuthURL = false) {
     try {
-        await checkAndUpdateTokens(); // check token validity + update if necessary
+        await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
         const type = entry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
         const updatedListStatus = { list_status: await putListEntry(entry.node.id, type, changedFields) }; // put to MAL
         return { ...entry, ...updatedListStatus };
