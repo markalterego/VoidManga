@@ -1,6 +1,7 @@
 import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
 import { mangaOrderTypes, chapterOrderTypes, SYM } from './export.js';
+import open from 'open';
 
 async function takeUserInput (useWhole = false, forceString = false, { useMixedCase = false, useUpperCase = false } = {}, skipClear = false) {
     //
@@ -100,6 +101,13 @@ function escapeRegex (input) {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 } 
 
+async function openURLInBrowser (url, label = '') {
+    if (!url) return MESSAGE.print(MESSAGE.URL_NOT_FOUND);
+    const target = label ? `${label} ${SYM.POINTS_TO} ${url}` : url;
+    MESSAGE.print(`Opening ${target}`);
+    await open(url);
+}
+
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true } = {}) {
     // creates a simple menu in a standardized format
     // header = string
@@ -170,5 +178,6 @@ export {
     truncateString,
     isValidLangCode,
     escapeRegex,
+    openURLInBrowser,
     printMenuOptions
 };
