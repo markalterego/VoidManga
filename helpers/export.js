@@ -108,7 +108,8 @@ export const logMangadexOptions = {
 };
 export const menuMALOptions = {
     fetchMALOnMenuOpen: true, // true, false
-    enablePagingEntries: true // true, false
+    enablePagingEntries: true, // true, false
+    logAuthURL: false // true, false
 };
 /*
     Options for Mangadex's fetchChapters() custom search:
