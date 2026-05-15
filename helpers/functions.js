@@ -1,6 +1,6 @@
 import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
-import { mangaOrderTypes, chapterOrderTypes, SYM } from './export.js';
+import { mangaOrderTypes, chapterOrderTypes, SYM, MESSAGE } from './export.js';
 import open from 'open';
 
 async function takeUserInput (useWhole = false, forceString = false, { useMixedCase = false, useUpperCase = false } = {}, skipClear = false) {
