@@ -64,7 +64,8 @@ async function rootMenu() {
 }
 
 async function settingsMenu() {
-    const UPDATEMALAPIKEY = 0, FETCHMALONMENUOPEN = 1;
+    const UPDATEMALAPIKEY = 0, FETCHMALONMENUOPEN = 1, LOGAUTHURL = 2;
+    const { menuMALOptions } = config;
     let input = 0;
     
     // TODO: 
@@ -76,7 +77,8 @@ async function settingsMenu() {
             'Settings',
             [
                 ['Update MAL_API_CLIENT_ID'], 
-                [`Fetch MAL lists when running menuMAL [${config.menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`], 
+                [`Fetch MAL lists when running menuMAL [${menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`], 
+                [`Log authorization URL when re-authenticating [${menuMALOptions.logAuthURL ? 'x' : ''}]`],
                 '_'
             ]
         );
@@ -89,7 +91,10 @@ async function settingsMenu() {
                 await updateAPIKeyMenu();
                 break;
             case FETCHMALONMENUOPEN:
-                config.menuMALOptions.fetchMALOnMenuOpen = !config.menuMALOptions.fetchMALOnMenuOpen;
+                menuMALOptions.fetchMALOnMenuOpen = !menuMALOptions.fetchMALOnMenuOpen;
+                break;
+            case LOGAUTHURL: 
+                menuMALOptions.logAuthURL = !menuMALOptions.logAuthURL;
                 break;
             case 'e':
                 break;
