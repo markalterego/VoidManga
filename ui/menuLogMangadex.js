@@ -627,7 +627,8 @@ async function findChapterByChapterTitle (selectedManga) {
 
 async function chapterOptionsMenu (selectedChapter, manga) {
     const LOGDATA = 0, OPENINBROWSER = 1, OPENATLISTS = 2;
-    const formattedTitle = (({ attributes: { title: chapterTitle, chapter, volume, translatedLanguage }} = selectedChapter) => {
+    const { volume, chapter } = selectedChapter.attributes;
+    const formattedTitle = (({ attributes: { title: chapterTitle, translatedLanguage }}) => {
         const title         = chapterTitle?.trim() || Object.values(manga.attributes.title)[0]?.trim();
         const vlLabel       = Number(volume)  ? `Vol.${volume}` : '';
         const chLabel       = Number(chapter) ? `Ch.${chapter}` : '';
@@ -635,14 +636,12 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         const progressLabel = combined.length ? `[${combined.join(' ')}]` : '';
         const transLang     = `(${translatedLanguage})`;
         return [title, progressLabel, transLang].filter(Boolean).join(' ');
-    })();
+    })(selectedChapter);
+    const typeLabel = Number(volume) && !Number(chapter) ? 'volume' : 'chapter';
     let input = null;
 
     while (input !== 'e') 
     {
-        const { volume, chapter } = selectedChapter.attributes;
-        const typeLabel = Number(volume) && !Number(chapter) ? 'volume' : 'chapter';
-        
         printMenuOptions(
             formattedTitle,
             [
@@ -658,7 +657,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         if (input === LOGDATA) {
             await logDataDeepMenu(selectedChapter, formattedTitle, true);
         } else if (input === OPENINBROWSER) {
-            await openURLInBrowser(selectedChapter?.url, title);
+            await openURLInBrowser(selectedChapter?.url, typeLabel);
         } else if (input === OPENATLISTS) {
             await openMangaAtLists(manga);
         } else if (input !== 'e') {
