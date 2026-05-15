@@ -15,6 +15,7 @@ export const MESSAGE = {
     MANGA_NOT_FOUND:   'Manga not found',
     CHAPTER_NOT_FOUND: 'Chapter not found',
     MATCHES_NOT_FOUND: 'No matches found',
+    URL_NOT_FOUND:     'URL not found',
     print (message) {
         console.log(`\n\n  ${message}`);
     }
