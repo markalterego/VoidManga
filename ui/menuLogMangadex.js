@@ -1,6 +1,6 @@
-import open from 'open';
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
-         printMenuOptions, isValidLangCode, escapeRegex, truncateString } from '../helpers/functions.js';
+         printMenuOptions, isValidLangCode, escapeRegex, truncateString,
+         openURLInBrowser } from '../helpers/functions.js';
 import { MESSAGE, SYM } from '../helpers/export.js';
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
@@ -258,7 +258,7 @@ async function mangaOptionsMenu (selectedManga) {
         if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
         } else if (input === OPENINBROWSER) {
-            selectedManga.manga?.url ? await open(selectedManga.manga?.url) : console.log('\n  URL was not found');
+            await openURLInBrowser(selectedManga.manga?.url, title);
         } else if (input === TRAVERSECHAPTERS) { 
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
@@ -282,7 +282,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
             const wrapped = combined ? `[${combined}]` : '[???]';
             return wrapped.padEnd(18);
-        })()
+        })();
         const maxTitleWidth = 35;
         const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
         const truncatedTitle = cliTruncate(chTitle, maxTitleWidth);
@@ -627,23 +627,27 @@ async function findChapterByChapterTitle (selectedManga) {
 
 async function chapterOptionsMenu (selectedChapter, manga) {
     const LOGDATA = 0, OPENINBROWSER = 1, OPENATLISTS = 2;
-    let input = 0;
+    const formattedTitle = (({ attributes: { title: chapterTitle, chapter, volume, translatedLanguage }} = selectedChapter) => {
+        const title         = chapterTitle?.trim() || Object.values(manga.attributes.title)[0]?.trim();
+        const vlLabel       = Number(volume)  ? `Vol.${volume}` : '';
+        const chLabel       = Number(chapter) ? `Ch.${chapter}` : '';
+        const combined      = [vlLabel, chLabel].filter(Boolean);
+        const progressLabel = combined.length ? `[${combined.join(' ')}]` : '';
+        const transLang     = `(${translatedLanguage})`;
+        return [title, progressLabel, transLang].filter(Boolean).join(' ');
+    })();
+    let input = null;
 
     while (input !== 'e') 
     {
-        const { title, chapter, volume, translatedLanguage } = selectedChapter.attributes; // chapter attributes
-        const chapterTitle = title ?? ''; // title
-        const chNum = chapter ?? -1; // chapter number 
-        const vlNum = volume ?? -1; // volume number
-        const transLang = translatedLanguage || 'No Translated Language'; // translated language
-        const mangaTitle = Object.values(manga.attributes.title)[0]; // title
-        const formattedTitle = `${chapterTitle.length > 0 ? chapterTitle.trim() : mangaTitle.trim() }${chNum >= 0 ? ` (ch: ${chNum})` : (vlNum >= 0 ? ` (vol: ${vlNum})` : '' )}${transLang.length > 0 ? ` (${transLang})` : ''}`;
+        const { volume, chapter } = selectedChapter.attributes;
+        const typeLabel = Number(volume) && !Number(chapter) ? 'volume' : 'chapter';
         
         printMenuOptions(
             formattedTitle,
             [
-                ['Log chapter data'], 
-                ['Open chapter in browser'], 
+                [`Log ${typeLabel} data`], 
+                [`Open ${typeLabel} in browser`], 
                 ['Find manga at lists'], 
                 '_'
             ]
@@ -652,18 +656,11 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         input = await takeUserInput();
 
         if (input === LOGDATA) {
-            const dataTitle = `${mangaTitle} ${chNum >= 0 ? `(ch: ${chNum})` : // chNum
-                                (vlNum >= 0 ? `(vol: ${vlNum})` : '' )}`;      // vlNum 
-            await logDataDeepMenu(selectedChapter, dataTitle, true);
+            await logDataDeepMenu(selectedChapter, formattedTitle, true);
         } else if (input === OPENINBROWSER) {
-            selectedChapter?.url ? await open(selectedChapter.url) : console.log('\n  URL was not found');
+            await openURLInBrowser(selectedChapter?.url, title);
         } else if (input === OPENATLISTS) {
-            const mangaEntry = findEntryAtLists(manga);
-            if (!mangaEntry) {
-                MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
-            } else {
-                await updateEntryMenu(mangaEntry, lists);
-            }
+            await openMangaAtLists(manga);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -676,6 +673,12 @@ function findEntryAtLists (manga) {
            .find(entry => entry.node.id === parseInt(manga.attributes.links?.mal)); // return first entry where id is the same
 }
 
+async function openMangaAtLists (manga) {
+    const mangaEntry = findEntryAtLists(manga);
+    if (!mangaEntry) return MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
+    await updateEntryMenu(mangaEntry, lists);
+}
+
 async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSkipSorting) {
     let input = 0;
 
@@ -686,7 +689,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
     while (input !== 'e') 
     {   
         let index = 0;
-        console.log(`\n\n  LOG - ${capitalFirstLetterString(dataTitle)}\n`);
+        console.log(`\n\n  ${capitalFirstLetterString(dataTitle)}\n`);
         if (!Object.keys(data).length) {
             console.log('  ? -> No keys to select');
         } else {
@@ -694,7 +697,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
                 console.log(`  ${index++} -> ${capitalFirstLetterString(key)}`);
             }
         }
-        console.log('  e -> Go back');
+        console.log('\n  e -> Go back');
         const highestSelectableIndex = index - 1;
         
         input = await takeUserInput(true);
