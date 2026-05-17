@@ -1,5 +1,5 @@
 export const SYM = {
-    UP_TO_DATE:  '\u2022', // •
+    UPTODATE:    '\u2022', // •
     UPDATED:     '\u2191', // ↑
     NEW:         '\u002B', // +
     INCLUDE:     '\u002B', // sab (same as before)

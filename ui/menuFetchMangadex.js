@@ -101,7 +101,7 @@ async function fetchWithOptions() {
             ...acc, 
             [mangaId]: {
                 title: getMangaTitle(manga),
-                status: findMangaById(mangaId) ? (newChapters.length ? 'UPDATED' : 'UP_TO_DATE') : 'NEW',
+                status: findMangaById(mangaId) ? (newChapters.length ? 'UPDATED' : 'UPTODATE') : 'NEW',
                 updatedCount: newChapters.length,
                 chapterIds: newChapterIds
             }
@@ -116,7 +116,7 @@ async function fetchWithOptions() {
         fetchedAt: Date.now(),
         newMangas: countStatus('NEW'),
         updatedMangas: countStatus('UPDATED'),
-        upToDateMangas: countStatus('UP_TO_DATE')
+        uptodateMangas: countStatus('UPTODATE')
     };
 
     // append new info
@@ -166,7 +166,7 @@ function logFetchInfo (fetchInfoValues) {
     console.log('\n  [Info]');
     for (const { title, status, updatedCount } of fetchInfoValues) {
         const paddedTitle = pad(title, titlePadding);
-        if (status === 'UP_TO_DATE') {
+        if (status === 'UPTODATE') {
             console.log(`    ${SYM[status]} ${paddedTitle} - up to date`);
         } else if (status === 'UPDATED') {
             console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
