@@ -16,13 +16,19 @@ import { existsSync } from 'fs';
 
 let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
+let logAuthURL = null; // config.menuMALOptions.logAuthURL
 let mangadexData = null; // mangas and their chapters
 let mangadexFetchInfo = null; // fetch related info
 
-async function menuLogMangadex (m, l, { logMangadexOptions }, mfi) {
+async function menuLogMangadex (m, l, config, mfi) {
     const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1;
     let input = null;
-    mangadexData = m, options = logMangadexOptions, lists = l, mangadexFetchInfo = mfi;
+
+    mangadexData = m, 
+    { logAuthURL } = config.menuMALOptions, 
+    options = config.logMangadexOptions, 
+    lists = l,
+    mangadexFetchInfo = mfi;
 
     while (input !== 'e') 
     {
@@ -292,7 +298,7 @@ async function mangaOptionsMenu (selectedManga) {
 async function traverseChapters (selectedManga, chapterArr) {
     const chapters = chapterArr ?? selectedManga.chapters;
     const manga = chapterArr ? selectedManga : selectedManga.manga;
-    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters;
+    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters, pagedChapters;
     const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
         const indexWithPadding = String(index).padEnd(4); // pads up to 4 digit indexes
         const separatorWithPadding = ':'.padEnd(1); // pads separator once
@@ -318,9 +324,9 @@ async function traverseChapters (selectedManga, chapterArr) {
     while (input !== 'e') 
     {
         const foundManga = findEntryAtLists(manga);
-        sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === null ? sortChapters(chapters, foundManga) : sortedChapters;
+        sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === null || (input >= 0 && input <= pagedChapters.length && options.hideReadChapters) ? sortChapters(chapters, foundManga) : sortedChapters;
         pageDetails = options.enablePagingChapter ? updatePageDetails(pageDetails, sortedChapters) : pageDetails;
-        let pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
+        pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
         // formatting printMenuOptions parameters
         const chapterTitles = pagedChapters.map((ch, index) => formatChapterTitle(index, ch, foundManga));
@@ -695,7 +701,7 @@ function findEntryAtLists (manga) {
 async function openMangaAtLists (manga) {
     const mangaEntry = findEntryAtLists(manga);
     if (!mangaEntry) return MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
-    await updateEntryMenu(mangaEntry, lists);
+    await updateEntryMenu(mangaEntry, lists, logAuthURL);
 }
 
 async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSkipSorting) {
