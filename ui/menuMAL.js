@@ -141,17 +141,16 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
     }
 }
 
-async function updateEntryMenu (entry, l) {
-    //
-    // second parameter 'l' (standing for lists) is supposed to be used
-    // when calling updateEntryMenu from outside menuMAL.js (l = lists)
-    //
+async function updateEntryMenu (entry, l = null, logAuthURL = null) {
+    // parameters 'l' (standing for lists) and logAuthURL are supposed 
+    // to be used when calling updateEntryMenu from outside menuMAL.js 
+
     const STATUS = 0, SCORE = 1, EPISODES = 2, VOLUMES = 2, CHAPTERS = 3;
     const append = getType(entry.list_status); // manga adds one selectable option
     const START_DATE = 3 + append, FINISH_DATE = 4 + append, ISRE = 5 + append, COMMENTS = 6 + append;
 
     const PADEND = 12, PADSTART = 0, NOT_SET = 'Not set';
-    let input = 0, changedFields = [], listsReference = l === undefined ? lists : l;
+    let input = null, changedFields = [], listsReference = l ?? lists;
 
     // TODO: 
     // - make it so that start/finish dates are automatically applied
@@ -281,7 +280,7 @@ async function updateEntryMenu (entry, l) {
 
         // update changes
         if (changedFields.length) {
-            listsReference = await updateMAL(listsReference, changedFields, entry, options.logAuthURL); // update MAL entry
+            listsReference = await updateMAL(listsReference, changedFields, entry, logAuthURL ?? options.logAuthURL); // update MAL entry
             filehandle('mal', listsReference); // save updates to file
             changedFields = []; // clear changedFields
             // re-find entry reference
