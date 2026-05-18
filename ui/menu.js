@@ -1,6 +1,6 @@
 import { menuMAL } from "./menuMAL.js";
 import { filehandle, writeEnv } from "../filehandling/filehandle.js";
-import { printMenuOptions, takeUserInput } from "../helpers/functions.js";
+import { clearScreen, printMenuOptions, takeUserInput } from "../helpers/functions.js";
 import { MESSAGE } from "../helpers/export.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
@@ -9,14 +9,19 @@ import { logErrorDetails } from "../helpers/errorLogger.js";
 let lists = null; // animelist and mangalist
 let config = null; // user specific options
 let mangadexData = null; // mangas and chapters
-let mangadexFetchInfo = null; // fetch related info
+let mangadexFetchHistory = null; // fetch related info
 
-async function menu (l, c, m, mfi) {
+async function menu (l, c, m, mfh) {
     try {
-        lists = l, config = c, mangadexData = m, mangadexFetchInfo = mfi; // assigning params
-        await rootMenu(); // displays rootMenu
+
+        lists = l, 
+        config = c, 
+        mangadexData = m, 
+        mangadexFetchHistory = mfh; 
+
+        await rootMenu(); 
     } catch (error) {
-        if (error.code==='ABORT_ERR') console.error(); // extra newline for extra cleanliness :)
+        clearScreen();
         logErrorDetails(error);
     } 
 }
@@ -46,10 +51,10 @@ async function rootMenu() {
                 lists = await menuMAL(lists, config); // menuMAL options
                 break; 
             case LOGMANGADEX: 
-                await menuLogMangadex(mangadexData, lists, config, mangadexFetchInfo); // <-- log mangadex
+                await menuLogMangadex(mangadexData, lists, config, mangadexFetchHistory); // <-- log mangadex
                 break;
             case FETCHMANGADEX:
-                await menuFetchMangadex(lists, config, mangadexData, mangadexFetchInfo); // fetch Mangadex by preference
+                await menuFetchMangadex(lists, config, mangadexData, mangadexFetchHistory); // fetch Mangadex by preference
                 break;
             case 's':
                 await settingsMenu();

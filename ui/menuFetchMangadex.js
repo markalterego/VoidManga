@@ -10,12 +10,16 @@ import stringWidth from 'string-width';
 let lists = null;
 let options = null;
 let mangadexData = null;
-let mangadexFetchInfo = null;
+let mangadexFetchHistory = null;
 
-async function menuFetchMangadex (l, { fetchMangadexOptions }, m, mfi) {
+async function menuFetchMangadex (l, { fetchMangadexOptions }, m, mfh) {
     const FETCH_MANGADEX = 0, CHANGE_OPTIONS = 1, FILTER_ENTRIES = 2, RESET_DEFAULT_OPTIONS = 3, TOGGLE_FETCH_ALL_CHAPTERS = 4;
     let input = null;
-    lists = l, options = fetchMangadexOptions, mangadexData = m, mangadexFetchInfo = mfi;
+
+    lists = l, 
+    options = fetchMangadexOptions, 
+    mangadexData = m, 
+    mangadexFetchHistory = mfh;
 
     while (input !== 'e') 
     {
@@ -120,7 +124,7 @@ async function fetchWithOptions() {
     };
 
     // append new info
-    mangadexFetchInfo.push(fetchInfo);
+    mangadexFetchHistory.push(fetchInfo);
 
     // log fetch details
     logFetchInfo(fetchInfoValues);
@@ -139,7 +143,7 @@ async function fetchWithOptions() {
     });
 
     // save fetch info to file
-    filehandle('mangadexFetchInfo', mangadexFetchInfo);
+    filehandle('mangadexFetchHistory', mangadexFetchHistory);
     // save fetched data to file
     filehandle('mangadex', mangadexData);
 }

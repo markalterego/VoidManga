@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 let lists = null; // animelist and mangalist
 let config = null; // user specific options
 let mangadexData = null; // mangas and chapters
-let mangadexFetchInfo = null; // fetch related info
+let mangadexFetchHistory = null; // fetch related info
 const rl = readline.createInterface({ input , output }); // enabling input/output
 dotenv.config(); // load .env file to process.env
 
@@ -18,10 +18,10 @@ dotenv.config(); // load .env file to process.env
 (async () => {
     clearScreen(); // starting app on a fresh screen
 
-    // prior to running menu.js, lists, config, mangadexData and mangadexFetchInfo
+    // prior to running menu.js, lists, config, mangadexData and mangadexFetchHistory
     // are either initialized and saved to file or simply retrieved from their respective
     // files (lists = mal.file, config = config.file, mangadexData = mangadex.file, 
-    // mangadexFetchInfo = mangadexFetchInfo.file)
+    // mangadexFetchHistory = mangadexFetchHistory.file)
 
     if (!existsSync('./data/mal.file')) {
         lists = [ 
@@ -51,14 +51,14 @@ dotenv.config(); // load .env file to process.env
         mangadexData = filehandle('mangadex');
     }
 
-    if (!existsSync('./data/mangadexFetchInfo.file')) {
-        mangadexFetchInfo = [];
-        filehandle('mangadexFetchInfo', mangadexFetchInfo);
+    if (!existsSync('./data/mangadexFetchHistory.file')) {
+        mangadexFetchHistory = [];
+        filehandle('mangadexFetchHistory', mangadexFetchHistory);
     } else {
-        mangadexFetchInfo = filehandle('mangadexFetchInfo');
+        mangadexFetchHistory = filehandle('mangadexFetchHistory');
     }
 
-    await menu(lists, config, mangadexData, mangadexFetchInfo); // menu ui
+    await menu(lists, config, mangadexData, mangadexFetchHistory); // menu ui
     await cleanup(); // clears interfaces etc...
 })();
 

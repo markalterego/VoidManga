@@ -18,9 +18,9 @@ let lists = null; // MAL lists
 let options = null; // config.logMangadexOptions
 let logAuthURL = null; // config.menuMALOptions.logAuthURL
 let mangadexData = null; // mangas and their chapters
-let mangadexFetchInfo = null; // fetch related info
+let mangadexFetchHistory = null; // fetch related info
 
-async function menuLogMangadex (m, l, config, mfi) {
+async function menuLogMangadex (m, l, config, mfh) {
     const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1;
     let input = null;
 
@@ -28,7 +28,7 @@ async function menuLogMangadex (m, l, config, mfi) {
     { logAuthURL } = config.menuMALOptions, 
     options = config.logMangadexOptions, 
     lists = l,
-    mangadexFetchInfo = mfi;
+    mangadexFetchHistory = mfh;
 
     while (input !== 'e') 
     {
@@ -222,8 +222,8 @@ function findLatestFetchInfo({ status = null, min = 1 } = {}) {
     //    is equal to or exceeds min
     //
     const toReduce = status 
-        ? mangadexFetchInfo.filter(fetchInfo => fetchInfo.details[`${status.toLowerCase()}Mangas`] >= min) // match details.[updated/new/uptodate]Mangas
-        : mangadexFetchInfo;
+        ? mangadexFetchHistory.filter(fetchInfo => fetchInfo.details[`${status.toLowerCase()}Mangas`] >= min) // match details.[updated/new/uptodate]Mangas
+        : mangadexFetchHistory;
     
     if (!toReduce.length) return {};
 
