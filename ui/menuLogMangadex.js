@@ -159,7 +159,7 @@ function sortMangas (data) {
 }
 
 async function searchMangas() {
-    const LASTFETCHED = 0, MANGATITLE = 1;
+    const MANGATITLE = 0, LASTFETCHED = 1;
     let input = null;
 
     while (input !== 'e') 
@@ -167,18 +167,18 @@ async function searchMangas() {
         printMenuOptions(
             'Search mangas',
             [
-                ['Latest fetch'],
                 ['Manga title'],
+                ['Latest fetch'],
                 '_'
             ]
         );
 
         input = await takeUserInput(true);
 
-        if (input === LASTFETCHED) {
-            await findLastFetchedMangas();
-        } else if (input === MANGATITLE) {
+        if (input === MANGATITLE) {
             await findMangaByMangaTitle();
+        } else if (input === LASTFETCHED) {
+            await findLastFetchedMangas();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -261,7 +261,7 @@ async function findMangaByMangaTitle() {
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const LOGDATA = 0, OPENINBROWSER = 1, TRAVERSECHAPTERS = 2, FINDCHAPTEROFMANGA = 3;
+    const OPENINBROWSER = 0, TRAVERSECHAPTERS = 1, FINDCHAPTEROFMANGA = 2, LOGDATA = 'l';
     let input = 0;
 
     while (input !== 'e') 
@@ -271,24 +271,24 @@ async function mangaOptionsMenu (selectedManga) {
         printMenuOptions(
             `Select an option for ${title}`,
             [
-                ['Log manga data'],
                 ['Open manga in browser'],
                 ['Traverse chapters'], 
                 ['Search for chapter'],
-                '_'
+                '_',
+                ['l', 'Log manga data']
             ]
         );
 
         input = await takeUserInput(true);
 
-        if (input === LOGDATA) {
-            await logDataDeepMenu(selectedManga.manga, title, true);
-        } else if (input === OPENINBROWSER) {
+        if (input === OPENINBROWSER) {
             await openURLInBrowser(selectedManga.manga?.url, title);
         } else if (input === TRAVERSECHAPTERS) { 
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
             await searchChapters(title, selectedManga);
+        } else if (input === LOGDATA) {
+            await logDataDeepMenu(selectedManga.manga, title, true);
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -652,18 +652,19 @@ async function findChapterByChapterTitle (selectedManga) {
 }
 
 async function chapterOptionsMenu (selectedChapter, manga) {
-    const LOGDATA = 0, OPENINBROWSER = 1, OPENATLISTS = 2;
+    const OPENINBROWSER = 0, OPENATLISTS = 1, LOGDATA = 'l';
     const { volume, chapter } = selectedChapter.attributes;
     const formattedTitle = (({ attributes: { title: chapterTitle, translatedLanguage }}) => {
         const title         = chapterTitle?.trim() || Object.values(manga.attributes.title)[0]?.trim();
-        const vlLabel       = Number(volume)  ? `Vol.${volume}` : '';
-        const chLabel       = Number(chapter) ? `Ch.${chapter}` : '';
+        const vlLabel       = volume  ? `Vol.${volume}` : '';
+        const chLabel       = chapter ? `Ch.${chapter}` : '';
         const combined      = [vlLabel, chLabel].filter(Boolean);
         const progressLabel = combined.length ? `[${combined.join(' ')}]` : '';
         const transLang     = `(${translatedLanguage})`;
         return [title, progressLabel, transLang].filter(Boolean).join(' ');
     })(selectedChapter);
-    const typeLabel = Number(volume) && !Number(chapter) ? 'volume' : 'chapter';
+    // this works because the value of volume or chapter is either a null or a string (e.g. '0' or '10')
+    const typeLabel = volume && !chapter ? 'volume' : 'chapter';
     let input = null;
 
     while (input !== 'e') 
@@ -671,21 +672,21 @@ async function chapterOptionsMenu (selectedChapter, manga) {
         printMenuOptions(
             formattedTitle,
             [
-                [`Log ${typeLabel} data`], 
                 [`Open ${typeLabel} in browser`], 
                 ['Find manga at lists'], 
-                '_'
+                '_',
+                ['l', `Log ${typeLabel}`] 
             ]
         );
         
         input = await takeUserInput();
 
-        if (input === LOGDATA) {
-            await logDataDeepMenu(selectedChapter, formattedTitle, true);
-        } else if (input === OPENINBROWSER) {
+         if (input === OPENINBROWSER) {
             await openURLInBrowser(selectedChapter?.url, typeLabel);
         } else if (input === OPENATLISTS) {
             await openMangaAtLists(manga);
+        } else if (input === LOGDATA) {
+            await logDataDeepMenu(selectedChapter, formattedTitle, true);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
