@@ -661,11 +661,11 @@ function setIsRe (list_status, value) {
 }
 
 async function updateCommentsMenu (list_status) {
-    const commentsBeforeChange = list_status.comments;
-    const MIN_LENGTH = 3; // min required length for comment
-    let input = 0;
+    const commentsBeforeChange = list_status.comments, MIN_LENGTH = 3; // min comment length
+    let input = '';
+    const lowerCaseString = (string) => string?.toLowerCase(); 
 
-    while (input !== 'e') 
+    while (lowerCaseString(input) !== 'e') 
     {
         printMenuOptions(
             `Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
@@ -677,13 +677,13 @@ async function updateCommentsMenu (list_status) {
             ]
         );
 
-        input = await takeUserInput(); // take user input
+        input = await takeUserInput(false, true, { useMixedCase: true });
         
-        if (input === 'c') { // clear comment
+        if (lowerCaseString(input) === 'c') { // clear comment
             list_status.comments = ''; 
-        } else if (input !== 'e' && (input === undefined || String(input).length < 3)) { // comment is too short
+        } else if (lowerCaseString(input) !== 'e' && input?.length < MIN_LENGTH) { 
             console.log(`\n\n  Minimum required comment length: ${MIN_LENGTH} characters`);
-        } else if (input !== 'e') { // comment is valid
+        } else if (lowerCaseString(input) !== 'e') { // comment is valid
             list_status.comments = String(input); // update comments
         }
     }
