@@ -21,7 +21,7 @@ let mangadexData = null; // mangas and their chapters
 let mangadexFetchHistory = null; // fetch related info
 
 async function menuLogMangadex (m, l, config, mfh) {
-    const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1;
+    const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1, TRAVERSE_HISTORY = 2;
     let input = null;
 
     mangadexData = m, 
@@ -37,6 +37,7 @@ async function menuLogMangadex (m, l, config, mfh) {
             [
                 ['Traverse mangas'],
                 ['Search mangas'],
+                ['Traverse history'],
                 '_'
             ]
         );
@@ -47,6 +48,8 @@ async function menuLogMangadex (m, l, config, mfh) {
             await traverseMangas();
         } else if (input === SEARCHMANGAS) {
             await searchMangas();
+        } else if (input === TRAVERSE_HISTORY) {
+            await traverseHistory();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -293,6 +296,92 @@ async function mangaOptionsMenu (selectedManga) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
+}
+
+async function traverseHistory() {
+    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedHistory, pagedHistory;
+    const formatFetchInfo = (fetchInfo) => {
+        // counting mangas/chapters fetched
+        const values = Object.values(fetchInfo);
+        const fetchedMangas   = values.reduce((acc, info) => info.status ? acc + 1 : acc, 0);
+        const paddedMangas    = String(fetchedMangas).padEnd(4, ' ');
+        const fetchedChapters = values.reduce((acc, info) => info.updatedCount ? acc + info.updatedCount : acc, 0);
+        // fetchedAt as yyyy-mm-dd hh:mm:ss
+        const date = new Date(fetchInfo.details.fetchedAt);
+        const yyyy = date.getFullYear(); 
+        const mm   = String(date.getMonth()).padStart(2, '0');
+        const dd   = String(date.getDay()).padStart(2, '0');
+        const hh   = String(date.getHours()).padStart(2, '0');
+        const min  = String(date.getMinutes()).padStart(2, '0');
+        const ss   = String(date.getSeconds()).padStart(2, '0');
+        const formattedDate = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+        // e.g. `2026-04-02 06:42:54  m:44   c:1186`
+        return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
+    };
+
+    // TODO:
+    // - make it possible to order by manga and chapter count
+
+    while (input !== 'e') 
+    {
+        sortedHistory = input === null || input === 's' ? sortHistory() : sortedHistory;
+        pageDetails   = options.enablePagingHistory ? updatePageDetails(pageDetails, sortedHistory) : pageDetails;
+        pagedHistory  = pageContent(sortedHistory, pageDetails.currentPageIndex, options.enablePagingHistory);
+
+        // format menu options
+        const fetchHistory = pagedHistory.map((info) => formatFetchInfo(info));
+        const history = pagedHistory.length ? [...fetchHistory] : [['?', 'No fetches found']];
+        const pageFooter = pagedHistory.length && options.enablePagingHistory ? 'p' : null;
+        const optionsArray = [
+            '-',
+            '_',
+            ...history,
+            pageFooter,
+            '_',
+            '_',
+            ['s', `Sort ${options.logHistoryDirection === 'asc' ? 'descending' : 'ascending'}`],
+            ['t', `Toggle paging [${options.enablePagingHistory ? 'x' : ''}]`],
+            (options.enablePagingHistory ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
+        ];
+
+        printMenuOptions(
+            'Select fetch',
+            optionsArray,
+            { pageDetails }
+        );
+
+        input = await takeUserInput(true);
+
+        if (input >= 0 && input < pagedHistory.length) {
+            // open fetchmenu
+            console.log('\n\n  This function is under development...');
+        } else if (input === 't') { // enable paging
+            options.enablePagingHistory = !options.enablePagingHistory;
+        } else if (input === 's') { // sort direction
+            options.logHistoryDirection = options.logHistoryDirection === 'asc' ? 'desc' : 'asc';
+        } else if (options.enablePagingHistory && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) {
+            pageDetails = pagingOptions(input, sortedHistory, pageDetails);
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+function sortHistory() {
+    let history = mangadexFetchHistory;
+    const logDirection = options.logHistoryDirection;
+
+    if (logDirection === 'asc') {
+        history.sort((a, b) => 
+            a.details.fetchedAt - b.details.fetchedAt
+        );
+    } else {
+        history.sort((a, b) => 
+            b.details.fetchedAt - a.details.fetchedAt
+        );
+    }
+
+    return history;
 }
 
 async function traverseChapters (selectedManga, chapterArr) {
