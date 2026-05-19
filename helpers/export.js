@@ -104,7 +104,9 @@ export const logMangadexOptions = {
     logChapterDirection: 'asc', // 'asc', 'desc'
     hideReadChapters: false, // true, false
     filterChapterLanguages: [], // true, false
-    enablePagingChapter: true // true, false
+    enablePagingChapter: true, // true, false
+    logHistoryDirection: 'asc', // 'asc', 'desc'
+    enablePagingHistory: true // true, false
 };
 export const menuMALOptions = {
     fetchMALOnMenuOpen: true, // true, false
