@@ -101,6 +101,11 @@ function escapeRegex (input) {
     return input.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 } 
 
+function isISODate (str) {
+    // e.g. 2018-07-09T14:59:44+00:00
+    return /^[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}\+[0-9]{2}\:[0-9]{2}$/.test(str);
+}
+
 async function openURLInBrowser (url, label = '', logURL = true) {
     if (!url) return MESSAGE.print(MESSAGE.URL_NOT_FOUND);
     const target = label ? `${label} ${SYM.POINTS_TO} ${url}` : url;
@@ -178,6 +183,7 @@ export {
     truncateString,
     isValidLangCode,
     escapeRegex,
+    isISODate,
     openURLInBrowser,
     printMenuOptions
 };
