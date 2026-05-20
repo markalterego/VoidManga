@@ -1,6 +1,6 @@
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
          printMenuOptions, isValidLangCode, escapeRegex, truncateString,
-         openURLInBrowser } from '../helpers/functions.js';
+         openURLInBrowser, isISODate } from '../helpers/functions.js';
 import { MESSAGE, SYM } from '../helpers/export.js';
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
@@ -162,7 +162,7 @@ function sortMangas (data) {
 }
 
 async function searchMangas() {
-    const MANGATITLE = 0, LASTFETCHED = 1;
+    const MANGATITLE = 0;
     let input = null;
 
     while (input !== 'e') 
@@ -171,7 +171,6 @@ async function searchMangas() {
             'Search mangas',
             [
                 ['Manga title'],
-                ['Latest fetch'],
                 '_'
             ]
         );
@@ -180,33 +179,30 @@ async function searchMangas() {
 
         if (input === MANGATITLE) {
             await findMangaByMangaTitle();
-        } else if (input === LASTFETCHED) {
-            await findLastFetchedMangas();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function findLastFetchedMangas (status = null) {
-    // find latest fetchInfo which has at least one title by status || by any status
-    const latestFetchInfo = Object.entries(
-        findLatestFetchInfo({ status })
-    ); 
+async function findMangasByFetchInfo ({fetchInfo = {}, status = null} = {}) {
+    // filters param fetchInfo by param status
+    // e.g. if we filter by status = 'new'
+    // { mangaId: { ..., status: NEW }} <-- { mangaId: { ..., status: UPTODATE }, mangaId: { ..., status: NEW }}
+    const filteredFetchInfo = status 
+        ? Object.entries(fetchInfo).filter(([_, val]) => val.status === status.toUpperCase()) 
+        : Object.entries(fetchInfo);
     
-    // filter all updated fetch info(s) from latestFetchInfo
-    const updatedMangas = status ? latestFetchInfo.filter(([_, val]) => val.status === status.toUpperCase()) : latestFetchInfo;
-    
-    if (!updatedMangas.length) {
+    if (!filteredFetchInfo.length) {
         MESSAGE.print(MESSAGE.MANGA_NOT_FOUND);
     } else {
-        // find updated mangas from mangadexData 
+        // find mangas from mangadexData 
         const foundMangas = mangadexData.filter(({ manga }) => 
-            updatedMangas.some(([id, _]) => id === manga.id)
+            filteredFetchInfo.some(([id, _]) => id === manga.id)
         );
         // filter found mangas by chapterIds
         const filteredFoundMangas = foundMangas.map(({ manga, chapters }) => {
-            const updatedIds      = Object.fromEntries(updatedMangas)[manga.id].chapterIds;
+            const updatedIds      = Object.fromEntries(filteredFetchInfo)[manga.id].chapterIds;
             const updatedChapters = chapters.filter(chapter => updatedIds.some(id => chapter.id === id));
             return { manga: manga, chapters: updatedChapters };
         });
@@ -307,15 +303,7 @@ async function traverseHistory() {
         const paddedMangas    = String(fetchedMangas).padEnd(4, ' ');
         const fetchedChapters = values.reduce((acc, info) => info.updatedCount ? acc + info.updatedCount : acc, 0);
         // fetchedAt as yyyy-mm-dd hh:mm:ss
-        const date = new Date(fetchInfo.details.fetchedAt);
-        const yyyy = date.getFullYear(); 
-        const mm   = String(date.getMonth()).padStart(2, '0');
-        const dd   = String(date.getDay()).padStart(2, '0');
-        const hh   = String(date.getHours()).padStart(2, '0');
-        const min  = String(date.getMinutes()).padStart(2, '0');
-        const ss   = String(date.getSeconds()).padStart(2, '0');
-        const formattedDate = `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-        // e.g. `2026-04-02 06:42:54  m:44   c:1186`
+        const formattedDate = formatDate(fetchInfo.details.fetchedAt);
         return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
     };
 
@@ -353,8 +341,7 @@ async function traverseHistory() {
         input = await takeUserInput(true);
 
         if (input >= 0 && input < pagedHistory.length) {
-            // open fetchmenu
-            console.log('\n\n  This function is under development...');
+            await historyOptionsMenu(pagedHistory[input]);
         } else if (input === 't') { // enable paging
             options.enablePagingHistory = !options.enablePagingHistory;
         } else if (input === 's') { // sort direction
@@ -365,6 +352,18 @@ async function traverseHistory() {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
+}
+
+function formatDate (DATE) {
+    const date = new Date(DATE);
+    const yyyy = date.getFullYear(); 
+    const mm   = String(date.getMonth()).padStart(2, '0');
+    const dd   = String(date.getDay()).padStart(2, '0');
+    const hh   = String(date.getHours()).padStart(2, '0');
+    const min  = String(date.getMinutes()).padStart(2, '0');
+    const ss   = String(date.getSeconds()).padStart(2, '0');
+    // e.g. `2026-04-02 06:42:54  m:44   c:1186`
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
 }
 
 function sortHistory() {
@@ -382,6 +381,43 @@ function sortHistory() {
     }
 
     return history;
+}
+
+async function historyOptionsMenu (selectedFetch) {    
+    const ALL = 0, NEW = 1, UPDATED = 2, UPTODATE = 3;
+    const { details } = selectedFetch;
+    const { newMangas, updatedMangas, uptodateMangas } = details;
+    const formattedDate = formatDate(details.fetchedAt);
+    const header        = `Fetch (${formattedDate})`;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        printMenuOptions(
+            header,
+            [
+                [`All        [${newMangas + updatedMangas + uptodateMangas}]`],
+                [`New        [${newMangas}]`],
+                [`Updated    [${updatedMangas}]`],
+                [`Up To Date [${uptodateMangas}]`],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+
+        if (input === ALL) {
+            await findMangasByFetchInfo({ fetchInfo: selectedFetch });
+        } else if (input === NEW) {
+            await findMangasByFetchInfo({ fetchInfo: selectedFetch, status: 'new' }); 
+        } else if (input === UPDATED) {
+            await findMangasByFetchInfo({ fetchInfo: selectedFetch, status: 'updated'});
+        } else if (input === UPTODATE) {
+            await findMangasByFetchInfo({ fetchInfo: selectedFetch, status: 'uptodate'});
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
 }
 
 async function traverseChapters (selectedManga, chapterArr) {
@@ -831,7 +867,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
             const key = Object.keys(data)[input], value = Object.values(data)[input]; 
             const dataTypeOfValue = getDataTypeOfValue(value);
             if (!dataTypeOfValue) { // unknown datatype of value
-                console.log('  Data type of value couldn\'t be resolved')
+                console.log('\n\n  Data type of value couldn\'t be resolved')
             } else if (dataTypeOfValue === 'primitive' || dataTypeOfValue === 'null') { // key: value || key: null/undefined
                 logObject(key, value); 
             } else if (dataTypeOfValue === 'arrayOfPrimitives') { // key: [data1, data2]
@@ -868,29 +904,27 @@ function getDataTypeOfValue (value) {
     } 
 }
 
-function logObject (title, value) {
+function logObject (key, value) {
     const maxLineLength = 75;
     if (typeof value === 'string' && value.length > maxLineLength) {
         const stringAsArr = longStringToArray(value, maxLineLength);
-        console.log(`\n  ${capitalFirstLetterString(title)}:\n`);
-        stringAsArr.forEach((line, index) => {
-            if (index < stringAsArr.length - 1) console.log(`  ${line}`);
-            else console.log(`  ${line}\n`);
-        });
+        console.log(`\n\n  ${capitalFirstLetterString(key)}:\n`);
+        stringAsArr.forEach(line => console.log(`  ${line}`));
     } else {
-        // TODO: 
-        // - make better logging for dates 
-        console.log(`\n  ${capitalFirstLetterString(title)}: ${value === undefined || value === null || value?.length === 0 ? 'N/A' : value}`);
+        const formattedKey = capitalFirstLetterString(key);
+        const formatValue = (val) => !val && typeof val !== 'number' && typeof val !== 'boolean' ? 'N/A' : val;
+        const formattedValue = isISODate(value) ? formatDate(value) : formatValue(value);
+        console.log(`\n\n  ${formattedKey}: ${formattedValue}`);
     }
 }
 
 function logArrayOfPrimitives (title, array) {
-    console.log(`\n  ${capitalFirstLetterString(title)}:\n`);
+    console.log(`\n\n  ${capitalFirstLetterString(title)}:\n`);
     array.forEach((value, index) => {
         if (index < array.length - 1) console.log(`  - ${value}`);
         else console.log(`  - ${value}\n`);
     });
-    if (!array.length) console.log('  - Nothing was found\n');
+    if (!array.length) console.log('  - Nothing was found');
 }
 
 function countKeyValuePairs (array) {
