@@ -106,6 +106,18 @@ function isISODate (str) {
     return /^[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}\+[0-9]{2}\:[0-9]{2}$/.test(str);
 }
 
+function formatDate (DATE) {
+    const date = new Date(DATE);
+    const yyyy = date.getFullYear(); 
+    const mm   = String(date.getMonth()).padStart(2, '0');
+    const dd   = String(date.getDay()).padStart(2, '0');
+    const hh   = String(date.getHours()).padStart(2, '0');
+    const min  = String(date.getMinutes()).padStart(2, '0');
+    const ss   = String(date.getSeconds()).padStart(2, '0');
+    // e.g. `2026-04-02 06:42:54  m:44   c:1186`
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+
 async function openURLInBrowser (url, label = '', logURL = true) {
     if (!url) return MESSAGE.print(MESSAGE.URL_NOT_FOUND);
     const target = label ? `${label} ${SYM.POINTS_TO} ${url}` : url;
@@ -184,6 +196,7 @@ export {
     isValidLangCode,
     escapeRegex,
     isISODate,
+    formatDate,
     openURLInBrowser,
     printMenuOptions
 };
