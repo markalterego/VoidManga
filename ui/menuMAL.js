@@ -1,9 +1,10 @@
 import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
-import { logDataDeepMenu, updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
+import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists } from "../fetch/fetchMAL.js";
 import { updateMAL } from "../updateMAL/updateMAL.js";
+import { logDataDeepMenu } from "./menuLogDataDeep.js";
 
 const ANIME = 0, MANGA = 1;
 let lists, options;
