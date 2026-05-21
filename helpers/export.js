@@ -106,7 +106,22 @@ export const logMangadexOptions = {
     filterChapterLanguages: [], // true, false
     enablePagingChapter: true, // true, false
     logHistoryDirection: 'asc', // 'asc', 'desc'
-    enablePagingHistory: true // true, false
+    enablePagingHistory: true, // true, false
+    historyOrderType: 'time' // 'time', 'mangas', 'chapters'
+};
+export const historyOrderTypes = {
+    time: {
+        asc: 'oldest to newest',
+        desc: 'newest to oldest'
+    },
+    mangas: {
+        asc: 'least to most',
+        desc: 'most to least'
+    }, 
+    chapters: {
+        asc: 'least to most',
+        desc: 'most to least'
+    }
 };
 export const menuMALOptions = {
     fetchMALOnMenuOpen: true, // true, false
