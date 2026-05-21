@@ -1,7 +1,8 @@
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
          printMenuOptions, isValidLangCode, escapeRegex, truncateString,
          openURLInBrowser, isISODate } from '../helpers/functions.js';
-import { MESSAGE, SYM, historyOrderTypes } from '../helpers/export.js';
+import { MESSAGE, SYM, logOrderTypes } from '../helpers/export.js';
+const { mangaOrderTypes, chapterOrderTypes, historyOrderTypes } = logOrderTypes;
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
 import stringWidth from 'string-width';
@@ -91,8 +92,8 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
             '_',
             ['f', `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`],
             ['h', `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`],
-            ['s', `Sort ${options.logMangaDirection === 'asc' ? 'descending' : 'ascending'}`],
-            ['o', `Order ${options.sortMangasAlphabetical ? 'by chapter count' : 'alphabetical'}`],
+            ['s', `Sort ${mangaOrderTypes[options.mangaOrderType][(options.logMangaDirection === 'asc' ? 'desc' : 'asc')]}`],
+            ['o', `Order by ${nextOrderType({ orderType: options.mangaOrderType, orderTypes: mangaOrderTypes })}`],
             ['t', `Toggle paging [${options.enablePagingManga ? 'x' : ''}]`],
             (options.enablePagingManga ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
         ];
@@ -114,8 +115,8 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
             options.hideZeroLengthManga = !options.hideZeroLengthManga;
         } else if (input === 's') { // toggle ascending/descending
             options.logMangaDirection = options.logMangaDirection === 'asc' ? 'desc' : 'asc';
-        } else if (input === 'o') { // order alphabetical/chapter count
-            options.sortMangasAlphabetical = !options.sortMangasAlphabetical;
+        } else if (input === 'o') { // order type
+            options.mangaOrderType = nextOrderType({ orderType: options.mangaOrderType, orderTypes: mangaOrderTypes });
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingManga = !options.enablePagingManga;
         } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
@@ -127,7 +128,7 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
 }
 
 function sortMangas (data) {
-    const { filterByMangasFoundAtMangalist, hideZeroLengthManga, sortMangasAlphabetical,
+    const { filterByMangasFoundAtMangalist, hideZeroLengthManga, mangaOrderType,
             logMangaDirection } = options;
     let sortedMangas = [...data];
     // filter by mangas found at user's mangalist
@@ -138,27 +139,17 @@ function sortMangas (data) {
     if (hideZeroLengthManga) { 
         sortedMangas = sortedMangas.filter(obj => obj.chapters.length > 0);    
     } 
-    // sorting methods used
-    if (sortMangasAlphabetical) {  
-        if (logMangaDirection === 'asc') { // sort ascending (A-Z)
-            sortedMangas.sort((a, b) => 
-                Object.values(a.manga.attributes.title)[0]
-                .localeCompare(Object.values(b.manga.attributes.title)[0])
-            );
-        } else { // sort descending (Z-A) 
-            sortedMangas.sort((a, b) => 
-                Object.values(b.manga.attributes.title)[0]
-                .localeCompare(Object.values(a.manga.attributes.title)[0])
-            );
-        }
-    } else { // sort ascending (0-999) / descending (999-0) - chapters amount
-        if (options.logMangaDirection === 'asc') { 
-            sortedMangas.sort((a, b) => a.chapters.length - b.chapters.length); // sort ascending
-        } else { 
-            sortedMangas.sort((a, b) => b.chapters.length - a.chapters.length); // sort descending
-        }
-    }
-    return sortedMangas;
+    // sorting mangas
+    if (mangaOrderType === 'chapters') {
+        return logMangaDirection === 'asc'
+            ? sortedMangas.sort((a, b) => a.chapters.length - b.chapters.length)  // 0 - 9999
+            : sortedMangas.sort((a, b) => b.chapters.length - a.chapters.length); // 9999 - 0
+    } else if (mangaOrderType === 'title') {
+        const mangaTitle = (obj) => Object.values(obj.manga.attributes.title)[0];
+        return logMangaDirection === 'asc' 
+            ? sortedMangas.sort((a, b) => mangaTitle(a).localeCompare(mangaTitle(b)))  // a - z
+            : sortedMangas.sort((a, b) => mangaTitle(b).localeCompare(mangaTitle(a))); // z - a
+    } 
 }
 
 async function searchMangas() {
@@ -325,7 +316,7 @@ async function traverseHistory() {
             '_',
             '_',
             ['s', `Sort ${historyOrderTypes[options.historyOrderType][(options.logHistoryDirection === 'asc' ? 'desc' : 'asc')]}`],
-            ['o', `Order by ${nextHistoryOrderType()}`],
+            ['o', `Order by ${nextOrderType({ orderType: options.historyOrderType, orderTypes: historyOrderTypes })}`],
             ['t', `Toggle paging [${options.enablePagingHistory ? 'x' : ''}]`],
             (options.enablePagingHistory ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
         ];
@@ -345,7 +336,7 @@ async function traverseHistory() {
         } else if (input === 's') { // sort direction
             options.logHistoryDirection = options.logHistoryDirection === 'asc' ? 'desc' : 'asc';
         } else if (input === 'o') { // order type
-            options.historyOrderType = nextHistoryOrderType();
+            options.historyOrderType = nextOrderType({ orderType: options.historyOrderType, orderTypes: historyOrderTypes });
         } else if (options.enablePagingHistory && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) {
             pageDetails = pagingOptions(input, sortedHistory, pageDetails);
         } else if (input !== 'e') {
@@ -355,30 +346,33 @@ async function traverseHistory() {
 }
 
 function sortHistory() {
+    const { historyOrderType, logHistoryDirection } = options;
     let history = mangadexFetchHistory;
-    const orderType = options.historyOrderType;
-    const logDirection = options.logHistoryDirection;
 
-    if (orderType === 'time') {
-        return logDirection === 'asc' 
+    if (historyOrderType === 'time') {
+        return logHistoryDirection === 'asc' 
             ? history.sort((a, b) => a.details.fetchedAt - b.details.fetchedAt)
             : history.sort((a, b) => b.details.fetchedAt - a.details.fetchedAt);
-    } else if (orderType === 'mangas') {
-        return logDirection === 'asc' 
+    } else if (historyOrderType === 'mangas') {
+        return logHistoryDirection === 'asc' 
             ? history.sort((a, b) => countFetchedMangas(Object.values(a)) - countFetchedMangas(Object.values(b)))
             : history.sort((a, b) => countFetchedMangas(Object.values(b)) - countFetchedMangas(Object.values(a)));
-    } else if (orderType === 'chapters') {
-        return logDirection === 'asc' 
+    } else if (historyOrderType === 'chapters') {
+        return logHistoryDirection === 'asc' 
             ? history.sort((a, b) => countFetchedChapters(Object.values(a)) - countFetchedChapters(Object.values(b)))
             : history.sort((a, b) => countFetchedChapters(Object.values(b)) - countFetchedChapters(Object.values(a)));
     }
 }
 
-function nextHistoryOrderType() {
-    const keys = Object.keys(historyOrderTypes);
-    const index = keys.findIndex(key => key === options.historyOrderType);
-    const nextIndex = index + 1;
-    return nextIndex < keys.length ? keys[nextIndex] : keys[0];
+function nextOrderType ({ orderType = null, orderTypes = null } = {}) {
+    // e.g. orderType  = 'time'
+    //      orderTypes = historyOrderTypes (from export.js)
+    if (orderType && orderTypes) {
+        const keys = Object.keys(orderTypes);
+        const index = keys.findIndex(key => key === orderType);
+        const nextIndex = index + 1;
+        return nextIndex < keys.length ? keys[nextIndex] : keys[0];
+    }
 }
 
 function countFetchedMangas (values) {
@@ -461,13 +455,10 @@ async function traverseChapters (selectedManga, chapterArr) {
         return [indexWithPadding, separatorWithPadding, `${progressLabelWithPadding}${truncatedTitleWithPadding}${transLangWithPadding}${unreadFlag}`];
     };
 
-    // TODO:
-    // - make it possible to arrange chapters by their title a-z and z-a
-
     while (input !== 'e') 
     {
         const foundManga = findEntryAtLists(manga);
-        sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === null || (input >= 0 && input <= pagedChapters.length && options.hideReadChapters) ? sortChapters(chapters, foundManga) : sortedChapters;
+        sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === 'o' || input === null || (input >= 0 && input <= pagedChapters.length && options.hideReadChapters) ? sortChapters(chapters, foundManga) : sortedChapters;
         pageDetails = options.enablePagingChapter ? updatePageDetails(pageDetails, sortedChapters) : pageDetails;
         pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
@@ -485,7 +476,8 @@ async function traverseChapters (selectedManga, chapterArr) {
             '_',
             ['h', `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`],
             ['?', `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`],
-            ['s', `Sort ${options.logChapterDirection === 'asc' ? 'descending' : 'ascending'}`],
+            ['s', `Sort ${chapterOrderTypes[options.chapterOrderType][options.logChapterDirection === 'asc' ? 'desc' : 'asc']}`],
+            ['o', `Order by ${nextOrderType({ orderType: options.chapterOrderType, orderTypes: chapterOrderTypes })}`],
             ['t', `Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`],
             (options.enablePagingChapter ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
         ];
@@ -510,6 +502,8 @@ async function traverseChapters (selectedManga, chapterArr) {
             options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
         } else if (input === 's') { // toggle sort direction
             options.logChapterDirection = options.logChapterDirection === 'asc' ? 'desc' : 'asc';
+        } else if (input === 'o') { // order type
+            options.chapterOrderType = nextOrderType({ orderType: options.chapterOrderType, orderTypes: chapterOrderTypes });
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingChapter = !options.enablePagingChapter;
         } else if (options.enablePagingChapter && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
@@ -530,37 +524,43 @@ function sortChapters (chapters, foundManga) {
     if (options.filterChapterLanguages.length) { 
         sortedChapters = sortedChapters.filter(chapter => options.filterChapterLanguages.includes(chapter.attributes.translatedLanguage));
     }
-    // log by chapter number either 1-999 or 999-1
-    const logDirection = options.logChapterDirection;
 
-    const chapterOnly = sortedChapters.filter(({ attributes: { volume, chapter } }) => !volume && chapter);
-    const volumeOnly = sortedChapters.filter(({ attributes: { volume, chapter }})  => volume && !chapter);
-    const volumeChapter = sortedChapters.filter(({ attributes: { volume, chapter }}) => volume && chapter);
-    const noVolumeOrChapter = sortedChapters.filter(({ attributes: { volume, chapter }}) => !volume && !chapter);
+    const logDirection = options.logChapterDirection,
+          orderType = options.chapterOrderType;
 
-    return [
-        ...volumeOnly.sort((a, b) => {
-            return logDirection === 'asc'
-                ? a.attributes.volume - b.attributes.volume
-                : b.attributes.volume - a.attributes.volume
-        }),
-        ...volumeChapter.sort((a, b) => {
-            if (a.attributes.volume !== b.attributes.volume) {
-                return logDirection === 'asc'
-                    ? a.attributes.volume - b.attributes.volume
-                    : b.attributes.volume - a.attributes.volume
-            }
-            return logDirection === 'asc'
-                ? a.attributes.chapter - b.attributes.chapter
-                : b.attributes.chapter - a.attributes.chapter
-        }), 
-        ...chapterOnly.sort((a, b) => {
-            return logDirection === 'asc' 
-                ? Number(a.attributes.chapter) - Number(b.attributes.chapter)
-                : Number(b.attributes.chapter) - Number(a.attributes.chapter)
-        }),
-        ...noVolumeOrChapter
-    ]; 
+    // sorting chapters
+    if (orderType === 'title') { 
+        const chapterTitle = (obj) => obj.attributes.title;
+
+        return sortedChapters.sort((a, b) => // title alphabetical
+            logDirection === 'asc' 
+                ? chapterTitle(a).localeCompare(chapterTitle(b)) // a - z
+                : chapterTitle(b).localeCompare(chapterTitle(a)) // z - a
+        );
+    } else if (orderType === 'chapter') {
+        const getVolume = (obj) => obj.attributes.volume;
+        const getChapter = (obj) => obj.attributes.chapter;
+
+        const chapterOnly = sortedChapters.filter(obj => !getVolume(obj) && getChapter(obj));
+        const volumeOnly = sortedChapters.filter(obj => getVolume(obj) && !getChapter(obj));
+        const volumeChapter = sortedChapters.filter(obj => getVolume(obj) && getChapter(obj));
+        const noVolumeOrChapter = sortedChapters.filter(obj => !getVolume(obj) && !getChapter(obj));
+
+        return [
+            ...volumeOnly.sort((a, b) => // sort volume
+                logDirection === 'asc' ? getVolume(a) - getVolume(b) : getVolume(b) - getVolume(a)
+            ),
+            ...volumeChapter.sort((a, b) => // sort volume first then chapter
+                getVolume(a) !== getVolume(b) 
+                    ? (logDirection === 'asc' ? getVolume(a) - getVolume(b) : getVolume(b) - getVolume(a))
+                    : (logDirection === 'asc' ? getChapter(a) - getChapter(b) : getChapter(b) - getChapter(a))
+            ), 
+            ...chapterOnly.sort((a, b) => // sort chapter
+                logDirection === 'asc' ? getChapter(a) - getChapter(b) : getChapter(b) - getChapter(a)
+            ),
+            ...noVolumeOrChapter
+        ]; 
+    }   
 }
 
 function updatePageDetails (pageDetails, sortedContent) {
