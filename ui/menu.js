@@ -21,7 +21,6 @@ async function menu (l, c, m, mfh) {
 
         await rootMenu(); 
     } catch (error) {
-        clearScreen();
         logErrorDetails(error);
     } 
 }

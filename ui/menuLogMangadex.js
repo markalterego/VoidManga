@@ -1,7 +1,7 @@
 import { takeUserInput, capitalFirstLetterString, longStringToArray, 
          printMenuOptions, isValidLangCode, escapeRegex, truncateString,
          openURLInBrowser, isISODate } from '../helpers/functions.js';
-import { MESSAGE, SYM } from '../helpers/export.js';
+import { MESSAGE, SYM, historyOrderTypes } from '../helpers/export.js';
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
 import stringWidth from 'string-width';
@@ -299,20 +299,17 @@ async function traverseHistory() {
     const formatFetchInfo = (fetchInfo) => {
         // counting mangas/chapters fetched
         const values = Object.values(fetchInfo);
-        const fetchedMangas   = values.reduce((acc, info) => info.status ? acc + 1 : acc, 0);
+        const fetchedMangas   = countFetchedMangas(values);
         const paddedMangas    = String(fetchedMangas).padEnd(4, ' ');
-        const fetchedChapters = values.reduce((acc, info) => info.updatedCount ? acc + info.updatedCount : acc, 0);
+        const fetchedChapters = countFetchedChapters(values);
         // fetchedAt as yyyy-mm-dd hh:mm:ss
         const formattedDate = formatDate(fetchInfo.details.fetchedAt);
         return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
     };
 
-    // TODO:
-    // - make it possible to order by manga and chapter count
-
     while (input !== 'e') 
     {
-        sortedHistory = input === null || input === 's' ? sortHistory() : sortedHistory;
+        sortedHistory = input === null || input === 's' || input === 'o' ? sortHistory() : sortedHistory;
         pageDetails   = options.enablePagingHistory ? updatePageDetails(pageDetails, sortedHistory) : pageDetails;
         pagedHistory  = pageContent(sortedHistory, pageDetails.currentPageIndex, options.enablePagingHistory);
 
@@ -327,7 +324,8 @@ async function traverseHistory() {
             pageFooter,
             '_',
             '_',
-            ['s', `Sort ${options.logHistoryDirection === 'asc' ? 'descending' : 'ascending'}`],
+            ['s', `Sort ${historyOrderTypes[options.historyOrderType][(options.logHistoryDirection === 'asc' ? 'desc' : 'asc')]}`],
+            ['o', `Order by ${nextHistoryOrderType()}`],
             ['t', `Toggle paging [${options.enablePagingHistory ? 'x' : ''}]`],
             (options.enablePagingHistory ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
         ];
@@ -346,12 +344,49 @@ async function traverseHistory() {
             options.enablePagingHistory = !options.enablePagingHistory;
         } else if (input === 's') { // sort direction
             options.logHistoryDirection = options.logHistoryDirection === 'asc' ? 'desc' : 'asc';
+        } else if (input === 'o') { // order type
+            options.historyOrderType = nextHistoryOrderType();
         } else if (options.enablePagingHistory && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) {
             pageDetails = pagingOptions(input, sortedHistory, pageDetails);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
+}
+
+function sortHistory() {
+    let history = mangadexFetchHistory;
+    const orderType = options.historyOrderType;
+    const logDirection = options.logHistoryDirection;
+
+    if (orderType === 'time') {
+        return logDirection === 'asc' 
+            ? history.sort((a, b) => a.details.fetchedAt - b.details.fetchedAt)
+            : history.sort((a, b) => b.details.fetchedAt - a.details.fetchedAt);
+    } else if (orderType === 'mangas') {
+        return logDirection === 'asc' 
+            ? history.sort((a, b) => countFetchedMangas(Object.values(a)) - countFetchedMangas(Object.values(b)))
+            : history.sort((a, b) => countFetchedMangas(Object.values(b)) - countFetchedMangas(Object.values(a)));
+    } else if (orderType === 'chapters') {
+        return logDirection === 'asc' 
+            ? history.sort((a, b) => countFetchedChapters(Object.values(a)) - countFetchedChapters(Object.values(b)))
+            : history.sort((a, b) => countFetchedChapters(Object.values(b)) - countFetchedChapters(Object.values(a)));
+    }
+}
+
+function nextHistoryOrderType() {
+    const keys = Object.keys(historyOrderTypes);
+    const index = keys.findIndex(key => key === options.historyOrderType);
+    const nextIndex = index + 1;
+    return nextIndex < keys.length ? keys[nextIndex] : keys[0];
+}
+
+function countFetchedMangas (values) {
+    return values.reduce((acc, info) => info.status ? acc + 1 : acc, 0);
+}
+
+function countFetchedChapters (values) {
+    return values.reduce((acc, info) => info.updatedCount ? acc + info.updatedCount : acc, 0);
 }
 
 function formatDate (DATE) {
@@ -364,23 +399,6 @@ function formatDate (DATE) {
     const ss   = String(date.getSeconds()).padStart(2, '0');
     // e.g. `2026-04-02 06:42:54  m:44   c:1186`
     return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
-}
-
-function sortHistory() {
-    let history = mangadexFetchHistory;
-    const logDirection = options.logHistoryDirection;
-
-    if (logDirection === 'asc') {
-        history.sort((a, b) => 
-            a.details.fetchedAt - b.details.fetchedAt
-        );
-    } else {
-        history.sort((a, b) => 
-            b.details.fetchedAt - a.details.fetchedAt
-        );
-    }
-
-    return history;
 }
 
 async function historyOptionsMenu (selectedFetch) {    
