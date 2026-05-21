@@ -96,31 +96,59 @@ export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
 export const expectedFilters = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
 export const logMangadexOptions = {
+    // traverseMangas
     filterByMangasFoundAtMangalist: false, // true, false
-    sortMangasAlphabetical: false, // true, false
-    logMangaDirection: 'asc', // 'asc', 'desc'
     hideZeroLengthManga: false, // true, false
+    logMangaDirection: 'asc', // 'asc', 'desc'
+    mangaOrderType: 'chapters', // 'chapters', 'title'
     enablePagingManga: true, // true, false
-    logChapterDirection: 'asc', // 'asc', 'desc'
+    
+    // traverseChapters
     hideReadChapters: false, // true, false
     filterChapterLanguages: [], // true, false
+    logChapterDirection: 'asc', // 'asc', 'desc'
+    chapterOrderType: 'chapter', // 'chapter', 'title'
     enablePagingChapter: true, // true, false
+    
+    // traverseHistory
     logHistoryDirection: 'asc', // 'asc', 'desc'
-    enablePagingHistory: true, // true, false
-    historyOrderType: 'time' // 'time', 'mangas', 'chapters'
+    historyOrderType: 'time', // 'time', 'mangas', 'chapters'
+    enablePagingHistory: true // true, false
 };
-export const historyOrderTypes = {
-    time: {
-        asc: 'oldest to newest',
-        desc: 'newest to oldest'
+export const logOrderTypes = {
+    mangaOrderTypes: {
+        title: {
+            asc: 'a to z',
+            desc: 'z to a'
+        },
+        chapters: {
+            asc: 'least to most',
+            desc: 'most to least'
+        }
     },
-    mangas: {
-        asc: 'least to most',
-        desc: 'most to least'
-    }, 
-    chapters: {
-        asc: 'least to most',
-        desc: 'most to least'
+    chapterOrderTypes: {
+        title: {
+            asc: 'a to z',
+            desc: 'z to a'
+        },
+        chapter: {
+            asc: 'lowest to highest',
+            desc: 'highest to lowest'
+        }
+    },
+    historyOrderTypes: {
+        time: {
+            asc: 'oldest to newest',
+            desc: 'newest to oldest'
+        },
+        mangas: {
+            asc: 'least to most',
+            desc: 'most to least'
+        }, 
+        chapters: {
+            asc: 'least to most',
+            desc: 'most to least'
+        }
     }
 };
 export const menuMALOptions = {
