@@ -71,6 +71,8 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
     // TODO: 
     // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
     //   to the end of that specific title
+    // - create the possibility of of "quick searching" by inputting something like
+    //   e.g. "\s berserk" or similar which filters mangas by that search
 
     while (input !== 'e') 
     {
@@ -503,38 +505,47 @@ async function traverseChapters (selectedManga, chapterArr) {
 }
 
 function sortChapters (chapters, foundManga) {
+    const { hideReadChapters, filterChapterLanguages, 
+            logChapterDirection: logDirection, 
+            chapterOrderType: orderType } = options;
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
-    if (options.hideReadChapters && foundManga) { // don't hide if foundManga undefined
+    if (hideReadChapters && foundManga) { // don't hide if foundManga undefined
         sortedChapters = sortedChapters.filter(chapter => chapter.attributes.chapter > parseInt(foundManga.list_status.num_chapters_read)); 
     } 
     // filter by translated language 
-    if (options.filterChapterLanguages.length) { 
-        sortedChapters = sortedChapters.filter(chapter => options.filterChapterLanguages.includes(chapter.attributes.translatedLanguage));
+    if (filterChapterLanguages.length) { 
+        sortedChapters = sortedChapters.filter(chapter => filterChapterLanguages.includes(chapter.attributes.translatedLanguage));
     }
-
-    const logDirection = options.logChapterDirection,
-          orderType = options.chapterOrderType;
-
     // sorting chapters
     if (orderType === 'title') { 
-        const chapterTitle = (obj) => obj.attributes.title;
+        const chapterTitle = (obj) => obj.attributes.title?.trim();
         
-        // TODO:
-        // - make it so that sorts titles by locale
-        //   > group all chapters by locale, 
-        //     sort all groups individually ...localeCompare(title, translatedLanguage),
-        //     spread results into return statement
+        const validTitles = sortedChapters.filter((obj) => chapterTitle(obj));
 
-        const validTitles   = sortedChapters.filter((obj) => chapterTitle(obj));
+        // { en: [c, ...], es: [c, ...] }
+        const titlesByLocale = validTitles.reduce((acc, chapter) => {
+            const transLang = chapter.attributes.translatedLanguage;
+            return acc[transLang]
+                ? { ...acc, [transLang]: [...acc[transLang], chapter] }
+                : { ...acc, [transLang]: [chapter] };
+        }, {});
+
+        // sort within each locale group, then flatten
+        const sortedTitles = Object.entries(titlesByLocale)
+            .flatMap(([transLang, chapters]) => 
+                chapters.sort((a, b) => 
+                    logDirection === 'asc' 
+                        ? chapterTitle(a).localeCompare(chapterTitle(b), transLang)
+                        : chapterTitle(b).localeCompare(chapterTitle(a), transLang)
+                )
+            );
+        
+        // unsortable titles ( null, '' )
         const invalidTitles = sortedChapters.filter((obj) => !chapterTitle(obj));
 
         return [
-            ...validTitles.sort((a, b) => // title alphabetical
-                logDirection === 'asc' 
-                    ? chapterTitle(a).localeCompare(chapterTitle(b), ) // a - z
-                    : chapterTitle(b).localeCompare(chapterTitle(a))   // z - a
-            ),
+            ...sortedTitles,
             ...invalidTitles
         ];
     } else if (orderType === 'chapter') {
