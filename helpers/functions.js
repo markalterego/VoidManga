@@ -106,6 +106,11 @@ function isISODate (str) {
     return /^[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}\+[0-9]{2}\:[0-9]{2}$/.test(str);
 }
 
+function isMatchingAtStart (matchWith, matchTo) {
+    // \b matches at the start of each word, i for case insensitive
+    return new RegExp(`\\b${escapeRegex(matchWith)}`, 'i').test(matchTo);
+}
+
 function formatDate (DATE) {
     const date = new Date(DATE);
     const yyyy = date.getFullYear(); 
@@ -196,6 +201,7 @@ export {
     isValidLangCode,
     escapeRegex,
     isISODate,
+    isMatchingAtStart,
     formatDate,
     openURLInBrowser,
     printMenuOptions
