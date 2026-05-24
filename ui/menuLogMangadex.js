@@ -1,5 +1,6 @@
 import { takeUserInput, printMenuOptions, isValidLangCode, escapeRegex,
-         truncateString, openURLInBrowser, isISODate, formatDate } from '../helpers/functions.js';
+         truncateString, openURLInBrowser, isISODate, formatDate,
+         isMatchingAtStart } from '../helpers/functions.js';
 import { MESSAGE, SYM, logOrderTypes } from '../helpers/export.js';
 const { mangaOrderTypes, chapterOrderTypes, historyOrderTypes } = logOrderTypes;
 import { updateEntryMenu } from './menuMAL.js';
@@ -58,7 +59,14 @@ async function menuLogMangadex (m, l, config, mfh) {
 }
 
 async function traverseMangas (traversable = null, skipToTraverseChapters = false) {
-    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedMangas; 
+    let input = null, 
+    pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, 
+    sortedMangas, 
+    searchString = null;
+
+    // reminder = '&&' returns first falsy  or last if all prior were true
+    //            '||' returns first truthy or last if all prior were true
+    const parseSearchString = (str) => typeof str === 'string' && str.startsWith('\\s ') && str.slice(3).trim() || null;
     const formatMangaTitle = (index, title, chaptersLength) => {
         const indexWithPadding = String(index).padEnd(4); // pads up to 4 digits
         const separatorWithPadding = ':'.padEnd(1); // pads 1 after separator
@@ -71,16 +79,15 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
     // TODO: 
     // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
     //   to the end of that specific title
-    // - create the possibility of of "quick searching" by inputting something like
-    //   e.g. "\s berserk" or similar which filters mangas by that search
 
     while (input !== 'e') 
     {
-        sortedMangas = input === 'f' || input === 'h' || input === 's'  || input === 'o' || input === null ? sortMangas(traversable ?? mangadexData) : sortedMangas; 
+        sortedMangas = [null, 'f', 'h', 's', 'o', 'c'].some(o => o === input) || parseSearchString(input) ? sortMangas(traversable ?? mangadexData, { searchString }) : sortedMangas; 
         pageDetails = options.enablePagingManga ? updatePageDetails(pageDetails, sortedMangas) : pageDetails;
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
         // formatting printMenuOptions parameters
+        const header = `Select manga ${searchString ? `[search: ${searchString}] (c ${SYM.POINTS_TO} clear)` : ''}`; 
         const mangaTitles = pagedMangas.map((obj, index) => formatMangaTitle(index, Object.values(obj.manga.attributes.title)[0], obj.chapters.length));
         const pageFooter = mangaTitles.length && options.enablePagingManga ? 'p' : null;
         const titles = pagedMangas.length ? [...mangaTitles] : [['?', 'No manga found']];
@@ -102,7 +109,7 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
 
         // calling printMenuOptions
         printMenuOptions(
-            'Select manga', 
+            header, 
             optionsArray,
             { pageDetails }
         );
@@ -123,16 +130,22 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
             options.enablePagingManga = !options.enablePagingManga;
         } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
             pageDetails = pagingOptions(input, sortedMangas, pageDetails);
+        } else if (parseSearchString(input) || input === 'c') { // quick search/clear quick search
+            searchString = parseSearchString(input);
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }    
 }
 
-function sortMangas (data) {
+function sortMangas (data, { searchString = null } = {}) {
     const { filterByMangasFoundAtMangalist, hideZeroLengthManga, mangaOrderType,
             logMangaDirection } = options;
     let sortedMangas = [...data];
+    // filter by searchString
+    if (searchString) {
+        sortedMangas = sortedMangas.filter(obj => isMatchingAtStart(searchString, Object.values(obj.manga.attributes.title)[0]));
+    }
     // filter by mangas found at user's mangalist
     if (filterByMangasFoundAtMangalist) {
         sortedMangas = sortedMangas.filter(obj => findEntryAtLists(obj.manga));
@@ -237,8 +250,7 @@ async function findMangaByMangaTitle() {
         input = await takeUserInput(false, true);
 
         if (typeof input === 'string' && input.length && input !== 'e') {
-            const regex = new RegExp(`\\b${escapeRegex(input)}`, 'i'); // regex matches input at beginning of each word
-            const matching = mangadexData.filter(({manga: {attributes: {title}}}) => regex.test(Object.values(title)[0])); // match title to input
+            const matching = mangadexData.filter(({manga: {attributes: {title}}}) => isMatchingAtStart(input, Object.values(title)[0])); // match title to input
             if (!matching.length) { // no matching results
                 MESSAGE.print(MESSAGE.MATCHES_NOT_FOUND);
             } else if (matching.length === 1) { // open manga
@@ -790,8 +802,7 @@ async function findChapterByChapterTitle (selectedManga) {
         input = await takeUserInput(false, true);
 
         if (typeof input === 'string' && input.length && input !== 'e') {
-            const regex = new RegExp(`\\b${escapeRegex(input)}`, 'i'); // regex matches input at beginning of each word
-            const matching = chapters.filter(chapter => regex.test(chapter.attributes.title)); // match title to input
+            const matching = chapters.filter(chapter => isMatchingAtStart(input, chapter.attributes.title)); // match title to input
             if (!matching.length) { // no matching results
                 MESSAGE.print(MESSAGE.MATCHES_NOT_FOUND);
             } else if (matching.length === 1) { // open chapter
