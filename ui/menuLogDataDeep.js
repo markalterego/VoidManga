@@ -1,9 +1,9 @@
 import { takeUserInput, capitalFirstLetterString, isISODate, 
-         formatDate, longStringToArray } from "../helpers/functions.js";
+         formatDate, longStringToArray, printMenuOptions} from "../helpers/functions.js";
 import { MESSAGE } from "../helpers/export.js";
 
 async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSkipSorting) {
-    let input = 0;
+    let input = null;
 
     if (!forceSkipSorting && sortByKeysAlphabetical) {
         data = sortObjectByKeysAlphabetical(data, 'asc'); // sort by keys a-z
@@ -11,17 +11,19 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
 
     while (input !== 'e') 
     {   
-        let index = 0;
-        console.log(`\n\n  ${capitalFirstLetterString(dataTitle)}\n`);
-        if (!Object.keys(data).length) {
-            console.log('  ? -> No keys to select');
-        } else {
-            for (const key in data) {
-                console.log(`  ${index++} -> ${capitalFirstLetterString(key)}`);
-            }
-        }
-        console.log('\n  e -> Go back');
-        const highestSelectableIndex = index - 1;
+        const dataEntries = Object.entries(data);
+        const header = capitalFirstLetterString(dataTitle);
+        const mappedKeys = dataEntries.map(([key, _]) => [capitalFirstLetterString(key)]);
+        const keys = dataEntries.length ? mappedKeys : [['?', 'No keys to select']];
+        const optionsArray = [
+            ...keys,
+            '_'
+        ];
+
+        printMenuOptions(
+            header,
+            optionsArray
+        );
         
         input = await takeUserInput(true);
 
@@ -32,11 +34,11 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
         //    - else if data[selected] is array of primitives, log --> key\n -value\n -value etc...
         //    - else data[selected] is array of object(s) / object of objects, call function again with data[selected]
 
-        if (input >= 0 && input <= highestSelectableIndex) { 
+        if (input >= 0 && input < dataEntries.length) { 
             // data[input] is an object: 
             // -> key = key of data[input]
             // -> value = value of data[input]
-            const key = Object.keys(data)[input], value = Object.values(data)[input]; 
+            const [key, value] = dataEntries[input];
             const dataTypeOfValue = getDataTypeOfValue(value);
             if (!dataTypeOfValue) { // unknown datatype of value
                 console.log('\n\n  Data type of value couldn\'t be resolved')
@@ -91,22 +93,14 @@ function logObject (key, value) {
 }
 
 function logArrayOfPrimitives (title, array) {
-    console.log(`\n\n  ${capitalFirstLetterString(title)}:\n`);
-    array.forEach((value, index) => {
-        if (index < array.length - 1) console.log(`  - ${value}`);
-        else console.log(`  - ${value}\n`);
-    });
-    if (!array.length) console.log('  - Nothing was found');
-}
-
-function countKeyValuePairs (array) {
-    let count = 0;
-    for (const element of array) {
-        for (const key in element) {
-            count++;
-        }
-    }
-    return count;
+    const header = capitalFirstLetterString(title);
+    const primitives = array.map(val => [null, '-', val]);
+    const optionsArray = primitives.length ? primitives : [[null, '-', 'Nothing was found']];
+    printMenuOptions(
+        header,
+        optionsArray,
+        { printExit: false }
+    );
 }
 
 function flattenArrayOfObjects (array) {
@@ -128,47 +122,23 @@ function flattenArrayOfObjects (array) {
 }
 
 function reformatArrayObjectsToObject (array, keyOfArray) {
-    // formats array of objects to single object and names the keys
-    // of each object it holds into keyOfArray_index e.g. tags -> tag_0, tag_1 etc...
-    let newObject = {};
-    for (const key in array) {
-        const formattedKey = `${keyOfArray.slice(0, -1)}_${key}`; // format name of key by upper key
-        newObject[formattedKey] = array[key]; // create newObject.formattedKey to hold value of array[obj]
-    }
-    return newObject;
-}
-
-function isFilledWithIndexedKeys (object) {
-    // text <-- length text
-    // _ <-- one underscore 
-    // y <-- number
-    for (const key in object) {
-        const test = /[a-z]+_{1}[0-9]+/i.test(key); // test for each, return false right away if false otherwise return true at the end 
-        if (!test) return false;
-    }
-    return true;
+    // [ {} ... ] -> { key_1: {} ... }
+    return array.reduce((acc, obj, index) => {
+        const formattedKey = `${keyOfArray.slice(0, -1)}_${index}`; // e.g. 'Tags' -> 'Tag'
+        return { ...acc, [formattedKey]: obj };
+    }, {});
 }
 
 function isFilledWithOneLengthObjects (array) {
-    for (const obj of array) { // obj
-        if (Object.keys(obj).length > 1) return false; // more then one key value pair
-    }
-    return true; // every obj of length zero or one
+    return array.every(obj => 
+        Object.keys(obj).length === 1
+    );
 }
 
-function sortObjectByKeysAlphabetical (object, direction) {
-    // re-arrange given object by the names of the objects keys
-    // object can either be arranged in a-z or z-a order based on direction
-    if (!direction || direction === 'asc') { // sort keys a-z
-        object = Object.fromEntries( // format back to obj
-            Object.entries(object).sort((a, b) => a[0].localeCompare(b[0])) // format obj to arr and sort by keys a-z
-        ); 
-    } else { // sort keys z-a
-        object = Object.fromEntries( // re-arrange by keys
-            Object.entries(object).sort((a, b) => b[0].localeCompare(a[0])) // format obj to arr and sort by keys z-a
-        );
-    }
-    return object;
+function sortObjectByKeysAlphabetical (object, direction = 'asc') {
+    return direction === 'asc' 
+        ? Object.fromEntries(Object.entries(object).sort((a, b) => a[0].localeCompare(b[0])))
+        : Object.fromEntries(Object.entries(object).sort((a, b) => b[0].localeCompare(a[0])));
 }
 
 export { logDataDeepMenu };
