@@ -59,13 +59,23 @@ async function menuLogMangadex (m, l, config, mfh) {
 }
 
 async function traverseMangas (traversable = null, skipToTraverseChapters = false) {
+    const quickSearch = { 
+        justUpdated: false, 
+        searchString: null, 
+        getAndResetJustUpdated () {
+            const val = this.justUpdated;
+            this.justUpdated = false;
+            return val;
+        },
+        updateSearchString (str) { 
+            this.justUpdated = true; 
+            this.searchString = str;
+        }
+    };
     let input = null, 
-    pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, 
-    sortedMangas, 
-    searchString = null;
+        pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, 
+        sortedMangas;
 
-    // reminder = '&&' returns first falsy  or last if all prior were true
-    //            '||' returns first truthy or last if all prior were true
     const parseSearchString = (str) => typeof str === 'string' && str.startsWith('\\s ') && str.slice(3).trim() || null;
     const formatMangaTitle = (index, title, chaptersLength) => {
         const indexWithPadding = String(index).padEnd(4); // pads up to 4 digits
@@ -82,12 +92,13 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
 
     while (input !== 'e') 
     {
-        sortedMangas = [null, 'f', 'h', 's', 'o', 'c'].some(o => o === input) || parseSearchString(input) ? sortMangas(traversable ?? mangadexData, { searchString }) : sortedMangas; 
+        const shouldSort = [null, 'f', 'h', 's', 'o'].some(o => o === input) || quickSearch.getAndResetJustUpdated();
+        sortedMangas = shouldSort ? sortMangas(traversable ?? mangadexData, { searchString: quickSearch.searchString }) : sortedMangas; 
         pageDetails = options.enablePagingManga ? updatePageDetails(pageDetails, sortedMangas) : pageDetails;
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
         // formatting printMenuOptions parameters
-        const header = `Select manga ${searchString ? `[search: ${searchString}] (c ${SYM.POINTS_TO} clear)` : ''}`; 
+        const header = `Select manga ${quickSearch.searchString ? `[search: ${quickSearch.searchString}] (c ${SYM.POINTS_TO} clear)` : ''}`; 
         const mangaTitles = pagedMangas.map((obj, index) => formatMangaTitle(index, Object.values(obj.manga.attributes.title)[0], obj.chapters.length));
         const pageFooter = mangaTitles.length && options.enablePagingManga ? 'p' : null;
         const titles = pagedMangas.length ? [...mangaTitles] : [['?', 'No manga found']];
@@ -131,7 +142,7 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
         } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
             pageDetails = pagingOptions(input, sortedMangas, pageDetails);
         } else if (parseSearchString(input) || input === 'c') { // quick search/clear quick search
-            searchString = parseSearchString(input);
+            quickSearch.updateSearchString(parseSearchString(input));
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
