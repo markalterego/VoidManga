@@ -50,7 +50,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
                 await logDataDeepMenu(value, key, 'asc', forceSkipSorting);
             } else if (dataTypeOfValue === 'arrayOfObjects') { // key: [ {key1: value1}, {key2: value2} ]
                 const isFlattenable = isFilledWithOneLengthObjects(value); 
-                const object = isFlattenable ? flattenArrayOfObjects(value) : reformatArrayObjectsToObject(value, key);
+                const object = isFlattenable ? flattenAndGroupArrayOfObjects(value) : reformatArrayObjectsToObject(value, key);
                 await logDataDeepMenu(object, key, isFlattenable, forceSkipSorting); // isFlattenable triggers alphabetical sorting if true
             }
         } else if (input !== 'e') {
@@ -103,22 +103,14 @@ function logArrayOfPrimitives (title, array) {
     );
 }
 
-function flattenArrayOfObjects (array) {
-    // flattens array of objects to a single object holding key-value pairs
-    let flatObject = {}; // holds flattened object
-    let keyCount = {}; // counts how many keys by name key encountered e.g. 'en': 2 <-- two keys by name 'en' encountered
-    for (const obj of array) { // refers to e.g. '{ 'en': 'frieren' }'
-        for (const key in obj) { // e.g. 'en'
-            if (!flatObject[key]) { // key doesn't yet exist
-                keyCount[key] = 1; // start counting key
-                flatObject[key] = obj[key];
-            } else { // key exists
-                const formattedKey = `${key}_${keyCount[key]++}`; // format key && increment keyCount[key]
-                flatObject[formattedKey] = obj[key]; // add data to formatted key
-            }
-        }
-    }
-    return flatObject;
+function flattenAndGroupArrayOfObjects (array) {
+    // [{ key: val }, ... ] -> { key: [val, ...], ... }
+    return array.reduce((acc, obj) => {
+        const [[key, val]] = Object.entries(obj); // [[key, val]]
+        return acc[key] 
+            ? { ...acc, [key]: [...acc[key], val] } 
+            : { ...acc, [key]: [val] };
+    }, {});
 }
 
 function reformatArrayObjectsToObject (array, keyOfArray) {
