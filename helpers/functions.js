@@ -44,8 +44,30 @@ function clearScreen() {
     process.stdout.write('\x1Bc'); 
 }
 
-function customFetchMangadexDisplay (options) {
-    console.log(`\n\n  Manga fetch size: ${options.limit_manga}`);
+function customFetchMangadexDisplay ({ lists = null, options = null } = {}) {
+
+    // TODO:
+    // - refactor this bullshit lmao
+
+    // take first e.g. five selected, then append ... and x amount more
+    const mangaSearchTitles = options.fetchMangasByMALTitles 
+        ? lists.flat(2).filter(e => e.includeInMangadexFetch).map(e => e.node.title) 
+        : options.mangaSearchStrings;
+
+    let searchTitlesString = '', i = 0;
+    for (const title of mangaSearchTitles) {
+        if (i >= 2) {
+            const leftOverCount = mangaSearchTitles.length - i;
+            searchTitlesString += `, ... and ${leftOverCount} more`;
+            break;
+        }
+        searchTitlesString += !i++ ? title : `, ${title}`; 
+    }
+    searchTitlesString = searchTitlesString ? `[${searchTitlesString}]` : '(empty)';
+
+    console.log(`\n\n  Search source: ${options.fetchMangasByMALTitles ? 'MAL titles' : 'Custom input'}`);
+    console.log(`  Search queue: ${searchTitlesString}`);
+    console.log(`  Manga fetch size: ${options.limit_manga}`);
     console.log(`  Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
     console.log(`  Chapter fetch type: ${options.fetchAllChapters ? 'all' : 'custom'}`);
     if (!options.fetchAllChapters) {
@@ -55,23 +77,6 @@ function customFetchMangadexDisplay (options) {
     }
     console.log(`  Chapter languages: ${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}`);
     console.log(`  Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n`);
-}
-
-function menuFetchFiltersDisplay (lists, key) {
-    const entries = lists.flat(2);
-    const selectedTitles = entries.filter(entry => entry[key]);
-    const titles = selectedTitles.length 
-        ? selectedTitles.map(entry => ['-', entry.node.title, `(${entry.list_status.status})`])
-        : [['-', 'No titles', 'selected']]
-    const optionsArray = [
-        ['', '\n\n  Current selection', '\n'],
-        ...titles,
-    ];
-    printMenuOptions(
-        null,
-        optionsArray,
-        { printHeader: false, printExit: false }
-    );
 }
 
 function capitalFirstLetterString (string) {
@@ -194,7 +199,6 @@ export {
     takeUserInput, 
     clearScreen, 
     customFetchMangadexDisplay, 
-    menuFetchFiltersDisplay,
     capitalFirstLetterString, 
     longStringToArray,
     truncateString,
