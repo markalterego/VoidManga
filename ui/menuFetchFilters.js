@@ -1,11 +1,13 @@
-import { takeUserInput, menuFetchFiltersDisplay, capitalFirstLetterString, 
-         printMenuOptions } from '../helpers/functions.js';
+import { takeUserInput, capitalFirstLetterString, printMenuOptions } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters, SYM, MESSAGE } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
 
 const ANIME = 0, MANGA = 1;
 let lists = null;
 let key = null;
+
+// TODO:
+// - implement paging for traversing entries
 
 async function filterEntriesFromFetch (l, k) {      
     lists = l; key = k; // referring lists and key accordingly
