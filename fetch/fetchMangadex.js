@@ -3,19 +3,17 @@ import { setTimeout } from "timers/promises";
 import { logErrorDetails } from '../helpers/errorLogger.js';
 import { getTypeIndex } from '../updateMAL/updateMAL.js';
 import { withRetry, rateLimitedFetch } from './fetchUtils.js';
-// import { toZonedTime, format } from 'date-fns-tz'; 
 
-async function fetchMangadexMangas (lists, options) {
+async function fetchMangadexMangas (searchQueue, options) {
     try {
         let mangaEndpointFetchResults = [], fetchCount = 0;
-        const includedEntries = findIncludedEntries(lists); // returns an array of copies of found entries slightly re-formatted  
         console.log('\n\n  Fetching mangas...\n');
-        for (const entry of includedEntries) {
-            const fetchResult = await fetchManga(entry, options); // returns { searchResults, query }
+        for (const searchString of searchQueue) {
+            const fetchResult = await fetchManga(searchString, options); // returns { searchResults, searchTitle }
             mangaEndpointFetchResults.push(fetchResult);
             const fetchedAmount = fetchResult.searchResults?.length;
             const fetchedMangasString = fetchedAmount ? `${fetchedAmount} mangas fetched` : 'no mangas found'; 
-            console.log(`  [${entry.node.title}] ${fetchedMangasString} (${++fetchCount}/${includedEntries.length})`);
+            console.log(`  [${searchString}] ${fetchedMangasString} (${++fetchCount}/${searchQueue.length})`);
         } 
         console.log();
         return mangaEndpointFetchResults; // return searchResults for all manga searches
@@ -24,24 +22,11 @@ async function fetchMangadexMangas (lists, options) {
     }
 }
 
-function findIncludedEntries (lists) {
-    // filters lists by entries which have entry.includeInMangadexFetch set to true
-    // and maps type: 'anime'/'manga' to each found entry based on if entry was found
-    // at anime- or mangalist 
-    const types = ['anime', 'manga'];
-    return lists.flat(2)
-                .filter(e => e.includeInMangadexFetch)
-                .map(e => ( 
-                    { ...e, type: types[getTypeIndex(e)] } 
-                ));
-}
-
-async function fetchManga (entry, options) {
-    const { type, node: { title, id } } = entry;
+async function fetchManga (searchTitle, options) {
     const { limit_manga, mangaOrderType, mangaOrderDirection, contentRating } = options;
     
     const params = {
-        title,
+        title: searchTitle,
         limit: limit_manga,
         [`order[${mangaOrderType}]`]: mangaOrderDirection, // e.g 'order[relevance]': 'desc' - orders by most relevant to least relevant
         contentRating
@@ -54,13 +39,14 @@ async function fetchManga (entry, options) {
         )
     );
 
-    const formattedMangaresponse = mangaResponse.data.data?.map(manga => 
+    // append url to manga page
+    const formattedMangaResponse = mangaResponse.data.data?.map(manga => 
         ({ ...manga, url: `https://mangadex.org/title/${manga.id}`})
     );
 
     return {
-        searchResults: formattedMangaresponse,
-        query: { title, id, type }
+        searchResults: formattedMangaResponse,
+        searchTitle
     };
 }
  
