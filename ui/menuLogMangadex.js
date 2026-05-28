@@ -224,7 +224,7 @@ async function findMangasByFetchInfo ({fetchInfo = {}, status = null} = {}) {
             return { manga: manga, chapters: updatedChapters };
         });
         // traverse found mangas + chapters
-        await traverseMangas(filteredFoundMangas, true);
+        await traverseMangas(filteredFoundMangas);
     }
 }
 
