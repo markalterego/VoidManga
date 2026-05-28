@@ -1,6 +1,6 @@
 import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
-import { mangaOrderTypes, chapterOrderTypes, SYM, MESSAGE } from './export.js';
+import { mangaOrderTypes, chapterOrderTypes, SYM, MESSAGE, contentRatings } from './export.js';
 import open from 'open';
 
 async function takeUserInput (useWhole = false, forceString = false, { useMixedCase = false, useUpperCase = false } = {}, skipClear = false) {
@@ -45,38 +45,65 @@ function clearScreen() {
 }
 
 function customFetchMangadexDisplay ({ lists = null, options = null } = {}) {
+    const { fetchMangasByMALTitles, mangaOrderType, mangaOrderDirection, 
+            limit_manga, fetchAllChapters, limit_chapter, chapterOrderDirection, 
+            chapterOrderType, offset_chapter, chapterTranslatedLanguage, contentRating,
+            mangaSearchStrings } = options;
 
-    // TODO:
-    // - refactor this bullshit lmao
-
-    // take first e.g. five selected, then append ... and x amount more
-    const mangaSearchTitles = options.fetchMangasByMALTitles 
+    const searchSource = fetchMangasByMALTitles ? 'MAL titles' : 'Custom input';
+    
+    const queue = fetchMangasByMALTitles 
         ? lists.flat(2).filter(e => e.includeInMangadexFetch).map(e => e.node.title) 
-        : options.mangaSearchStrings;
+        : mangaSearchStrings;
+    const MAX = 2;
+    const queueSlicedJoined = `${queue.slice(0, MAX).join(', ')}`;
+    const queueWithMore = queue.length > MAX 
+        ? `${queueSlicedJoined}, ... and ${queue.length - MAX} more` 
+        : `${queueSlicedJoined}` || null; 
+    const queueWrappedString = queueWithMore ? `[${queueWithMore}]` : '(empty)';
+    
+    const mangaOrder = `${capitalFirstLetterString(mangaOrderType)} (${mangaOrderTypes[mangaOrderType][mangaOrderDirection]})`
+    
+    const fetchAllChaptersLabel = fetchAllChapters ? 'All' : 'Custom';
+    const chapterOrder = `${capitalFirstLetterString(chapterOrderType)} (${chapterOrderTypes[chapterOrderType][chapterOrderDirection]})`;    
+    
+    const chapterLanguagesJoined = `${chapterTranslatedLanguage.slice(0, MAX).join(', ')}`;
+    const chapterLanguagesWithMore = chapterTranslatedLanguage.length > MAX
+        ? `${chapterLanguagesJoined}, ... and ${chapterTranslatedLanguage.length - MAX} more` 
+        : `${chapterLanguagesJoined}` || null;
+    const chapterLanguagesString = chapterLanguagesWithMore ? `[${chapterLanguagesWithMore}]` : 'All'; 
 
-    let searchTitlesString = '', i = 0;
-    for (const title of mangaSearchTitles) {
-        if (i >= 2) {
-            const leftOverCount = mangaSearchTitles.length - i;
-            searchTitlesString += `, ... and ${leftOverCount} more`;
-            break;
-        }
-        searchTitlesString += !i++ ? title : `, ${title}`; 
-    }
-    searchTitlesString = searchTitlesString ? `[${searchTitlesString}]` : '(empty)';
+    const contentRatingsString = contentRating.length ? `[${contentRating.join(', ')}]` : 'Default';
 
-    console.log(`\n\n  Search source: ${options.fetchMangasByMALTitles ? 'MAL titles' : 'Custom input'}`);
-    console.log(`  Search queue: ${searchTitlesString}`);
-    console.log(`  Manga fetch size: ${options.limit_manga}`);
-    console.log(`  Manga order: ${options.mangaOrderType} (${mangaOrderTypes[options.mangaOrderType][options.mangaOrderDirection]})`);
-    console.log(`  Chapter fetch type: ${options.fetchAllChapters ? 'all' : 'custom'}`);
-    if (!options.fetchAllChapters) {
-        console.log(`  Chapter fetch size: ${options.limit_chapter}`); 
-        console.log(`  Chapter order: ${options.chapterOrderType} (${chapterOrderTypes[options.chapterOrderType][options.chapterOrderDirection]})`);
-        console.log(`  Chapter offset: ${options.offset_chapter}`);
-    }
-    console.log(`  Chapter languages: ${options.chapterTranslatedLanguage[0] === undefined ? 'all' : options.chapterTranslatedLanguage}`);
-    console.log(`  Content ratings: ${options.contentRating[0] === undefined ? 'default' : options.contentRating}\n`);
+    const optionsArray_1 = [
+        '_', 
+        '_',
+        [null, 'Search source:', searchSource],
+        [null, 'Search queue:', queueWrappedString],
+        [null, 'Manga fetch size:', limit_manga],
+        [null, 'Manga order:', mangaOrder],
+        [null, 'Chapter fetch type:', fetchAllChaptersLabel],
+        ...(!fetchAllChapters ? 
+            [
+                [null, 'Chapter fetch size:', limit_chapter], 
+                [null, 'Chapter order:', chapterOrder], 
+                [null, 'Chapter offset:', offset_chapter]
+            ]
+            : [] 
+        ),
+        [null, 'Chapter languages:', chapterLanguagesString],
+        [null, 'Content ratings:', contentRatingsString],
+    ];
+
+    // format padEnd for all options at option[1] --- e.g. 'Search source:'
+    const longest = Math.max(...optionsArray_1.map(o => Array.isArray(o) ? o[1].length : null)); // longest based on longest option[1]
+    const paddedOptionsArray = optionsArray_1.map(o => Array.isArray(o) ? [o[0], o[1].padEnd(longest, ' '), o[2]] : o); // pad option[1] by longest
+
+    printMenuOptions(
+        null,
+        paddedOptionsArray,
+        { printHeader: false, printExit: false}
+    );
 }
 
 function capitalFirstLetterString (string) {
