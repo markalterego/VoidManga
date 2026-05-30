@@ -1,4 +1,5 @@
 import { setTimeout } from "timers/promises";
+import { logErrorDetails } from "../helpers/errorLogger.js";
 
 async function withRetry (fn, maxRetries = 5) {
     // executes a fetch related function until the 
@@ -16,7 +17,7 @@ async function withRetry (fn, maxRetries = 5) {
     }
 }
 
-async function rateLimitedFetch (fn, minMs = 200) {
+async function rateLimitedFetch (fn, minMs = 200, logError = false) {
     // executes a function and waits a set amount
     // of time after the function if the execution
     // was faster than a set amount of milliseconds
@@ -25,6 +26,7 @@ async function rateLimitedFetch (fn, minMs = 200) {
     try {
         result = await fn(); // run function
     } catch (err) {
+        if (logError) logErrorDetails(err);
         error = err;
     }
     const timeTaken = performance.now() - start;
