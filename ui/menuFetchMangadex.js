@@ -79,11 +79,34 @@ async function fetchWithOptions() {
         console.log('\n\n  No chapters were found');
         return;
     } 
+    
+    updateFetchHistory(combinedData);
+    updateMangadexData(combinedData);
+}
 
-    // helpers
-    const findMangaById  = (mangaId) => mangadexData.find(({ manga: { id }}) => id === mangaId);
-    const getMangaTitle  = (manga) => Object.values(manga.attributes.title)[0];
-    const getNewChapters = (mangaId, newChapters) => newChapters.filter(chapter => !findMangaById(mangaId)?.chapters.some(existing => existing.id === chapter.id));
+function anySearchTitles() {
+    // determines if any MAL title has includeInMangadexFetch set
+    // or there are any strings of length > 0 at searchStrings
+    return options.fetchMangasByMALTitles 
+        ? lists.flat(2).some(e => e.includeInMangadexFetch)
+        : options.mangaSearchStrings.some(s => s.length);
+}
+
+function findMangaById (mangaId) {
+    // returns reference to mangadexData object where mangaId === manga.id
+    return mangadexData.find(({ manga: { id }}) => id === mangaId);
+}
+
+function getNewChapters (mangaId, fetchedChapters) {
+    // finds manga from existing mangadexData and filters
+    // chapters from fetchedChapters if they already exist
+    return fetchedChapters.filter(chapter => 
+        !findMangaById(mangaId)?.chapters.some(existing => existing.id === chapter.id)
+    );
+}
+
+function updateFetchHistory (combinedData) {
+    const getMangaTitle = (manga) => Object.values(manga.attributes.title)[0];
 
     // format fetch info
     const fetchInfo = combinedData.reduce((acc, { manga, chapters }) => { 
@@ -118,31 +141,8 @@ async function fetchWithOptions() {
     // log fetch details
     logFetchInfo(fetchInfoValues);
 
-    // update mangadexData
-    combinedData.forEach(({ manga: fetchedManga, chapters: fetchedChapters }) => {
-        const mangaId      = fetchedManga.id;
-        const existingData = findMangaById(mangaId);
-        // update mangadexData
-        if (!existingData) {
-            mangadexData.push({ manga: fetchedManga, chapters: fetchedChapters });
-        } else {
-            existingData.manga = { ...existingData.manga, ...fetchedManga }; // update manga data
-            existingData.chapters = [ ...existingData.chapters, ...getNewChapters(mangaId, fetchedChapters) ]; // update chapter data
-        }
-    });
-
     // save fetch info to file
     filehandle('mangadexFetchHistory', mangadexFetchHistory);
-    // save fetched data to file
-    filehandle('mangadex', mangadexData);
-}
-
-function anySearchTitles() {
-    // determines if any MAL title has includeInMangadexFetch set
-    // or there are any strings of length > 0 at searchStrings
-    return options.fetchMangasByMALTitles 
-        ? lists.flat(2).some(e => e.includeInMangadexFetch)
-        : options.mangaSearchStrings.some(s => s.length);
 }
 
 function logFetchInfo (fetchInfoValues) {
@@ -169,6 +169,23 @@ function logFetchInfo (fetchInfoValues) {
             console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
         }
     }
+}
+
+function updateMangadexData (combinedData) {
+    // update mangadexData
+    combinedData.forEach(({ manga: fetchedManga, chapters: fetchedChapters }) => {
+        const mangaId      = fetchedManga.id;
+        const existingData = findMangaById(mangaId);
+        // update mangadexData
+        if (!existingData) {
+            mangadexData.push({ manga: fetchedManga, chapters: fetchedChapters });
+        } else {
+            existingData.manga = { ...existingData.manga, ...fetchedManga }; // update manga data
+            existingData.chapters = [ ...existingData.chapters, ...getNewChapters(mangaId, fetchedChapters) ]; // update chapter data
+        }
+    });
+    // save updated data to file
+    filehandle('mangadex', mangadexData);
 }
 
 async function fetchOptionsMenu() {
