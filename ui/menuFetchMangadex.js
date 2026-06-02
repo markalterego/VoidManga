@@ -3,9 +3,10 @@ import { takeUserInput, customFetchMangadexDisplay, printMenuOptions,
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, fetchMangadexOptions, SYM, MESSAGE } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
-import { fetchMangadexMangas, fetchMangadexChapters } from '../fetch/fetchMangadex.js';
+import { fetchMangadexMangas, fetchMangadexChapters, fetchNewestChapters } from '../fetch/fetchMangadex.js';
 import { filehandle } from "../filehandling/filehandle.js";
 import stringWidth from 'string-width';
+import { logErrorDetails } from "../helpers/errorLogger.js";
 
 let lists = null;
 let options = null;
@@ -48,61 +49,56 @@ async function menuFetchMangadex (l, { fetchMangadexOptions }, m, mfh) {
     }
 }
 
-async function fetchWithOptions() {
-    // included MAL titles / mangaSearchStrings
-    if (!anySearchTitles()) { 
-        console.log(`\n\n  No titles selected for search`);
-        return;
-    } 
-    // included MAL titles / mangaSearchStrings
+async function fetchWithOptions () {
+    try {
+        const selectedMangas = await fetchMangas();
+        const combinedData = await fetchChapters(selectedMangas);
+        updateFetchHistory(combinedData);
+        updateMangadexData(combinedData);
+    } catch (error) {
+        logErrorDetails(error);
+    }
+}
+
+async function fetchMangas() {
+    // gathering selected MAL titles / mangaSearchStrings
     const searchQueue = options.fetchMangasByMALTitles 
         ? lists.flat(2).filter(e => e.includeInMangadexFetch).map(e => e.node.title)
         : options.mangaSearchStrings;
-    // attempts fetching mangas by selected MAL titles
+    if (!searchQueue.length) {
+        throw new Error('No titles selected for search');
+    }
+    // fetching mangas
     const mangaData = await fetchMangadexMangas(searchQueue, options);
-    const foundManga = mangaData?.some(mangaSearch => mangaSearch?.searchResults?.length > 0); // mangas found for at least one search
-    if (!foundManga) { // no mangas found for search
-        console.log('\n\n  No mangas were found');
-        return;
-    } 
-    // presents an indexed list of found mangas to user, from which
-    // the user can select one/multiple mangas to include in chapter search
+    const foundManga = mangaData?.some(mangaSearch => mangaSearch?.searchResults?.length > 0); 
+    if (!foundManga) {
+        throw new Error('No mangas were found');
+    }
+    // selecting mangas from mangaData
     const selectedMangas = await selectMangasFromFetchResults(mangaData);
-    if (!selectedMangas.length) { // no mangas selected
-        console.log('\n\n  No mangas were selected');
-        return;
+    if (!selectedMangas.length) { 
+        throw new Error('No mangas were selected');
     } 
-    // attempts to fetch chapters for each manga included in chapter search
-    const combinedData = await fetchMangadexChapters(selectedMangas, options); // returns an array of { manga: {}, chapters: [] }
+    return selectedMangas;
+}
+
+async function fetchChapters (selectedMangas) {
+    // fetching chapters --- returns [{ manga: {}, chapters: [] }, ...]
+    const combinedData = await fetchMangadexChapters(selectedMangas, options);  
     const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
-    if (!hasChapters) { // no chapters found
-        console.log('\n\n  No chapters were found');
-        return;
-    } 
-    
-    updateFetchHistory(combinedData);
-    updateMangadexData(combinedData);
+    if (!hasChapters) {
+        throw new Error ('No chapters were found');
+    }
+    return combinedData;
 }
 
-function anySearchTitles() {
-    // determines if any MAL title has includeInMangadexFetch set
-    // or there are any strings of length > 0 at searchStrings
-    return options.fetchMangasByMALTitles 
-        ? lists.flat(2).some(e => e.includeInMangadexFetch)
-        : options.mangaSearchStrings.some(s => s.length);
-}
-
-function findMangaById (mangaId) {
-    // returns reference to mangadexData object where mangaId === manga.id
-    return mangadexData.find(({ manga: { id }}) => id === mangaId);
-}
-
-function getNewChapters (mangaId, fetchedChapters) {
-    // finds manga from existing mangadexData and filters
-    // chapters from fetchedChapters if they already exist
-    return fetchedChapters.filter(chapter => 
-        !findMangaById(mangaId)?.chapters.some(existing => existing.id === chapter.id)
-    );
+async function fetchChaptersNew ({ manga, chapters } = {}) {
+    const newestChapter = chapters.reduce((acc, ch) => Number(ch.attributes.chapter) > acc ? Number(ch.attributes.chapter) : acc, 0);
+    const combinedData = await fetchMangadexChapters({ manga, newestChapter });
+    if (!combinedData) {
+        throw new Error ('Manga is up to date');
+    }
+    return combinedData;
 }
 
 function updateFetchHistory (combinedData) {
@@ -186,6 +182,19 @@ function updateMangadexData (combinedData) {
     });
     // save updated data to file
     filehandle('mangadex', mangadexData);
+}
+
+function getNewChapters (mangaId, fetchedChapters) {
+    // finds manga from existing mangadexData and filters
+    // chapters from fetchedChapters if they already exist
+    return fetchedChapters.filter(chapter => 
+        !findMangaById(mangaId)?.chapters.some(existing => existing.id === chapter.id)
+    );
+}
+
+function findMangaById (mangaId) {
+    // returns reference to mangadexData object where mangaId === manga.id
+    return mangadexData.find(({ manga: { id }}) => id === mangaId);
 }
 
 async function fetchOptionsMenu() {
