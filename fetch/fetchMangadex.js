@@ -50,7 +50,7 @@ async function fetchManga (searchTitle, options) {
     };
 }
  
-async function fetchMangadexChapters (selectedMangas, options) {
+async function fetchMangadexChapters (selectedMangas, options, mangasOverWritten = false) {
     try {
         
         // TODO: 
@@ -62,7 +62,11 @@ async function fetchMangadexChapters (selectedMangas, options) {
         for (const selectedManga of selectedMangas) {
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
             console.log(`\n  [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
-            const fetchedChapters = options.fetchAllChapters ? await fetchChaptersAll(selectedManga, options) : await fetchChaptersCustom(selectedManga, options); 
+            const fetchedChapters = options.fetchAllChapters 
+                ? await fetchChaptersAll(selectedManga, options) 
+                : mangasOverWritten 
+                ? await fetchNewestChapters(selectedManga)
+                : await fetchChaptersCustom(selectedManga, options); 
             const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine manga + chapter data
             mangaAndChapterInfo.push(combinedMangaChapterData);
             const fetchedAmount = combinedMangaChapterData.chapters?.length;
@@ -153,9 +157,12 @@ async function fetchChaptersAll ({ manga: { id }}, { chapterTranslatedLanguage, 
     return chapters.flat();
 }
 
-async function fetchNewestChapters ({ manga: { id }}, currentNewestChapter = Infinity) {
+async function fetchNewestChapters ({ manga, chapters }) {
+    const currentNewestChapter = chapters.reduce(
+        (acc, ch) => Math.max(acc, Number(ch.attributes.chapter))
+    , 0);
     const limit = 100;
-    let chapters = [];
+    let newChapters = [];
     let newChaptersFound = limit;
 
     const hasMoreChapters = () => newChaptersFound === limit; // API returned as many chapters as was requested
@@ -183,11 +190,11 @@ async function fetchNewestChapters ({ manga: { id }}, currentNewestChapter = Inf
 
         const chapterResponse = await withRetry(() =>
             rateLimitedFetch(() =>
-                axios.get(`https://api.mangadex.org/manga/${id}/feed`, { params })
+                axios.get(`https://api.mangadex.org/manga/${manga.id}/feed`, { params })
             )
         );
 
-        const newestChapters = chapterResponse.data.data.filter((chapter) =>    
+        const newestChapters = chapterResponse.data.data.filter((chapter) =>
             Number(chapter.attributes.chapter) > currentNewestChapter
         );
 
@@ -197,10 +204,13 @@ async function fetchNewestChapters ({ manga: { id }}, currentNewestChapter = Inf
             ({ ...chapter, url: `https://mangadex.org/chapter/${chapter.id}`})
         );
                 
-        chapters.push(formattedChapters); // appends array of chapters
+        newChapters.push(formattedChapters); // appends array of chapters
+        
+        // log chapters fetched
+        console.log(`    ${String(newChaptersFound).padStart(3)} chapters (offset ${String(offset).padStart(4)})`);   
     }
 
-    return chapters.flat();
+    return newChapters.flat();
 }
 
 export { fetchMangadexMangas, fetchMangadexChapters, fetchNewestChapters };

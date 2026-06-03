@@ -9,6 +9,7 @@ import stringWidth from 'string-width';
 import { filehandle } from '../filehandling/filehandle.js';
 import { existsSync } from 'fs';
 import { logDataDeepMenu } from './menuLogDataDeep.js';
+import { fetchWithOptions } from './menuFetchMangadex.js';
 
 // TODO:
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
@@ -23,7 +24,7 @@ let mangadexData = null; // mangas and their chapters
 let mangadexFetchHistory = null; // fetch related info
 
 async function menuLogMangadex (m, l, config, mfh) {
-    const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1, TRAVERSE_HISTORY = 2;
+    const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1, TRAVERSE_HISTORY = 2, FETCHNEWESTCHAPTERS = 'u';
     let input = null;
 
     mangadexData = m, 
@@ -40,7 +41,8 @@ async function menuLogMangadex (m, l, config, mfh) {
                 ['Traverse mangas'],
                 ['Search mangas'],
                 ['Traverse history'],
-                '_'
+                '_',
+                ['u', 'Update mangas']
             ]
         );
 
@@ -52,6 +54,13 @@ async function menuLogMangadex (m, l, config, mfh) {
             await searchMangas();
         } else if (input === TRAVERSE_HISTORY) {
             await traverseHistory();
+        } else if (input === FETCHNEWESTCHAPTERS) {
+            await fetchWithOptions({ 
+                mangadexData, 
+                mangadexFetchHistory, 
+                selectedMangas: mangadexData, 
+                options: options.fetchMangadexOptions
+            });
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -276,8 +285,8 @@ async function findMangaByMangaTitle() {
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const OPENINBROWSER = 0, TRAVERSECHAPTERS = 1, FINDCHAPTEROFMANGA = 2, LOGDATA = 'l';
-    let input = 0;
+    const OPENINBROWSER = 0, TRAVERSECHAPTERS = 1, FINDCHAPTEROFMANGA = 2, LOGDATA = 'l', FETCHNEWESTCHAPTERS = 'u';
+    let input = null;
 
     while (input !== 'e') 
     {
@@ -290,7 +299,8 @@ async function mangaOptionsMenu (selectedManga) {
                 ['Traverse chapters'], 
                 ['Search for chapter'],
                 '_',
-                ['l', 'Log manga data']
+                ['l', 'Log manga data'],
+                ['u', 'Update chapters']
             ]
         );
 
@@ -304,6 +314,13 @@ async function mangaOptionsMenu (selectedManga) {
             await searchChapters(title, selectedManga);
         } else if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
+        } else if (input === FETCHNEWESTCHAPTERS) { 
+            await fetchWithOptions({ 
+                mangadexData,
+                mangadexFetchHistory, 
+                options: options.fetchMangadexOptions, 
+                selectedMangas: [mangadexData.find(({ manga }) => manga.id === selectedManga.manga.id)] 
+            });
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
