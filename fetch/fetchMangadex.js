@@ -62,7 +62,7 @@ async function fetchMangadexChapters (selectedMangas, options, mangasOverWritten
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
             console.log(`\n  [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
             const fetchedChapters = mangasOverWritten
-                ? await fetchNewestChapters(selectedManga)
+                ? await fetchNewestChapters(selectedManga, options)
                 : options.fetchAllChapters
                 ? await fetchChaptersAll(selectedManga, options) 
                 : await fetchChaptersCustom(selectedManga, options); 
@@ -156,7 +156,7 @@ async function fetchChaptersAll ({ manga: { id }}, { chapterTranslatedLanguage, 
     return chapters.flat();
 }
 
-async function fetchNewestChapters ({ manga, chapters }) {
+async function fetchNewestChapters ({ manga, chapters }, { chapterTranslatedLanguage }) {
     const currentNewestChapter = chapters.reduce(
         (acc, ch) => Math.max(acc, Number(ch.attributes.chapter))
     , 0);
@@ -184,6 +184,7 @@ async function fetchNewestChapters ({ manga, chapters }) {
         const params = {
             limit,
             offset,
+            translatedLanguage: chapterTranslatedLanguage, 
             'order[chapter]': 'desc' // 999 - 0
         };
 
