@@ -3,7 +3,7 @@ import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptio
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists } from "../fetch/fetchMAL.js";
-import { updateMAL } from "../updateMAL/updateMAL.js";
+import { updateMAL } from "../controller/updateMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 
 const ANIME = 0, MANGA = 1;
