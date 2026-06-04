@@ -61,10 +61,10 @@ async function fetchMangadexChapters (selectedMangas, options, mangasOverWritten
         for (const selectedManga of selectedMangas) {
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
             console.log(`\n  [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
-            const fetchedChapters = options.fetchAllChapters 
-                ? await fetchChaptersAll(selectedManga, options) 
-                : mangasOverWritten 
+            const fetchedChapters = mangasOverWritten
                 ? await fetchNewestChapters(selectedManga)
+                : options.fetchAllChapters
+                ? await fetchChaptersAll(selectedManga, options) 
                 : await fetchChaptersCustom(selectedManga, options); 
             const combinedMangaChapterData = { manga: selectedManga.manga, chapters: fetchedChapters }; // combine manga + chapter data
             mangaAndChapterInfo.push(combinedMangaChapterData);
