@@ -3,10 +3,7 @@ import { takeUserInput, customFetchMangadexDisplay, printMenuOptions,
 import { chapterOrderTypes, chapterTranslatedLanguages, contentRatings, 
          mangaOrderTypes, fetchMangadexOptions, SYM, MESSAGE } from "../helpers/export.js";
 import { filterEntriesFromFetch } from './menuFetchFilters.js';
-import { fetchMangadexMangas, fetchMangadexChapters, fetchNewestChapters } from '../fetch/fetchMangadex.js';
-import { filehandle } from "../filehandling/filehandle.js";
-import stringWidth from 'string-width';
-import { logErrorDetails } from "../helpers/errorLogger.js";
+import { fetchWithOptions } from '../controller/controllerMangadex.js';
 
 let lists = null;
 let options = null;
@@ -40,157 +37,18 @@ async function menuFetchMangadex (l, { fetchMangadexOptions }, m, mfh) {
         input = await takeUserInput(true);
 
         if (input === FETCH_MANGADEX) {
-            await fetchWithOptions({ mangadexData, mangadexFetchHistory, options });
+            await fetchWithOptions({
+                l: lists,
+                md: mangadexData,
+                mfh: mangadexFetchHistory, 
+                o: options
+            });
         } else if (input === CHANGE_OPTIONS) {
             await fetchOptionsMenu();
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
-}
-
-async function fetchWithOptions ({ mangadexData, mangadexFetchHistory, options = {}, selectedMangas = null } = {}) {
-    try {
-        let mangasOverWritten = false;
-        if (selectedMangas) {
-            mangasOverWritten = true;
-        } else {
-            selectedMangas = await fetchMangas(options);
-        }
-        const combinedData = await fetchChapters(selectedMangas, options, mangasOverWritten);
-        updateFetchHistory(combinedData, { mangadexData, mangadexFetchHistory });
-        updateMangadexData(combinedData, mangadexData);
-    } catch (error) {
-        logErrorDetails(error);
-    }
-}
-
-async function fetchMangas (options) {
-    // gathering selected MAL titles / mangaSearchStrings
-    const searchQueue = options.fetchMangasByMALTitles 
-        ? lists.flat(2).filter(e => e.includeInMangadexFetch).map(e => e.node.title)
-        : options.mangaSearchStrings;
-    if (!searchQueue.length) {
-        throw new Error('No titles selected for search');
-    }
-    // fetching mangas
-    const mangaData = await fetchMangadexMangas(searchQueue, options);
-    const foundManga = mangaData?.some(mangaSearch => mangaSearch?.searchResults?.length > 0); 
-    if (!foundManga) {
-        throw new Error('No mangas were found');
-    }
-    // selecting mangas from mangaData
-    const selectedMangas = await selectMangasFromFetchResults(mangaData);
-    if (!selectedMangas.length) { 
-        throw new Error('No mangas were selected');
-    } 
-    return selectedMangas;
-}
-
-async function fetchChapters (selectedMangas, options, mangasOverWritten) {
-    // fetching chapters --- returns [{ manga: {}, chapters: [] }, ...]
-    const combinedData = await fetchMangadexChapters(selectedMangas, options, mangasOverWritten);  
-    const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
-    if (!hasChapters) {
-        throw new Error ('No chapters were found');
-    }
-    return combinedData;
-}
-
-function updateFetchHistory (combinedData, { mangadexFetchHistory, mangadexData }) {
-    const getMangaTitle = (manga) => Object.values(manga.attributes.title)[0];
-
-    // format fetch info
-    const fetchInfo = combinedData.reduce((acc, { manga, chapters }) => { 
-        const { id: mangaId } = manga;
-        const newChapters     = getNewChapters(mangaId, chapters, mangadexData);
-        const newChapterIds   = newChapters.map(ch => ch.id);
-        return { 
-            ...acc, 
-            [mangaId]: {
-                title: getMangaTitle(manga),
-                status: findMangaById(mangaId, mangadexData) ? (newChapters.length ? 'UPDATED' : 'UPTODATE') : 'NEW',
-                updatedCount: newChapters.length,
-                chapterIds: newChapterIds
-            }
-        };
-    }, {});
-
-    const fetchInfoValues = Object.values(fetchInfo);
-    const countStatus = (status_string) => fetchInfoValues.reduce((acc, { status }) => status === status_string ? acc + 1 : acc, 0);
-
-    // including additional details
-    fetchInfo.details = {
-        fetchedAt: Date.now(),
-        newMangas: countStatus('NEW'),
-        updatedMangas: countStatus('UPDATED'),
-        uptodateMangas: countStatus('UPTODATE')
-    };
-
-    // append new info
-    mangadexFetchHistory.push(fetchInfo);
-
-    // log fetch details
-    logFetchInfo(fetchInfoValues);
-
-    // save fetch info to file
-    filehandle('mangadexFetchHistory', mangadexFetchHistory);
-}
-
-function logFetchInfo (fetchInfoValues) {
-    // pads given string to desired length
-    const pad = (str, targetWidth) => {
-        const spaces = targetWidth - stringWidth(str);
-        return str + ' '.repeat(Math.max(0, spaces));
-    }
-
-    // padding = widest title
-    const titlePadding = fetchInfoValues.reduce((longest, { title }) => { 
-        const width = stringWidth(title);
-        return width > longest ? width : longest;
-    }, 0);
-    
-    console.log('\n  [Info]');
-    for (const { title, status, updatedCount } of fetchInfoValues) {
-        const paddedTitle = pad(title, titlePadding);
-        if (status === 'UPTODATE') {
-            console.log(`    ${SYM[status]} ${paddedTitle} - up to date`);
-        } else if (status === 'UPDATED') {
-            console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
-        } else if (status === 'NEW') {
-            console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
-        }
-    }
-}
-
-function updateMangadexData (combinedData, mangadexData) {
-    // update mangadexData
-    combinedData.forEach(({ manga: fetchedManga, chapters: fetchedChapters }) => {
-        const mangaId      = fetchedManga.id;
-        const existingData = findMangaById(mangaId, mangadexData);
-        // update mangadexData
-        if (!existingData) {
-            mangadexData.push({ manga: fetchedManga, chapters: fetchedChapters });
-        } else {
-            existingData.manga = { ...existingData.manga, ...fetchedManga }; // update manga data
-            existingData.chapters = [ ...existingData.chapters, ...getNewChapters(mangaId, fetchedChapters, mangadexData) ]; // update chapter data
-        }
-    });
-    // save updated data to file
-    filehandle('mangadex', mangadexData);
-}
-
-function getNewChapters (mangaId, fetchedChapters, mangadexData) {
-    // finds manga from existing mangadexData and filters
-    // chapters from fetchedChapters if they already exist
-    return fetchedChapters.filter(chapter => 
-        !findMangaById(mangaId, mangadexData)?.chapters.some(existing => existing.id === chapter.id)
-    );
-}
-
-function findMangaById (mangaId, mangadexData) {
-    // returns reference to mangadexData object where mangaId === manga.id
-    return mangadexData.find(({ manga: { id }}) => id === mangaId);
 }
 
 async function fetchOptionsMenu() {
@@ -598,7 +456,7 @@ async function optionContentRatings() {
     }
 }
 
-async function selectMangasFromFetchResults (mangaSearches) {
+async function selectMangasFromFetchResults (mangaSearches, lists) {
     let input = null, selectedMangas = [];
     const hasSelectedMangas = () => selectedMangas.length;
     const appendSelectedMangas = (toAppend) => {
@@ -698,7 +556,7 @@ async function selectMangasFromFetchResults (mangaSearches) {
     return selectedMangas;
 }
 
-export { menuFetchMangadex, fetchWithOptions };
+export { menuFetchMangadex, selectMangasFromFetchResults };
 
 /*
     fetchResults complete layout (2025/09/30):
