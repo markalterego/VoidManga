@@ -9,7 +9,7 @@ import stringWidth from 'string-width';
 import { filehandle } from '../filehandling/filehandle.js';
 import { existsSync } from 'fs';
 import { logDataDeepMenu } from './menuLogDataDeep.js';
-import { fetchWithOptions } from './menuFetchMangadex.js';
+import { fetchWithOptions } from '../controller/controllerMangadex.js';
 
 // TODO:
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
@@ -22,15 +22,17 @@ let options = null; // config.logMangadexOptions
 let logAuthURL = null; // config.menuMALOptions.logAuthURL
 let mangadexData = null; // mangas and their chapters
 let mangadexFetchHistory = null; // fetch related info
+let fetchMangadexOptions = null; // config.fetchMangadexOptions
 
 async function menuLogMangadex (m, l, config, mfh) {
     const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1, TRAVERSE_HISTORY = 2, FETCHNEWESTCHAPTERS = 'u';
     let input = null;
 
-    mangadexData = m, 
-    { logAuthURL } = config.menuMALOptions, 
-    options = config.logMangadexOptions, 
-    lists = l,
+    mangadexData = m; 
+    logAuthURL = config.menuMALOptions.logAuthURL;
+    options = config.logMangadexOptions;
+    fetchMangadexOptions = config.fetchMangadexOptions;
+    lists = l;
     mangadexFetchHistory = mfh;
 
     while (input !== 'e') 
@@ -42,7 +44,7 @@ async function menuLogMangadex (m, l, config, mfh) {
                 ['Search mangas'],
                 ['Traverse history'],
                 '_',
-                ['u', 'Update mangas']
+                ['u', `Update chapters for all mangas (${mangadexData.length})`]
             ]
         );
 
@@ -56,10 +58,11 @@ async function menuLogMangadex (m, l, config, mfh) {
             await traverseHistory();
         } else if (input === FETCHNEWESTCHAPTERS) {
             await fetchWithOptions({ 
-                mangadexData, 
-                mangadexFetchHistory, 
-                selectedMangas: mangadexData, 
-                options: options.fetchMangadexOptions
+                l: lists,
+                md: mangadexData, 
+                mfh: mangadexFetchHistory, 
+                sm: mangadexData, 
+                o: fetchMangadexOptions
             });
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -315,11 +318,14 @@ async function mangaOptionsMenu (selectedManga) {
         } else if (input === LOGDATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
         } else if (input === FETCHNEWESTCHAPTERS) { 
+            // sm sourced from mangadexData (not selectedManga) to prevent fetching 
+            // data based on stale chapters stored in traverseHistory
             await fetchWithOptions({ 
-                mangadexData,
-                mangadexFetchHistory, 
-                options: options.fetchMangadexOptions, 
-                selectedMangas: [mangadexData.find(({ manga }) => manga.id === selectedManga.manga.id)] 
+                l: lists,
+                md: mangadexData, 
+                mfh: mangadexFetchHistory, 
+                sm: [mangadexData.find(({ manga }) => manga.id === selectedManga.manga.id)], 
+                o: fetchMangadexOptions
             });
         } else if (input !== 'e') { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -339,6 +345,12 @@ async function traverseHistory() {
         const formattedDate = formatDate(fetchInfo.details.fetchedAt);
         return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
     };
+
+    // TODO:
+    // - refresh history at the start of loop if necessary, so that when fetching newest
+    //   chapters through historyOptionsMenu -> traverseMangas -> mangaOptionsMenu, and 
+    //   then returning to historyOptionsMenu, this menu will actually reflect also the newest
+    //   appended fetchInfo
 
     while (input !== 'e') 
     {

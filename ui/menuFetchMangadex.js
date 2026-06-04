@@ -464,6 +464,9 @@ async function selectMangasFromFetchResults (mangaSearches, lists) {
         if (!isDuplicate) selectedMangas.push({ manga: toAppend }); // push and map toAppend as { manga: toAppend }
     } 
 
+    // TODO: 
+    // - make it possible to select all mangas which exist at mangadexData
+
     while (input !== 's' && input !== 'e') 
     {
         let index = 0;
