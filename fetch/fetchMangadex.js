@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { setTimeout } from "timers/promises";
 import { logErrorDetails } from '../helpers/errorLogger.js';
-import { getTypeIndex } from '../updateMAL/updateMAL.js';
 import { withRetry, rateLimitedFetch } from './fetchUtils.js';
 
 async function fetchMangadexMangas (searchQueue, options) {
