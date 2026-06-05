@@ -2,8 +2,8 @@ import { selectMangasFromFetchResults } from "../ui/menuFetchMangadex.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { fetchMangadexMangas, fetchMangadexChapters, fetchNewestChapters } from '../fetch/fetchMangadex.js';
 import { logErrorDetails } from "../helpers/errorLogger.js";
-import stringWidth from 'string-width';
 import { SYM } from '../helpers/export.js';
+import { truncateThenPadString } from "../helpers/functions.js";
 
 let lists = null;
 let mangadexData = null;
@@ -106,27 +106,15 @@ function updateFetchHistory (combinedData) {
 }
 
 function logFetchInfo (fetchInfoValues) {
-    // pads given string to desired length
-    const pad = (str, targetWidth) => {
-        const spaces = targetWidth - stringWidth(str);
-        return str + ' '.repeat(Math.max(0, spaces));
-    }
-
-    // padding = widest title
-    const titlePadding = fetchInfoValues.reduce((longest, { title }) => { 
-        const width = stringWidth(title);
-        return width > longest ? width : longest;
-    }, 0);
-    
     console.log('\n  [Info]');
     for (const { title, status, updatedCount } of fetchInfoValues) {
-        const paddedTitle = pad(title, titlePadding);
+        const formattedTitle = truncateThenPadString(title, 45);
         if (status === 'UPTODATE') {
-            console.log(`    ${SYM[status]} ${paddedTitle} - up to date`);
+            console.log(`    ${SYM[status]} ${formattedTitle} - up to date`);
         } else if (status === 'UPDATED') {
-            console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
+            console.log(`    ${SYM[status]} ${formattedTitle} - ${updatedCount} new chapters`);
         } else if (status === 'NEW') {
-            console.log(`    ${SYM[status]} ${paddedTitle} - ${updatedCount} new chapters`);
+            console.log(`    ${SYM[status]} ${formattedTitle} - ${updatedCount} new chapters`);
         }
     }
 }
