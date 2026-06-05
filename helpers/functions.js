@@ -2,6 +2,8 @@ import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
 import { mangaOrderTypes, chapterOrderTypes, SYM, MESSAGE, contentRatings } from './export.js';
 import open from 'open';
+import stringWidth from 'string-width';
+import cliTruncate from 'cli-truncate';
 
 async function takeUserInput (useWhole = false, forceString = false, { useMixedCase = false, useUpperCase = false } = {}, skipClear = false) {
     //
@@ -162,6 +164,16 @@ async function openURLInBrowser (url, label = '', logURL = true) {
     await open(url);
 }
 
+function padString (str = '', targetWidth = 0) {
+    const spaces = targetWidth - stringWidth(str);
+    return str + ' '.repeat(Math.max(0, spaces));
+}
+
+function truncateThenPadString (str = '', targetWidth = 0) {
+    const truncated = cliTruncate(str, targetWidth);
+    return padString(truncated, targetWidth);
+}
+
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true } = {}) {
     // creates a simple menu in a standardized format
     // header = string
@@ -235,5 +247,7 @@ export {
     isMatchingAtStart,
     formatDate,
     openURLInBrowser,
+    padString,
+    truncateThenPadString,
     printMenuOptions
 };
