@@ -346,15 +346,10 @@ async function traverseHistory() {
         return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
     };
 
-    // TODO:
-    // - refresh history at the start of loop if necessary, so that when fetching newest
-    //   chapters through historyOptionsMenu -> traverseMangas -> mangaOptionsMenu, and 
-    //   then returning to historyOptionsMenu, this menu will actually reflect also the newest
-    //   appended fetchInfo
-
     while (input !== 'e') 
     {
-        sortedHistory = input === null || input === 's' || input === 'o' ? sortHistory() : sortedHistory;
+        const shouldSort = [null, 's', 'o'].some(o => o === input) || (input >= 0 && input < pagedHistory.length);
+        sortedHistory = shouldSort ? sortHistory() : sortedHistory;
         pageDetails   = options.enablePagingHistory ? updatePageDetails(pageDetails, sortedHistory) : pageDetails;
         pagedHistory  = pageContent(sortedHistory, pageDetails.currentPageIndex, options.enablePagingHistory);
 
