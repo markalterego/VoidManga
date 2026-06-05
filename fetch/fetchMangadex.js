@@ -49,7 +49,7 @@ async function fetchManga (searchTitle, options) {
     };
 }
  
-async function fetchMangadexChapters (selectedMangas, options, mangasOverWritten = false) {
+async function fetchMangadexChapters (selectedMangas, options, mangasPreselected = false) {
     try {
         
         // TODO: 
@@ -61,7 +61,7 @@ async function fetchMangadexChapters (selectedMangas, options, mangasOverWritten
         for (const selectedManga of selectedMangas) {
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
             console.log(`\n  [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
-            const fetchedChapters = mangasOverWritten
+            const fetchedChapters = mangasPreselected
                 ? await fetchNewestChapters(selectedManga, options)
                 : options.fetchAllChapters
                 ? await fetchChaptersAll(selectedManga, options) 
