@@ -10,8 +10,7 @@ let mangadexData = null;
 let mangadexFetchHistory = null;
 let options = null;
 let selectedMangas = null;
-
-let mangasOverWritten = false;
+let mangasPreselected = false;
 
 async function fetchWithOptions ({ l = null, md = null, mfh = null, o = null, sm = null } = {}) {
     lists = l;
@@ -19,9 +18,10 @@ async function fetchWithOptions ({ l = null, md = null, mfh = null, o = null, sm
     mangadexFetchHistory = mfh;
     options = o;
     selectedMangas = sm;
+    mangasPreselected = false;
     try {
         if (selectedMangas) {
-            mangasOverWritten = true;
+            mangasPreselected = true;
         } else {
             selectedMangas = await fetchMangas();
         }
@@ -57,7 +57,7 @@ async function fetchMangas() {
 
 async function fetchChapters (selectedMangas) {
     // fetching chapters --- returns [{ manga: {}, chapters: [] }, ...]
-    const combinedData = await fetchMangadexChapters(selectedMangas, options, mangasOverWritten);  
+    const combinedData = await fetchMangadexChapters(selectedMangas, options, mangasPreselected);  
     const hasChapters = combinedData?.some(search => search?.chapters?.length > 0); 
     if (!hasChapters) {
         throw new Error ('No chapters were found');
