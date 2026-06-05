@@ -2,6 +2,7 @@ import axios from 'axios';
 import { setTimeout } from "timers/promises";
 import { logErrorDetails } from '../helpers/errorLogger.js';
 import { withRetry, rateLimitedFetch } from './fetchUtils.js';
+import { truncateThenPadString, padString } from '../helpers/functions.js';
 
 async function fetchMangadexMangas (searchQueue, options) {
     try {
@@ -10,11 +11,10 @@ async function fetchMangadexMangas (searchQueue, options) {
         for (const searchString of searchQueue) {
             const fetchResult = await fetchManga(searchString, options); // returns { searchResults, searchTitle }
             mangaEndpointFetchResults.push(fetchResult);
-            const fetchedAmount = fetchResult.searchResults?.length;
-            const fetchedMangasString = fetchedAmount ? `${fetchedAmount} mangas fetched` : 'no mangas found'; 
-            console.log(`  [${searchString}] ${fetchedMangasString} (${++fetchCount}/${searchQueue.length})`);
+            const fetchedAmount = String(fetchResult.searchResults?.length);
+            const fetchedMangasString = `${padString(fetchedAmount, 3)} mangas fetched`;
+            console.log(`  [${truncateThenPadString(searchString, 20)}] ${padString(fetchedMangasString, 18)} (${++fetchCount}/${searchQueue.length})`);
         } 
-        console.log();
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
         logErrorDetails(error);
@@ -57,10 +57,10 @@ async function fetchMangadexChapters (selectedMangas, options, mangasPreselected
         //   into multiple 100 sized or smaller fetches 
 
         let mangaAndChapterInfo = [], fetchCount = 0;
-        console.log();
         for (const selectedManga of selectedMangas) {
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
-            console.log(`\n  [${mangaTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
+            const formattedTitle = truncateThenPadString(mangaTitle, 20);
+            console.log(`${!fetchCount ? '\n' : ''}\n  [${formattedTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
             const fetchedChapters = mangasPreselected
                 ? await fetchNewestChapters(selectedManga, options)
                 : options.fetchAllChapters
@@ -72,7 +72,6 @@ async function fetchMangadexChapters (selectedMangas, options, mangasPreselected
             const fetchedChaptersString = fetchedAmount ? `Total: ${fetchedAmount} chapters` : 'No chapters found'; 
             console.log(`   ${fetchedChaptersString}`); 
         }
-        console.log();
         return mangaAndChapterInfo; // return array consisting of [mangaInfo, chapterInfo]
     } catch (error) {
         logErrorDetails(error);
