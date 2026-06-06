@@ -164,14 +164,14 @@ async function openURLInBrowser (url, label = '', logURL = true) {
     await open(url);
 }
 
-function padString (str = '', targetWidth = 0) {
+function padString (str = '', targetWidth = 0, padding = ' ') {
     const spaces = targetWidth - stringWidth(str);
-    return str + ' '.repeat(Math.max(0, spaces));
+    return str + padding.repeat(Math.max(0, spaces));
 }
 
-function truncateThenPadString (str = '', targetWidth = 0) {
+function truncateThenPadString (str = '', targetWidth = 0, padding = ' ') {
     const truncated = cliTruncate(str, targetWidth);
-    return padString(truncated, targetWidth);
+    return padString(truncated, targetWidth, padding);
 }
 
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true } = {}) {
