@@ -3,6 +3,7 @@ import { setTimeout } from "timers/promises";
 import { logErrorDetails } from '../helpers/errorLogger.js';
 import { withRetry, rateLimitedFetch } from './fetchUtils.js';
 import { truncateThenPadString, padString } from '../helpers/functions.js';
+import { SYM } from '../helpers/export.js';
 
 async function fetchMangadexMangas (searchQueue, options) {
     try {
@@ -13,7 +14,7 @@ async function fetchMangadexMangas (searchQueue, options) {
             mangaEndpointFetchResults.push(fetchResult);
             const fetchedAmount = String(fetchResult.searchResults?.length);
             const fetchedMangasString = `${padString(fetchedAmount, 3)} mangas fetched`;
-            console.log(`  [${truncateThenPadString(searchString, 20)}] ${padString(fetchedMangasString, 18)} (${++fetchCount}/${searchQueue.length})`);
+            console.log(`  [${truncateThenPadString(searchString, 20, SYM.PADFILLER)}] ${padString(fetchedMangasString, 18)} (${++fetchCount}/${searchQueue.length})`);
         } 
         return mangaEndpointFetchResults; // return searchResults for all manga searches
     } catch (error) {
