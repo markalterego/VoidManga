@@ -48,7 +48,7 @@ async function fetchMangas() {
         throw new Error('No mangas were found');
     }
     // selecting mangas from mangaData
-    const selectedMangas = await selectMangasFromFetchResults(mangaData, lists);
+    const selectedMangas = await selectMangasFromFetchResults(mangaData, lists, mangadexData);
     if (!selectedMangas.length) { 
         throw new Error('No mangas were selected');
     } 
