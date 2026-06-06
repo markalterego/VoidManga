@@ -456,7 +456,10 @@ async function optionContentRatings() {
     }
 }
 
-async function selectMangasFromFetchResults (mangaSearches, lists) {
+async function selectMangasFromFetchResults (mangaSearches, lists, mangadexData) {
+    const allSearchResults = mangaSearches.flatMap(({ searchResults }) => searchResults); 
+    const MALMangas = lists[1].flat(); 
+
     let input = null, selectedMangas = [];
     const hasSelectedMangas = () => selectedMangas.length;
     const appendSelectedMangas = (toAppend) => {
@@ -524,6 +527,7 @@ async function selectMangasFromFetchResults (mangaSearches, lists) {
             '_',
             ['s', 'Search chapters'],
             ['i', 'Include mangas found at mangalist'],
+            ['d', 'Include mangas found at mangadexData'],
             [SYM.TOGGLE, 'Include/Exclude all']
         ];  
 
@@ -535,25 +539,26 @@ async function selectMangasFromFetchResults (mangaSearches, lists) {
         input = await takeUserInput(true);
         
         if (input >= 0 && input < mangaTitleCount) { // adding to search
-            const allResults = mangaSearches.flatMap(({ searchResults }) => searchResults);
-            const selectedManga = allResults[input];
-            appendSelectedMangas(selectedManga);
+            appendSelectedMangas(allSearchResults[input]);
+        } else if (input === 'i') { // include mangas found at mangalist
+            const foundMangas = allSearchResults.filter(({attributes: { links }}) => 
+                MALMangas.some(e => e.node.id === Number(links?.mal)) 
+            ); 
+            foundMangas.forEach(match => appendSelectedMangas(match));
+        } else if (input === 'd') { // include mangas found at mangadexData
+            const foundMangas = allSearchResults.filter(result => 
+                mangadexData.some(({ manga }) => manga.id === result.id)
+            );
+            foundMangas.forEach(result => appendSelectedMangas(result));
+        } else if (input === '+') { // including all titles to fetch
+            allSearchResults.forEach(result => appendSelectedMangas(result));
         } else if (input === 's' && !hasSelectedMangas(selectedMangas)) { 
             console.log('\n\n  Select at least one title to perform a search');
             input = null;
-        } else if (input === 'i') { // include mangas found at mangalist
-            const mangasFoundAtMangaList = mangaSearches.flatMap(({ searchResults }) =>
-                searchResults.filter(({ attributes: { links }}) => 
-                    lists[1].flat().some(e => e.node.id === Number(links?.mal))
-                )
-            );
-            mangasFoundAtMangaList.forEach(match => appendSelectedMangas(match));
-        } else if (input === '+') {
-            // including all Manga titles to fetch
-            const allResults = mangaSearches.flatMap(({ searchResults }) => searchResults);
-            allResults.forEach(result => appendSelectedMangas(result));
         } else if (input === '-' || input === 'e') { // clear current selection
             selectedMangas = [];
+        } else {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
     return selectedMangas;
