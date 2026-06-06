@@ -9,6 +9,7 @@ export const SYM = {
     TOGGLE:      '\u00B1', // ±
     CHANGE_PAGE: '\u00B1', // sab
     ADJUST:      '\u00B1', // sab
+    PADFILLER:   '\u28A4', // ⢤
 };
 export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
