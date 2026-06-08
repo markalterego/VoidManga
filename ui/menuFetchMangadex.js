@@ -462,211 +462,92 @@ async function selectMangasFromFetchResults (mangaSearches, lists, mangadexData)
 
     let input = null, selectedMangas = [];
     const hasSelectedMangas = () => selectedMangas.length;
-    const appendSelectedMangas = (toAppend) => {
-        const isDuplicate = selectedMangas.some(({ manga }) => manga.id === toAppend.id); // check for duplicates
-        if (!isDuplicate) selectedMangas.push({ manga: toAppend }); // push and map toAppend as { manga: toAppend }
-    } 
-
-    // TODO: 
-    // - make it possible to select all mangas which exist at mangadexData
+    const isDuplicate = (id) => selectedMangas.some(({ manga }) => manga.id === id);
+    const appendSelectedManga = (toAppend) => { if (!isDuplicate(toAppend.id)) selectedMangas.push({ manga: toAppend }) }; 
 
     while (input !== 's' && input !== 'e') 
     {
         let index = 0;
-    
-        // 1. printing each mangaSearch as a separate menu
-        // 
-        //  [Berserk]:
-        //  
-        //  0 -> Berserk <-- Manga found in mangalist
-        //  1 -> Berserk 2
 
-        for (const { searchResults, searchTitle } of mangaSearches) {
-            // formatting to {'index': 'title (<-- Manga found in mangalist)'}
-            const mangaTitles = searchResults.map(({ attributes: { title, links }}) => {
-                const mangaFoundAtLists = lists[1].flat().some(e => e.node.id === Number(links?.mal));
+        // --- formatting searchSection ---
+
+        const searchSection = mangaSearches.flatMap(({ searchResults, searchTitle }, msIndex) => {
+            // indexing search results and appending '<-- Manga found in mangalist'
+            const mappedResults = searchResults.map(({ attributes: { title, links }}) => {
+                const mangaFoundAtLists = MALMangas.some(e => e.node.id === Number(links?.mal));
                 const mangaFoundAtListsTag = mangaFoundAtLists ? '<-- Manga found in mangalist' : '';
                 const value = `${Object.values(title)[0]} ${mangaFoundAtListsTag}`;
                 return [ index++, value ];
-            }); 
+            });
+            const noResults = [['?', 'No results found']];
+            const formattedResults = searchResults.length ? mappedResults : noResults;
+            return [
+                [`[${searchTitle}]`, null, '\n'],
+                ...formattedResults,
+                (msIndex < mangaSearches.length - 1 ? '_' : null) // empty line between each result
+            ];
+        });
 
-            const optionsArray = searchResults.length
-                ? [...mangaTitles]
-                : [['?', 'No results found']];
+        const resultCount = index;
 
-            printMenuOptions(
-                `[${searchTitle}]`,
-                optionsArray,
-                { printExit: false }
-            );
-        }
+        // --- formatting selected titles ---
 
-        const mangaTitleCount = index;
-
-        // 2. printing selected titles and options
-        // 
-        //  Selected titles
-        //  
-        //  - Berserk 
-        //  - Frieren
-        //    
-        //  s -> Search chapters
-        //  i -> Include mangas found at mangalist
-        //  ± -> Include/Exclude all
-        //  e -> Go back 
-
-        // formatting selected titles
         const mangaTitles = selectedMangas.map(({ manga: { attributes: {title}}}) => 
             [null, '-', Object.values(title)?.[0]]
         ); 
-        const noTitlesOption = [[null, '-', 'No selected titles']];
-        const selectedTitles = selectedMangas.length ? mangaTitles : noTitlesOption;
+        const noTitles = [[null, '-', 'No selected titles']];
+        const selectedTitlesSection = selectedMangas.length ? mangaTitles : noTitles;
+
+        // --- assemble menu ---
 
         const optionsArray = [
-            ...selectedTitles,
-            '_',
+            '_', '_',
+            ...searchSection,
+            '_', '_',
+            ['Selected titles', null, null],
+            '_', 
+            ...selectedTitlesSection,
+            '_', '_',
             ['s', 'Search chapters'],
             ['i', 'Include mangas found at mangalist'],
             ['d', 'Include mangas found at mangadexData'],
-            [SYM.TOGGLE, 'Include/Exclude all']
+            [SYM.INCLUDE, 'Include all titles'],
+            ['c', 'Clear selected titles']
         ];  
 
         printMenuOptions(
-            'Selected titles',
-            optionsArray
+            null,
+            optionsArray,
+            { printHeader: false } 
         );
 
         input = await takeUserInput(true);
         
-        if (input >= 0 && input < mangaTitleCount) { // adding to search
-            appendSelectedMangas(allSearchResults[input]);
+        if (input >= 0 && input < resultCount) { // adding to search
+            appendSelectedManga(allSearchResults[input]);
         } else if (input === 'i') { // include mangas found at mangalist
             const foundMangas = allSearchResults.filter(({attributes: { links }}) => 
                 MALMangas.some(e => e.node.id === Number(links?.mal)) 
             ); 
-            foundMangas.forEach(match => appendSelectedMangas(match));
+            foundMangas.forEach(match => appendSelectedManga(match));
         } else if (input === 'd') { // include mangas found at mangadexData
             const foundMangas = allSearchResults.filter(result => 
                 mangadexData.some(({ manga }) => manga.id === result.id)
             );
-            foundMangas.forEach(result => appendSelectedMangas(result));
+            foundMangas.forEach(result => appendSelectedManga(result));
         } else if (input === '+') { // including all titles to fetch
-            allSearchResults.forEach(result => appendSelectedMangas(result));
+            allSearchResults.forEach(result => appendSelectedManga(result));
         } else if (input === 's' && !hasSelectedMangas(selectedMangas)) { 
             console.log('\n\n  Select at least one title to perform a search');
             input = null;
-        } else if (input === '-' || input === 'e') { // clear current selection
+        } else if (input === 'c' || input === 'e') { // clear selected titles
             selectedMangas = [];
-        } else {
+        } else if (input !== 's') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
+
     return selectedMangas;
 }
 
 export { menuFetchMangadex, selectMangasFromFetchResults };
-
-/*
-    fetchResults complete layout (2025/09/30):
-    [   
-        {
-            manga: {
-                id: string,
-                type: string,
-                attributes: {
-                    title: {
-                        ?: string, (language code)
-                        etc...                    
-                    },
-                    altTitles: [
-                        ?: string, (language code)
-                        etc...
-                    ],
-                    description: {
-                        ?: string, (language code)
-                        etc...
-                    },
-                    isLocked: boolean,
-                    links: {
-                        ?: string, (e.g. mal)
-                        etc...
-                    },
-                    originalLanguage: string,
-                    lastVolume: string,
-                    lastChapter: string,
-                    publicationDemographic: string, (e.g. shounen)
-                    status: string, (e.g. completed)
-                    year: num,
-                    contentRating: string, (e.g. suggestive)
-                    tags: [
-                        {
-                            id: string
-                            type: string
-                            attributes: {
-                                name: {
-                                    ?: string (e.g. action)
-                                },
-                                description: {
-                                    ?: string
-                                },
-                                group: string,
-                                version: num
-                            },       
-                            relationships: [
-                                ?: ?
-                            ]
-                        },
-                        etc...
-                    ],
-                    state: string, (e.g. published)
-                    chapterNumbersResetOnNewVolume: boolean,
-                    createdAt: string,
-                    updatedAt: string,
-                    version: num,
-                    availableTranslatedLanguages: [
-                        ?: string, (e.g. en)
-                        etc...
-                    ],
-                    latestUploadedChapter: string, (id of latest uploaded chapter)
-                }, // attributes end
-                relationships: [
-                    {
-                        id: string,
-                        type: string (e.g. author)
-                    },
-                    etc...
-                ]
-            }, // manga end
-            chapters: [
-                {
-                    id: string,
-                    type: string,
-                    attributes: {
-                        volume: string,
-                        chapter: string,
-                        title: string,
-                        translatedLanguage: string,
-                        externalUrl: ???,
-                        isUnavailable: boolean,
-                        publishAt: string,
-                        readableAt: string,
-                        createdAt: string,
-                        updatedAt: string,
-                        pages: num,
-                        version: num
-                    },
-                    relationships: [
-                        {
-                            id: string,
-                            type: string
-                        },
-                        etc...
-                    ],
-                    link: string
-                },
-                etc...
-            ] 
-        }, // fetchResult end
-        etc...
-    ]
-*/
