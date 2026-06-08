@@ -60,8 +60,7 @@ async function fetchMangadexChapters (selectedMangas, options, mangasPreselected
         let mangaAndChapterInfo = [], fetchCount = 0;
         for (const selectedManga of selectedMangas) {
             const mangaTitle = Object.values(selectedManga.manga.attributes.title)[0];
-            const formattedTitle = truncateThenPadString(mangaTitle, 20);
-            console.log(`${!fetchCount ? '\n' : ''}\n  [${formattedTitle}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
+            console.log(`${!fetchCount ? '\n' : ''}\n  [${truncateThenPadString(mangaTitle, 20, SYM.PADFILLER)}] Fetching chapters... (${++fetchCount}/${selectedMangas.length})`);
             const fetchedChapters = mangasPreselected
                 ? await fetchNewestChapters(selectedManga, options)
                 : options.fetchAllChapters
