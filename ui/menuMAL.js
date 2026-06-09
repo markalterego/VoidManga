@@ -737,7 +737,7 @@ async function searchListsByTitleMenu() {
             const matching = lists.flat(2) // arr of entries
                                   .filter(e => regex.test(e.node.title)); // match title to input
             if (!matching.length) { // no matching results
-                console.log('.\n\n  No matches found');
+                console.log('\n\n  No matches found');
             } else { // traverse results
                 await traverseEntry(null, null, matching);
             }
