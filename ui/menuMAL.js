@@ -2,7 +2,7 @@ import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
-import { fetchMALUserLists } from "../fetch/fetchMAL.js";
+import { fetchMALUserLists } from "../controller/controllerMAL.js";
 import { updateMAL } from "../controller/updateMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 
@@ -98,6 +98,12 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
     const status = !entryArr ? (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]) : null;
     const entries = !entryArr ? lists[typeIndex][statusIndex] : entryArr;
     let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
+
+    // TODO: 
+    // - fix bug where if entryArr overwrites entries and user updates entries through
+    //   updateEntryMenu, returns to this menu and again selects updateEntryMenu, the
+    //   data at entry doesn't reflect the updated changes but rather the updates at the
+    //   point of entries assignment ... (I think due to entryArr breaking reference or something) 
 
     while (input !== 'e') 
     {
@@ -731,7 +737,7 @@ async function searchListsByTitleMenu() {
             const matching = lists.flat(2) // arr of entries
                                   .filter(e => regex.test(e.node.title)); // match title to input
             if (!matching.length) { // no matching results
-                console.log('  No matches found');
+                console.log('.\n\n  No matches found');
             } else { // traverse results
                 await traverseEntry(null, null, matching);
             }

@@ -1,5 +1,5 @@
 import { logErrorDetails } from "../helpers/errorLogger.js";
-import { updateListEntry } from "../fetch/fetchMAL.js";
+import { updateListEntry } from "../controller/controllerMAL.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 
 /*
