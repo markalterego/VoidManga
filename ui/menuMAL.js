@@ -2,8 +2,7 @@ import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
-import { fetchMALUserLists } from "../controller/controllerMAL.js";
-import { updateMAL } from "../controller/updateMAL.js";
+import { fetchMALUserLists, updateMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 
 const ANIME = 0, MANGA = 1;
