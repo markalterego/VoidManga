@@ -13,6 +13,9 @@ import he from "he";
 //   ran from within the function and then results are handled 
 //   accordingly right after 
 
+const ANIME = 0;
+const MANGA = 1;
+
 async function fetchMALUserLists (lists, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
@@ -27,6 +30,18 @@ async function fetchMALUserLists (lists, logAuthURL = false) {
     return lists;
 }
 
+async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
+    try {
+        const syncedEntry = await updateListEntry(changedFields, entry, logAuthURL); // update online
+        const finalEntry = { ...entry, ...syncedEntry }; // merge existing entry + synced
+        removeOldEntry(lists, entry); // remove existing entry 
+        appendNewEntry(lists, finalEntry); // add entry to lists
+    } catch (error) {
+        logErrorDetails(error);
+    }
+    return lists; // return updated lists
+}
+
 async function updateListEntry (changedFields, entry, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
@@ -38,6 +53,24 @@ async function updateListEntry (changedFields, entry, logAuthURL = false) {
         logErrorDetails(error);
         throw new Error('Failed to update MAL entry');
     }
+}
+
+const type   = (entry) => !!entry.node?.num_episodes ? ANIME : MANGA;
+const status = (entry) => type(entry) === ANIME 
+                            ? animeStatus.findIndex(s => s === entry.list_status.status) 
+                            : mangaStatus.findIndex(s => s === entry.list_status.status);    
+const id     = (entry) => entry.node.id;
+
+function removeOldEntry (lists, entry) {
+    // finds and removes given entry at lists
+    lists[type(entry)][status(entry)].splice(
+        lists[type(entry)][status(entry)].findIndex((e) => id(e) === id(entry))
+    , 1);
+}
+
+function appendNewEntry (lists, entry) {
+    lists[type(entry)][status(entry)].push(entry); // append entry to lists
+    lists[type(entry)][status(entry)].sort((a,b) => a.node.title.localeCompare(b.node.title)); // sort at lists alphabetical
 }
 
 function sortSeriesByStatus (animelist, mangalist, old_lists) {
@@ -123,4 +156,4 @@ function decodeComments (lists) {
     return lists;
 }
 
-export { fetchMALUserLists, updateListEntry }
+export { fetchMALUserLists, updateMAL };
