@@ -51,23 +51,6 @@ async function menuMAL (l, config) {
     return lists;
 }
 
-function formatListsToObject (lists_array) {
-    let lists_object = {};
-    for (let typeIndex = 0; typeIndex < lists_array.length; typeIndex++) {
-        let typeKey = !typeIndex ? 'anime' : 'manga';
-        lists_object[typeKey] = {}; // create object at typeKey
-        for (let statusIndex = 0; statusIndex < lists_array[typeIndex].length; statusIndex++) {
-            let statusKey = typeKey === 'anime' ? animeStatus[statusIndex] : mangaStatus[statusIndex];
-            lists_object[typeKey][statusKey] = {}; // create object at typeKey + statusKey
-            for (let entryIndex = 0; entryIndex < lists_array[typeIndex][statusIndex].length; entryIndex++) {
-                let entryKey = lists_array[typeIndex][statusIndex][entryIndex].node.title; // create object at typeKey + statusKey + entryKey
-                lists_object[typeKey][statusKey][entryKey] = lists_array[typeIndex][statusIndex][entryIndex]; // initialize ...[typeKey][statusKey][entryKey] with entry data
-            }
-        }
-    }
-    return lists_object;
-}
-
 async function traverseStatus (typeIndex) {
     const statuses = typeIndex === ANIME ? animeStatus : mangaStatus; // list of statuses for type
     let input = 0; 
