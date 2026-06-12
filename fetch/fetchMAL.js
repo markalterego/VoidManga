@@ -5,7 +5,7 @@ import { withRetry, rateLimitedFetch } from './fetchUtils.js';
 async function fetchAnimeList() {
     const url = `https://api.myanimelist.net/v2/users/@me/animelist`;
     const params = {
-        fields: 'list_status{comments,priority,num_times_rewatched,rewatch_value,tags},num_episodes,type',
+        fields: 'list_status{comments,priority,num_times_rewatched,rewatch_value,tags},num_episodes,alternative_titles',
         limit: 1000, // max value
         nsfw: true // allows a more accurate response
     };
@@ -26,7 +26,7 @@ async function fetchAnimeList() {
 async function fetchMangaList() {
     const url = `https://api.myanimelist.net/v2/users/@me/mangalist`;
     const params = {
-        fields: 'list_status{comments,priority,num_times_reread,reread_value,tags},num_chapters,num_volumes',
+        fields: 'list_status{comments,priority,num_times_reread,reread_value,tags},num_chapters,num_volumes,alternative_titles',
         limit: 1000, // max value
         nsfw: true // allows a more accurate response
     };
@@ -65,4 +65,62 @@ async function putListEntry (entry_id, type, data_fields) {
     return response.data;
 }
 
-export { fetchAnimeList, fetchMangaList, putListEntry };
+async function fetchAnime (search) {
+    //     q : string  (searchString ... API expects at least 3 non empty characters in the string)
+    // limit : integer (default 100, max 100)
+    // offset: integer (default: 0 , max ???)
+    // fields: string  (fields to include)
+
+    const url = 'https://api.myanimelist.net/v2/anime';
+    const params = {
+        fields: 'num_episodes,alternative_titles',
+        q: search,  
+        limit: 100, // max value
+        offset: 0,
+        nsfw: true // allows a more accurate response
+    };
+    const headers = {
+        'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    const response = await withRetry(() =>
+        rateLimitedFetch(() => 
+            axios.get(url, { params, headers })
+        )
+    );
+
+    return response.data.data;
+}
+
+async function fetchManga (search) {
+    //     q : string  (searchString)
+    // limit : integer (default 100, max 100)
+    // offset: integer (default: 0 , max ???) 	
+    // fields: string  (fields to include )
+
+    // https://api.myanimelist.net/v2/manga
+
+    const url = 'https://api.myanimelist.net/v2/manga';
+    const params = { 
+        fields: 'num_chapters,num_volumes,alternative_titles',
+        q: search,
+        limit: 100, // max value
+        offset: 0,
+        nsfw: true // allows a more accurate response
+    };
+    const headers = {
+        'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
+
+    const response = await withRetry(() =>
+        rateLimitedFetch(() => 
+            axios.get(url, { params, headers })
+        )
+    );
+
+    return response.data.data;
+}
+
+export { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga };
