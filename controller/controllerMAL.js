@@ -1,4 +1,4 @@
-import { fetchAnimeList, fetchMangaList, putListEntry } from "../fetch/fetchMAL.js";
+import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga } from "../fetch/fetchMAL.js";
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
@@ -28,6 +28,37 @@ async function fetchMALUserLists (lists, logAuthURL = false) {
         logErrorDetails(error);
     }
     return lists;
+}
+
+async function searchMAL (lists, options, logAuthURL = false) {
+    try {
+        await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
+        const results = await searchAndFormatResults(options);
+        // <-- select from results 
+    } catch (error) {
+        logErrorDetails(error);
+    }
+    return lists;
+}
+
+async function searchAndFormatResults (options) {
+    const { searchType, searchStrings } = options;
+    let results = [];
+    if (!searchStrings.length) {
+        throw new Error('No titles selected for search');
+    }
+    // fetch[Anime/Manga] = { searchTitle, searchResults }
+    for (const searchString of searchStrings) {
+        results.push(
+            searchType === 'both' 
+            ? [await fetchAnime(searchString, options), await fetchManga(searchString, options)].flat()
+            : searchType === 'anime'
+            ? await fetchAnime(searchString, options) 
+            : await fetchManga(searchString, options)
+        );
+    }
+    // [{ searchTitle: string, searchResults: [] }, ...]
+    return results.flat(Infinity);
 }
 
 async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
@@ -156,4 +187,4 @@ function decodeComments (lists) {
     return lists;
 }
 
-export { fetchMALUserLists, updateMAL };
+export { fetchMALUserLists, updateMAL, searchMAL };
