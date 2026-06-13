@@ -65,7 +65,7 @@ async function putListEntry (entry_id, type, data_fields) {
     return response.data;
 }
 
-async function fetchAnime (search) {
+async function fetchAnime (searchTitle, { limit, offset }) {
     //     q : string  (searchString ... API expects at least 3 non empty characters in the string)
     // limit : integer (default 100, max 100)
     // offset: integer (default: 0 , max ???)
@@ -74,9 +74,9 @@ async function fetchAnime (search) {
     const url = 'https://api.myanimelist.net/v2/anime';
     const params = {
         fields: 'num_episodes,alternative_titles',
-        q: search,  
-        limit: 100, // max value
-        offset: 0,
+        q: searchTitle,  
+        limit, 
+        offset,
         nsfw: true // allows a more accurate response
     };
     const headers = {
@@ -90,10 +90,13 @@ async function fetchAnime (search) {
         )
     );
 
-    return response.data.data;
+    return {
+        searchResults: response.data.data,
+        searchTitle
+    };
 }
 
-async function fetchManga (search) {
+async function fetchManga (searchTitle, { limit, offset }) {
     //     q : string  (searchString)
     // limit : integer (default 100, max 100)
     // offset: integer (default: 0 , max ???) 	
@@ -104,9 +107,9 @@ async function fetchManga (search) {
     const url = 'https://api.myanimelist.net/v2/manga';
     const params = { 
         fields: 'num_chapters,num_volumes,alternative_titles',
-        q: search,
-        limit: 100, // max value
-        offset: 0,
+        q: searchTitle,
+        limit, 
+        offset,
         nsfw: true // allows a more accurate response
     };
     const headers = {
@@ -120,7 +123,10 @@ async function fetchManga (search) {
         )
     );
 
-    return response.data.data;
+    return {
+        searchResults: response.data.data,
+        searchTitle
+    };
 }
 
 export { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga };
