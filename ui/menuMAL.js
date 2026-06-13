@@ -2,15 +2,21 @@ import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
-import { fetchMALUserLists, updateMAL } from "../controller/controllerMAL.js";
+import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 
-const ANIME = 0, MANGA = 1;
-let lists, options;
+const ANIME = 0;
+const MANGA = 1;
+let lists = null; 
+let options = null;
 
 async function menuMAL (l, config) {
-    const TRAVERSE_ANIME = 0, TRAVERSE_MANGA = 1, SEARCH_LISTS = 2, FETCHLISTS = 3;
-    let input = 0;
+    const TRAVERSE_ANIME = 0;
+    const TRAVERSE_MANGA = 1;
+    const SEARCH_LISTS = 2;
+    const FETCHLISTS = 3;
+    const SEARCHMAL = 4;
+    let input = null;
     options = config.menuMALOptions; // reference to config.menuMALOptions
     
     if (!options.fetchMALOnMenuOpen) {
@@ -29,6 +35,7 @@ async function menuMAL (l, config) {
                 ['Manga list'], 
                 ['Search lists'], 
                 ['Fetch lists'], 
+                ['Search MAL'],
                 '_'
             ]
         );
@@ -42,7 +49,10 @@ async function menuMAL (l, config) {
         } else if (input === SEARCH_LISTS) {
             await searchListsMenu(); // search lists
         } else if (input === FETCHLISTS) {
-            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
+            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
+            filehandle('mal', lists);
+        } else if (input === SEARCHMAL) {
+            lists = await searchMAL(lists, config.fetchMALOptions, options.logAuthURL); // searches MAL for titles
             filehandle('mal', lists);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
