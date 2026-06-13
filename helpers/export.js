@@ -159,6 +159,12 @@ export const menuMALOptions = {
     enablePagingEntries: true, // true, false
     logAuthURL: false // true, false
 };
+export const fetchMALOptions = {
+    searchType: 'both', // 'both' or 'anime' or 'manga'
+    limit: 10,          // default: 100, min: 0, max: 100 
+    offset: 0,          // default: 0, max: ???
+    searchStrings: []   // strings to use in anime and manga search
+};
 /*
     Options for Mangadex's fetchChapters() custom search:
         -limit_manga: 0-100, undefined for default behavior (10)
