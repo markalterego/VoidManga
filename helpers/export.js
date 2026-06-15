@@ -24,18 +24,18 @@ export const MESSAGE = {
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 export const fetchMangadexOptions = { 
-    limit_manga: 10, // default: 10, min: 0, max is 100
-    limit_chapter: 10, // default: 10, min: 0, max is 100 
-    offset_chapter: 0, // default: 0, min: 0, max is ???
-    mangaOrderType: 'relevance', // 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
-    chapterOrderType: 'chapter', // 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
-    mangaOrderDirection: 'desc', // 'asc', 'desc'
-    chapterOrderDirection: 'desc', // 'asc', 'desc'
-    contentRating: [], // ['safe','etc...'], undefined for default behavior
-    chapterTranslatedLanguage: [], // ['en','es','etc...'], undefined for all languages
-    fetchMangasByMALTitles: false, // true, false
-    mangaSearchStrings: [], // used for search when !fetchMangasByMALTitles
-    fetchAllChapters: false // when enabled, fetches all chapters corresponding to other options
+    limit_manga: 10,                // default: 10, min: 0, max is 100
+    limit_chapter: 10,              // default: 10, min: 0, max is 100 
+    offset_chapter: 0,              // default: 0, min: 0, max is ???
+    mangaOrderType: 'relevance',    // 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
+    chapterOrderType: 'chapter',    // 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
+    mangaOrderDirection: 'desc',    // 'asc', 'desc'
+    chapterOrderDirection: 'desc',  // 'asc', 'desc'
+    contentRating: [],              // ['safe','etc...'], undefined for default behavior
+    chapterTranslatedLanguage: [],  // ['en','es','etc...'], undefined for all languages
+    fetchMangasByMALTitles: false,  // true, false
+    mangaSearchStrings: [],         // used for search when !fetchMangasByMALTitles
+    fetchAllChapters: false         // when enabled, fetches all chapters corresponding to other options
 };
 // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
 export const mangaOrderTypes = {
@@ -95,28 +95,28 @@ export const chapterOrderTypes = {
         desc: 'highest to lowest'
     }
 };
-export const contentRatings = ['safe', 'suggestive', 'erotica', 'pornographic'];
+export const contentRatings             = ['safe', 'suggestive', 'erotica', 'pornographic'];
 export const chapterTranslatedLanguages = ['en', 'es', 'pt-br', 'fr', 'de']; 
-export const expectedFilters = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
+export const expectedFilters            = ['includeInMangadexFetch']; // expected function parameter values at filterEntriesFromFetch
 export const logMangadexOptions = {
     // traverseMangas
     filterByMangasFoundAtMangalist: false, // true, false
-    hideZeroLengthManga: false, // true, false
-    logMangaDirection: 'asc', // 'asc', 'desc'
-    mangaOrderType: 'chapters', // 'chapters', 'title'
-    enablePagingManga: true, // true, false
+    hideZeroLengthManga: false,            // true, false
+    logMangaDirection: 'asc',              // 'asc', 'desc'
+    mangaOrderType: 'chapters',            // 'chapters', 'title'
+    enablePagingManga: true,               // true, false
     
     // traverseChapters
-    hideReadChapters: false, // true, false
-    filterChapterLanguages: [], // true, false
-    logChapterDirection: 'asc', // 'asc', 'desc'
+    hideReadChapters: false,     // true, false
+    filterChapterLanguages: [],  // true, false
+    logChapterDirection: 'asc',  // 'asc', 'desc'
     chapterOrderType: 'chapter', // 'chapter', 'title'
-    enablePagingChapter: true, // true, false
+    enablePagingChapter: true,   // true, false
     
     // traverseHistory
     logHistoryDirection: 'asc', // 'asc', 'desc'
-    historyOrderType: 'time', // 'time', 'mangas', 'chapters'
-    enablePagingHistory: true // true, false
+    historyOrderType: 'time',   // 'time', 'mangas', 'chapters'
+    enablePagingHistory: true   // true, false
 };
 export const logOrderTypes = {
     mangaOrderTypes: {
@@ -155,9 +155,9 @@ export const logOrderTypes = {
     }
 };
 export const menuMALOptions = {
-    fetchMALOnMenuOpen: true, // true, false
+    fetchMALOnMenuOpen: true,  // true, false
     enablePagingEntries: true, // true, false
-    logAuthURL: false // true, false
+    logAuthURL: false          // true, false
 };
 export const fetchMALOptions = {
     searchType: 'both', // 'both' or 'anime' or 'manga'
@@ -165,24 +165,36 @@ export const fetchMALOptions = {
     offset: 0,          // default: 0, max: ???
     searchStrings: []   // strings to use in anime and manga search
 };
-/*
-    Options for Mangadex's fetchChapters() custom search:
-        -limit_manga: 0-100, undefined for default behavior (10)
-        -limit_chapter: 0-100, undefined for default behavior (10)
-        -mangaOrderType: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
-        -chapterOrderType: 'createdAt', 'updatedAt', 'publishAt', 'readableAt', 'volume', 'chapter'
-        -mangaOrderDirection: 'asc', 'desc' - e.g. using 'desc' when order['relevance']: 'desc' sorts by most relevant to least relevant
-        -chapterOrderDirection: 'asc, 'desc'
-        -contentRating: ['safe','suggestive','erotica','pornographic'], undefined for default behavior (all expect pornographic)
-        -chapterTranslatedLanguage: ['en','es','etc...'], undefined for all languages
-
-    Options are saved as json:
-    const options = {
-        variable: ['value'],
-        ...
-    };
-    params: options
-
-    const can be spreaded to change values inside:
-    options = { ...options, variable: 'short', etc...}
-*/ 
+export const DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME = {
+    list_status: {
+        status: '',                // refer to animeStatus
+        score: 0,                  // number  (0 - 10)
+        num_episodes_watched: 0,   // number  (0 - ???) 
+        start_date: '0000-00-00',  // string  ('yyyy-mm-dd')
+        finish_date: '0000-00-00', // string  ('yyyy-mm-dd')
+        comments: '',              // string
+        priority: 0,               // number  (0 - ???)
+        is_rewatching: false,      // boolean (true, false
+        num_times_rewatched: 0,    // number  (0 - ???) 
+        rewatch_value: 0,          // number  (0 - [maybe 10])
+        tags: []                   // array of strings        
+    },
+    includeInMangadexFetch: false  // boolean (true, false)
+};
+export const DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA = {
+    list_status: {
+        status: '',                // refer to mangaStatus
+        score: 0,                  // number  (0 - 10)
+        num_volumes_read: 0,       // number  (0 - ???) 
+        num_chapters_read: 0,      // number  (0 - ???) 
+        start_date: '0000-00-00',  // string  ('yyyy-mm-dd')
+        finish_date: '0000-00-00', // string  ('yyyy-mm-dd')
+        comments: '',              // string
+        priority: 0,               // number  (0 - ???)
+        is_rereading: false,       // boolean (true, false)
+        num_times_reread: 0,       // number  (0 - ???)      
+        reread_value: 0,           // number  (0 - [maybe 10])     
+        tags: []                   // array of strings         
+    },
+    includeInMangadexFetch: false  // boolean (true, false)
+};
