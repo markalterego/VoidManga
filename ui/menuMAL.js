@@ -17,12 +17,12 @@ async function menuMAL (l, config) {
     const FETCHLISTS = 3;
     const SEARCHMAL = 4;
     let input = null;
+
     options = config.menuMALOptions; // reference to config.menuMALOptions
-    
-    if (!options.fetchMALOnMenuOpen) {
-        lists = l; // reference to lists
-    } else {
-        lists = await fetchMALUserLists(l, options.logAuthURL); // searches and returns MAL lists
+    lists = l; // reference to lists
+
+    if (options.fetchMALOnMenuOpen) {
+        lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
         filehandle('mal', lists);
     }
 
@@ -739,4 +739,86 @@ async function searchListsByTitleMenu() {
     }
 }
 
-export { menuMAL, updateEntryMenu };
+async function selectNodesFromFetchResults (searches, lists) {        
+    const allSearchResults = searches.flatMap(({ searchResults }) => searchResults); 
+    let input = null;
+    let selectedNodes = [];
+
+    const appendSelectedNode = (node) => { 
+        const isDuplicate = selectedNodes.some(selected => selected.node.id === node.id); // compare by id
+        if (!isDuplicate) selectedNodes.push({ node: node });                             // append node
+    }; 
+
+    // --- formatting searchSection ---
+    
+    let index = 0;
+    
+    const searchSection = searches.flatMap(({ searchResults, searchTitle }, sIndex) => {
+        const mappedResults = searchResults.map(({ node }) => {
+            const foundTitle     = node.title;
+            const typeLabel      = node.num_episodes >= 0 ? '* Anime' : '* Manga';
+            const formattedTitle = `${node.title} ${typeLabel}`;
+            return [index++, formattedTitle];
+        });
+        const noResults = [['?', 'No results found']];
+        const formattedResults = searchResults.length ? mappedResults : noResults;
+        return [ 
+            [`[${searchTitle}]`, null, '\n'], 
+            ...formattedResults,
+            (sIndex < searches.length - 1 ? '_' : null) // empty line between each result
+        ];
+    });
+
+    const resultCount = index;
+
+    while (input !== 'a' && input !== 'e')
+    {
+        // --- formatting selected titles ---
+
+        const selectedTitles = selectedNodes.map(({ node }) => 
+            [null, '-', node.title]
+        ); 
+        const noTitles = [[null, '-', 'No selected titles']];
+        const selectedTitlesSection = selectedTitles.length ? selectedTitles : noTitles;
+
+        // --- assemble menu ---
+
+        const optionsArray = [
+            '_', '_',
+            ...searchSection,
+            '_', '_',
+            ['Selected titles', null, null],
+            '_',
+            ...selectedTitlesSection,
+            '_', '_',
+            ['a', 'Add selected titles to your MAL list'],
+            [SYM.INCLUDE, 'Include all titles'],
+            ['c', 'Clear selected titles']
+        ];
+
+        printMenuOptions(
+            null,
+            optionsArray,
+            { printHeader: false }
+        );
+
+        input = await takeUserInput(true);
+        
+        if (input >= 0 && input < resultCount) { // append selected
+            appendSelectedNode(allSearchResults[input].node);
+        } else if (input === '+') { // append all 
+            allSearchResults.forEach(obj => appendSelectedNode(obj.node));
+        } else if (input === 'a' && !selectedNodes.length) { 
+            console.log('\n\n  Nothing selected to be added to your MAL lists');
+            input = null;
+        } else if (input === 'c' || input === 'e') { // empty selected
+            selectedNodes = [];
+        } else if (input !== 'a') { // invalid input
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+
+    return selectedNodes;
+}
+
+export { menuMAL, updateEntryMenu, selectNodesFromFetchResults };
