@@ -1,5 +1,5 @@
 import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga } from "../fetch/fetchMAL.js";
-import { animeStatus, mangaStatus } from "../helpers/export.js";
+import { animeStatus, mangaStatus, DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA } from "../helpers/export.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
 import { selectNodesFromFetchResults } from '../ui/menuMAL.js';
@@ -39,8 +39,9 @@ async function searchMAL (lists, options, logAuthURL = false) {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
         const searchResults = await searchAndFormatResults(options);
         const selected = await selectNodesFromFetchResults(searchResults, lists);
-        // <-- build selected searchResults into valid entries
-        // <-- update selected entries to MAL
+        const entries = await formatNodesToEntries(selected, lists); 
+        // <-- open menu for each entry to update details regarding 
+        //     what is put into your MAL lists
     } catch (error) {
         logErrorDetails(error);
     }
@@ -65,6 +66,15 @@ async function searchAndFormatResults (options) {
     }
     // [{ searchTitle: string, searchResults: [] }, ...]
     return results.flat(Infinity);
+}
+
+async function formatNodesToEntries (nodes, lists) {
+    // [ { node: { ... }, list_status: { ... } }, ... ] <-- [ { node: { ... } }, ... ]
+    return nodes.map(({ node }) => {
+        const getType
+        const DEFAULT_VALUES = node.num_episodes >= 0 ? DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME : DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA;  
+        return { ...node, ...DEFAULT_VALUES };
+    });
 }
 
 async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
