@@ -2,6 +2,8 @@ import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga } 
 import { animeStatus, mangaStatus } from "../helpers/export.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
+import { selectNodesFromFetchResults } from '../ui/menuMAL.js';
+import { filehandle } from "../filehandling/filehandle.js";
 import he from "he";
 
 // TODO:
@@ -12,6 +14,8 @@ import he from "he";
 //   then at start tokens are updated, the passed function is
 //   ran from within the function and then results are handled 
 //   accordingly right after 
+// - create logic for saving data to file at the end of each 
+//   related controller function
 
 const ANIME = 0;
 const MANGA = 1;
@@ -33,8 +37,10 @@ async function fetchMALUserLists (lists, logAuthURL = false) {
 async function searchMAL (lists, options, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
-        const results = await searchAndFormatResults(options);
-        // <-- select from results 
+        const searchResults = await searchAndFormatResults(options);
+        const selected = await selectNodesFromFetchResults(searchResults, lists);
+        // <-- build selected searchResults into valid entries
+        // <-- update selected entries to MAL
     } catch (error) {
         logErrorDetails(error);
     }
