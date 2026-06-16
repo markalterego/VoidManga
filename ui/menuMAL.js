@@ -11,11 +11,9 @@ let lists = null;
 let options = null;
 
 async function menuMAL (l, config) {
-    const TRAVERSE_ANIME = 0;
-    const TRAVERSE_MANGA = 1;
-    const SEARCH_LISTS = 2;
-    const FETCHLISTS = 3;
-    const SEARCHMAL = 4;
+    const TRAVERSE_DATA = 0;
+    const FETCH_DATA = 1;
+
     let input = null;
 
     options = config.menuMALOptions; // reference to config.menuMALOptions
@@ -31,34 +29,86 @@ async function menuMAL (l, config) {
         printMenuOptions(
             'MyAnimeList options', 
             [
-                ['Anime list'], 
-                ['Manga list'], 
-                ['Search lists'], 
-                ['Fetch lists'], 
-                ['Search MAL'],
+                ['Your lists'],
+                ['Fetch MAL'],
                 '_'
             ]
         );
 
-        input = await takeUserInput(true); // take userInput whole numbers
+        input = await takeUserInput(true); 
         
+        if (input === TRAVERSE_DATA) {
+            await traverseMALMenu(); // traverse local MAL lists
+        } else if (input === FETCH_DATA) {
+            await fetchMALMenu(config.fetchMALOptions); // fetch MAL API
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+
+    return lists;
+}
+
+async function traverseMALMenu () {
+    const TRAVERSE_ANIME = 0;
+    const TRAVERSE_MANGA = 1;
+    const SEARCH_LISTS = 2;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        printMenuOptions(
+            'Your MyAnimeList',
+            [
+                ['Anime list'], 
+                ['Manga list'], 
+                ['Search lists'],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+
         if (input === TRAVERSE_ANIME) {
             await traverseStatus(ANIME); // anime list
         } else if (input === TRAVERSE_MANGA) {
             await traverseStatus(MANGA); // manga list
         } else if (input === SEARCH_LISTS) {
             await searchListsMenu(); // search lists
-        } else if (input === FETCHLISTS) {
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function fetchMALMenu (fetchMALOptions) {
+    const FETCH_LISTS = 0;
+    const SEARCH_MAL = 1;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        printMenuOptions(
+            'Fetch MAL',
+            [
+                ['Fetch lists'], 
+                ['Search MAL'],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+
+        if (input === FETCH_LISTS) {
             lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
             filehandle('mal', lists);
-        } else if (input === SEARCHMAL) {
-            lists = await searchMAL(lists, config.fetchMALOptions, options.logAuthURL); // searches MAL for titles
+        } else if (input === SEARCH_MAL) {
+            lists = await searchMAL(lists, fetchMALOptions, options.logAuthURL); // searches MAL for titles
             filehandle('mal', lists);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
-    return lists;
 }
 
 async function traverseStatus (typeIndex) {
