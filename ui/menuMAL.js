@@ -1,4 +1,3 @@
-import { filehandle } from "../filehandling/filehandle.js";
 import { takeUserInput, truncateString, capitalFirstLetterString, printMenuOptions, escapeRegex } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
@@ -21,7 +20,6 @@ async function menuMAL (l, config) {
 
     if (options.fetchMALOnMenuOpen) {
         lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
-        filehandle('mal', lists);
     }
 
     while (input !== 'e') 
@@ -101,10 +99,8 @@ async function fetchMALMenu (fetchMALOptions) {
 
         if (input === FETCH_LISTS) {
             lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
-            filehandle('mal', lists);
         } else if (input === SEARCH_MAL) {
             lists = await searchMAL(lists, fetchMALOptions, options.logAuthURL); // searches MAL for titles
-            filehandle('mal', lists);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -330,7 +326,6 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         // update changes
         if (changedFields.length) {
             listsReference = await updateMAL(listsReference, changedFields, entry, logAuthURL ?? options.logAuthURL); // update MAL entry
-            filehandle('mal', listsReference); // save updates to file
             changedFields = []; // clear changedFields
             // re-find entry reference
             entry = listsReference[getType(list_status)]                    // type
