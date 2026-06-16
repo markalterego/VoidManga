@@ -71,7 +71,6 @@ async function searchAndFormatResults (options) {
 async function formatNodesToEntries (nodes, lists) {
     // [ { node: { ... }, list_status: { ... } }, ... ] <-- [ { node: { ... } }, ... ]
     return nodes.map(({ node }) => {
-        const getType
         const DEFAULT_VALUES = node.num_episodes >= 0 ? DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME : DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA;  
         return { ...node, ...DEFAULT_VALUES };
     });
