@@ -14,8 +14,6 @@ import he from "he";
 //   then at start tokens are updated, the passed function is
 //   ran from within the function and then results are handled 
 //   accordingly right after 
-// - create logic for saving data to file at the end of each 
-//   related controller function
 
 const ANIME = 0;
 const MANGA = 1;
@@ -28,6 +26,7 @@ async function fetchMALUserLists (lists, logAuthURL = false) {
         const mangalist = await fetchMangaList(); // fetch Manga endpoint
         const sortedLists = sortSeriesByStatus(animelist, mangalist, lists); // format anime- and manga lists
         lists = decodeComments(sortedLists); // encode each list_status.comments properly
+        filehandle('mal', lists); // save data to file
     } catch (error) {
         logErrorDetails(error);
     }
@@ -42,6 +41,7 @@ async function searchMAL (lists, options, logAuthURL = false) {
         const entries = await formatNodesToEntries(selected, lists); 
         // <-- open menu for each entry to update details regarding 
         //     what is put into your MAL lists
+        filehandle('mal', lists); // save data to file
     } catch (error) {
         logErrorDetails(error);
     }
@@ -82,6 +82,7 @@ async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
         const finalEntry = { ...entry, ...syncedEntry }; // merge existing entry + synced
         removeOldEntry(lists, entry); // remove existing entry 
         appendNewEntry(lists, finalEntry); // add entry to lists
+        filehandle('mal', lists); // save data to file
     } catch (error) {
         logErrorDetails(error);
     }
