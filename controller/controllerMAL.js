@@ -102,7 +102,7 @@ async function updateListEntry (changedFields, entry, logAuthURL = false) {
     }
 }
 
-const type   = (entry) => !!entry.node?.num_episodes ? ANIME : MANGA;
+const type   = (entry) => entry.node.num_episodes === undefined ? MANGA : ANIME;
 const status = (entry) => type(entry) === ANIME 
                             ? animeStatus.findIndex(s => s === entry.list_status.status) 
                             : mangaStatus.findIndex(s => s === entry.list_status.status);    
