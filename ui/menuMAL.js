@@ -132,24 +132,26 @@ async function traverseStatus (typeIndex) {
     }
 }
 
-async function traverseEntry (typeIndex, statusIndex, entryArr) {
-    const status = !entryArr ? (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]) : null;
-    const entries = !entryArr ? lists[typeIndex][statusIndex] : entryArr;
-    let input = 0, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
+const getTypeFromEntry = (entry) => entry.node.num_episodes === undefined ? MANGA : ANIME;
 
-    // TODO: 
-    // - fix bug where if entryArr overwrites entries and user updates entries through
-    //   updateEntryMenu, returns to this menu and again selects updateEntryMenu, the
-    //   data at entry doesn't reflect the updated changes but rather the updates at the
-    //   point of entries assignment ... (I think due to entryArr breaking reference or something) 
+async function traverseEntry (typeIndex, statusIndex, entryArr) {
+    
+    // function is used for: 
+    // - traversing lists[typeIndex][statusIndex] 
+    // - traversing entryArr
+
+    const status = entryArr ? null : (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]);
+    const header = entryArr ? 'Search results' : `Status: ${capitalFirstLetterString(status)}`;
+    
+    let input = null;
+    let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
+    let entries = entryArr ?? lists[typeIndex][statusIndex];
 
     while (input !== 'e') 
     {
         pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
         let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
 
-        // formatting printMenuOptions parameters
-        const header = !entryArr ? `Status: ${capitalFirstLetterString(status)}`: 'Search results';
         const entryTitles = pagedEntries.map(e => [e.node.title]);
         const pageFooter = entryTitles.length && options.enablePagingEntries ? 'p' : null;
         const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
@@ -176,6 +178,8 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         if (input >= 0 && input < pagedEntries.length) {
             const entry = pagedEntries[input]; // reference to selected entry
             await updateEntryMenu(entry); // update stuff related to selected entry
+            const indexAtEntries = entries.findIndex(e => e.node.id === entry.node.id && getTypeFromEntry(e) === getTypeFromEntry(entry));
+            entries[indexAtEntries] = lists[getTypeFromEntry(entry)].flat(Infinity).find(e => e.node.id === entry.node.id);
         } else if (input === 't') { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
         } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // paging options
@@ -185,6 +189,8 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         }
     }
 }
+
+const getType = (list_status) => list_status.num_episodes_watched === undefined ? MANGA : ANIME;
 
 async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     // parameters 'l' (standing for lists) and logAuthURL are supposed 
@@ -507,10 +513,6 @@ async function updateChaptersMenu (entry) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
-}
-
-function getType (list_status) {
-    return list_status.num_episodes_watched === undefined ? MANGA : ANIME;
 }
 
 async function updateStartDateMenu (list_status) {
