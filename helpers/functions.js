@@ -123,10 +123,6 @@ function longStringToArray (string, maxLengthOfElement) {
     return arr;
 }
 
-function truncateString (string, maxLengthOfString) {
-    return string.length > maxLengthOfString ? `${string.slice(0, maxLengthOfString).trim()}...`: string;
-}
-
 function isValidLangCode (input) {
     return /^[a-z]{2}(-[a-z]{2})?$/i.test(input);
 }
@@ -155,6 +151,10 @@ function formatDate (DATE) {
     const ss   = String(date.getSeconds()).padStart(2, '0');
     // e.g. `2026-04-02 06:42:54  m:44   c:1186`
     return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+
+function isLeapYear (year) {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
 }
 
 async function openURLInBrowser (url, label = '', logURL = true) {
@@ -251,5 +251,6 @@ export {
     openURLInBrowser,
     padString,
     truncateThenPadString,
-    printMenuOptions
+    printMenuOptions,
+    isLeapYear
 };
