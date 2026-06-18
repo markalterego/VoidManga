@@ -242,7 +242,6 @@ export {
     customFetchMangadexDisplay, 
     capitalFirstLetterString, 
     longStringToArray,
-    truncateString,
     isValidLangCode,
     escapeRegex,
     isISODate,
