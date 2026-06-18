@@ -1,9 +1,10 @@
-import { takeUserInput, truncateString, capitalFirstLetterString, 
-         printMenuOptions, escapeRegex, isLeapYear, padString } from "../helpers/functions.js";
+import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
+         escapeRegex, isLeapYear, padString } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
+import cliTruncate from "cli-truncate";
 
 const ANIME = 0;
 const MANGA = 1;
@@ -194,6 +195,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
 const getType = (list_status) => list_status.num_episodes_watched === undefined ? MANGA : ANIME;
 
 async function updateEntryMenu (entry, l = null, logAuthURL = null) {
+
     // parameters 'l' (standing for lists) and logAuthURL are supposed 
     // to be used when calling updateEntryMenu from outside menuMAL.js 
 
@@ -216,6 +218,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     const PADEND = 12; 
     const PADSTART = 0; 
     const NOT_SET = 'Not set';
+    const COMMENTS_LENGTH = 10;
 
     let input = null;
     let changedFields = [];
@@ -240,52 +243,48 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         // of the loop, changedFields passed to updateMAL and emptied right after 
 
         const entry_clone = structuredClone(entry); 
-        const { num_episodes, num_chapters, num_volumes } = entry_clone.node; 
-        const entryTitle = entry_clone.node.title; 
+        const { num_episodes, num_chapters, num_volumes, title } = entry_clone.node; 
         const list_status = entry_clone.list_status; 
         const { status, is_rereading, is_rewatching, num_volumes_read, 
                 num_chapters_read, num_episodes_watched, score, updated_at,
                 start_date, finish_date, comments, priority, num_times_reread,
                 num_times_rewatched, reread_value, rewatch_value, tags } = list_status;
         
-        // formatting printMenuOptions parameters
+        // formatting printMenuOptions parameters 
 
-        const s_status       = `${padString('Status', PADEND, ' ')}: ${padString(capitalFirstLetterString(status), PADSTART, ' ', true)}`;
-        const s_score        = `${padString('Score', PADEND, ' ')}: ${padString(score, PADSTART, ' ', true)}`;
-        const s_episodes     = `${padString('Episodes', PADEND, ' ')}: ${padString(`${num_episodes_watched} / ${!!num_episodes ? num_episodes : '?'}`, PADSTART, ' ', true)}`; 
-        const s_chapters     = `${padString('Chapters', PADEND, ' ')}: ${padString(`${num_chapters_read} / ${!!num_chapters ? num_chapters : '?'}`, PADSTART, ' ', true)}`; 
-        const s_volumes      = `${padString('Volumes', PADEND, ' ')}: ${padString(`${num_volumes_read} / ${!!num_volumes ? num_volumes : '?'}`, PADSTART, ' ', true)}`; 
-        const s_startDate    = `${padString('Start date', PADEND, ' ')}: ${padString((!!start_date ? start_date : NOT_SET), PADSTART, ' ', true)}`;
-        const s_finishDate   = `${padString('Finish date', PADEND, ' ')}: ${padString((!!finish_date ? finish_date : NOT_SET), PADSTART, ' ', true)}`;        
-        const s_isReWatching = `${padString('Re-watching', PADEND, ' ')}: ${padString((!!is_rewatching ? 'Yes' : 'No'), PADSTART, ' ', true)}`;
-        const s_isReReading  = `${padString('Re-reading', PADEND, ' ')}: ${padString((!!is_rereading ? 'Yes' : 'No'), PADSTART, ' ', true)}`;
-        const s_comments     = `${padString('Comments', PADEND, ' ')}: ${padstring(comments.length ? truncateString(comments, 10) : NOT_SET, PADSTART, ' ', true)}`;
-
+        const formatString = (s_left, s_right) => `${padString(s_left, PADEND, ' ')}: ${padString(s_right, PADSTART, ' ', true)}`; 
+        
+        const s_status       = formatString('Status', capitalFirstLetterString(status));
+        const s_score        = formatString('Score', !!score ? score : NOT_SET);
+        const s_episodes     = formatString('Episodes', `${num_episodes_watched} / ${!!num_episodes ? num_episodes : '?'}`);
+        const s_chapters     = formatString('Chapters', `${num_chapters_read} / ${!!num_chapters ? num_chapters : '?'}`);
+        const s_volumes      = formatString('Volumes', `${num_volumes_read} / ${!!num_volumes ? num_volumes : '?'}`);
+        const s_startDate    = formatString('Start date', !!start_date ? start_date : NOT_SET);
+        const s_finishDate   = formatString('Finish date', !!finish_date ? finish_date : NOT_SET);
+        const s_isReWatching = formatString('Re-watching', !!is_rewatching ? 'Yes' : 'No');
+        const s_isReReading  = formatString('Re-reading', !!is_rereading ? 'Yes' : 'No');
+        const s_comments     = formatString('Comments', !!comments ? cliTruncate(comments, COMMENTS_LENGTH) : NOT_SET);
+        
         const s_progress = getType(list_status) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
         const s_isRe     = getType(list_status) === ANIME ? s_isReWatching : s_isReReading; 
+
+        const header = `UPDATE - ${title}`;
+        const optionsArray = [
+            '-', '_',
+            [s_status],
+            [s_score], 
+            ...s_progress, 
+            [s_startDate], 
+            [s_finishDate], 
+            [s_isRe], 
+            [s_comments], 
+            '_', '-', '_',
+            ['l', 'Log entry']
+        ];
         
-        const s1_comments = 'Comments';
-        const s2_comments = list_status.comments.length > 0 ? truncateString(list_status.comments, 10) : NOT_SET; // list_status.comment || 'no comment'
-        const s_comments  = s1_comments.padEnd(PADEND, ' ') + ': ' + s2_comments.padStart(PADSTART, ' ');         // comments with padding
-        
-        // calling printMenuOptions
         printMenuOptions(
-            `UPDATE - ${entryTitle}`,
-            [
-                '-', 
-                '_', 
-                [s_status], 
-                [s_score], 
-                ...s_progress, 
-                [s_startDate], 
-                [s_finishDate], 
-                [s_isRe], 
-                [s_comments], 
-                '_', 
-                '-', 
-                '_',
-                ['l', 'Log entry']
-            ]
+            header,
+            optionsArray
         );
 
         input = await takeUserInput(true); 
@@ -320,7 +319,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
                 else return oldVal !== newVal;
             });
         } else if (input === 'l') {
-            await logDataDeepMenu(entry, entryTitle, false, true);
+            await logDataDeepMenu(entry, title, false, true);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -659,7 +658,7 @@ function isValidDate (date) {
 }
 
 async function updateIsReMenu (list_status) {
-    const getIsRe = (list_status) => getType(list_status) === ANIME ? list_status.is_rewatching : list_status.is_rewatching;
+    const getIsRe = (list_status) => getType(list_status) === ANIME ? list_status.is_rewatching : list_status.is_rereading;
     const setIsRe = (list_status, value) => getType(list_status) === ANIME ? list_status.is_rewatching = value : list_status.is_rereading = value;
     const isReBeforeChange = getIsRe(list_status);
     let input = 0;
