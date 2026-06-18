@@ -1,6 +1,5 @@
 import { takeUserInput, printMenuOptions, isValidLangCode, escapeRegex,
-         truncateString, openURLInBrowser, isISODate, formatDate,
-         isMatchingAtStart } from '../helpers/functions.js';
+         openURLInBrowser, isISODate, formatDate, isMatchingAtStart } from '../helpers/functions.js';
 import { MESSAGE, SYM, logOrderTypes } from '../helpers/export.js';
 const { mangaOrderTypes, chapterOrderTypes, historyOrderTypes } = logOrderTypes;
 import { updateEntryMenu } from './menuMAL.js';
