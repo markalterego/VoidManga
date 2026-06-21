@@ -2,7 +2,7 @@ import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga } 
 import { animeStatus, mangaStatus, DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA } from "../helpers/export.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
-import { selectNodesFromFetchResults } from '../ui/menuMAL.js';
+import { editOrAddEntriesFromSearchResults } from '../ui/menuMAL.js';
 import { filehandle } from "../filehandling/filehandle.js";
 import he from "he";
 
@@ -36,12 +36,10 @@ async function fetchMALUserLists (lists, logAuthURL = false) {
 async function searchMAL (lists, options, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
-        const searchResults = await searchAndFormatResults(options);
-        const selected = await selectNodesFromFetchResults(searchResults, lists);
-        const entries = await formatNodesToEntries(selected, lists); 
-        // <-- open menu for each entry to update details regarding 
-        //     what is put into your MAL lists
-        filehandle('mal', lists); // save data to file
+        const formattedResults = await searchAndFormatResults(options); // [ { searchResults: [ { node: { ... } }, ... ], searchTitle: string }, ... ] 
+        const finalResults = appendListStatusesToSearchResults(formattedResults, lists); // [ { searchResults: [ { node: { ... }, list_status: { ... } }, ... ], searchTitle: string }, ... ]
+        console.dir(finalResults, { depth: null });
+        lists = await editOrAddEntriesFromSearchResults(finalResults, lists, logAuthURL); // access updateEntryMenu through this function
     } catch (error) {
         logErrorDetails(error);
     }
@@ -58,7 +56,7 @@ async function searchAndFormatResults (options) {
     for (const searchString of searchStrings) {
         results.push(
             searchType === 'both' 
-            ? [await fetchAnime(searchString, options), await fetchManga(searchString, options)].flat()
+            ? [await fetchAnime(searchString, options), await fetchManga(searchString, options)]
             : searchType === 'anime'
             ? await fetchAnime(searchString, options) 
             : await fetchManga(searchString, options)
@@ -68,11 +66,23 @@ async function searchAndFormatResults (options) {
     return results.flat(Infinity);
 }
 
-async function formatNodesToEntries (nodes, lists) {
-    // [ { node: { ... }, list_status: { ... } }, ... ] <-- [ { node: { ... } }, ... ]
-    return nodes.map(({ node }) => {
-        const DEFAULT_VALUES = node.num_episodes >= 0 ? DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME : DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA;  
-        return { ...node, ...DEFAULT_VALUES };
+function appendListStatusesToSearchResults (formattedResults, lists) {
+    //      [ { searchResults: [ { node: { ... } }, ... ], searchTitle: string }, ... ] 
+    // ---> [ { searchResults: [ { node: { ... }, list_status: { ... } }, ... ], searchTitle: string }, ... ]
+    return formattedResults.map(item => {
+        const formattedSearchResults = item.searchResults.map(({ node }) => {
+            const type          = node.num_episodes >= 0 ? ANIME : MANGA;
+            const existingEntry = lists[type].flat(Infinity).find(e => e.node.id === node.id);
+            // New Nodes included to either
+            // 1. existing entries found at lists
+            // 2. default entry frameworks based on type
+            return existingEntry 
+                ? { node, list_status: existingEntry.list_status, includeInMangadexFetch: existingEntry.includeInMangadexFetch } 
+                : type === ANIME 
+                ? { node, ...DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME } 
+                : { node, ...DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA };
+        });
+        return { ...item, searchResults: formattedSearchResults };
     });
 }
 
