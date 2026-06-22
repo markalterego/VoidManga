@@ -167,7 +167,7 @@ export const fetchMALOptions = {
 };
 export const DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME = {
     list_status: {
-        status: null,              // refer to animeStatus
+        status: 'watching',        // refer to animeStatus
         score: 0,                  // number  (0 - 10)
         num_episodes_watched: 0,   // number  (0 - ???) 
         start_date: '0000-00-00',  // string  ('yyyy-mm-dd')
@@ -183,7 +183,7 @@ export const DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME = {
 };
 export const DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA = {
     list_status: {
-        status: null,              // refer to mangaStatus
+        status: 'reading',         // refer to mangaStatus
         score: 0,                  // number  (0 - 10)
         num_volumes_read: 0,       // number  (0 - ???) 
         num_chapters_read: 0,      // number  (0 - ???) 
