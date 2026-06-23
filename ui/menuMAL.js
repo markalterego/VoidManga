@@ -102,7 +102,11 @@ async function fetchMALMenu (fetchMALOptions) {
         if (input === FETCH_LISTS) {
             lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
         } else if (input === SEARCH_MAL) {
-            lists = await searchMAL(lists, fetchMALOptions, options.logAuthURL); // searches MAL for titles
+            const testOptions = structuredClone(fetchMALOptions);
+            // testOptions.limit = 5;
+            // testOptions.searchStrings = ['berserk'];
+            // testOptions.searchType = 'both';
+            lists = await searchMAL(lists, testOptions, options.logAuthURL); // searches MAL for titles
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -221,26 +225,26 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     const COMMENTS_LENGTH = 10;
 
     let input = null;
-    let changedFields = [];
     let listsReference = l ?? lists;
+    let pushUpdates = false;
 
     // TODO: 
     // - make it so that start/finish dates are automatically applied
     //   upon e.g. the first episode/chapter read + setting the series
     //   as completed/updating last chapter of series etc...
-    // - create some kind of system for actually being able to use
-    //   the isre(watching/reading) keys for something useful, this
-    //   also naturally includes integrating updating num_times_re...
-    //   etc. key-value pairs to the mix
+    // - make new menu's for updating priority, num_times_rewatched, 
+    //   rewatch_value, tags and num_times_reread and connect them 
+    //   to this function
+    // - make it possible to delete an entry from lists (naturally local + 
+    //   online in the same )
 
     while (input !== 'e') 
     {
         // entry_clone is updated within deeper updateMenu functions, 
         // after user returns to this function (updateEntryMenu), entry_clone
-        // is compared to the original entry - which remains unchanged - 
-        // and all key-value pairs which are different are appended to
-        // the changedFields array in the form of [key, value]. At the end
-        // of the loop, changedFields passed to updateMAL and emptied right after 
+        // is compared to the original entry. If any value of entry_clone 
+        // differs from the original entry, all values from entry_clone 
+        // are passed to updateMAL 
 
         const entry_clone = structuredClone(entry); 
         const { num_episodes, num_chapters, num_volumes, title } = entry_clone.node; 
@@ -268,7 +272,8 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         const s_progress = getType(list_status) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
         const s_isRe     = getType(list_status) === ANIME ? s_isReWatching : s_isReReading; 
 
-        const header = `UPDATE - ${title}`;
+        const entryExists = listsReference[getType(list_status)].flat(Infinity).some(e => e.node.id === entry_clone.node.id);
+        const header = `${entryExists ? 'UPDATE' : 'ADD'} - ${title}`;
         const optionsArray = [
             '-', '_',
             [s_status],
@@ -279,6 +284,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             [s_isRe], 
             [s_comments], 
             '_', '-', '_',
+            ['u', 'Update now'],
             ['l', 'Log entry']
         ];
         
@@ -311,28 +317,27 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             const requiresEntryAsParameter = ['episodes', 'volumes', 'chapters'].some(v => v === field);
             requiresEntryAsParameter ? await updater(entry_clone) : await updater(list_status);
             // check for updates
-            changedFields = Object.entries(list_status).filter(([key, _]) => { 
+            pushUpdates = Object.keys(list_status).some(key => {
                 const oldVal = old_list_status[key];
-                const newVal = list_status[key];
+                const newVal = list_status[key]; 
                 // arrays compared as string because arr[1] === arr[2] would be true
                 if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
                 else return oldVal !== newVal;
             });
         } else if (input === 'l') {
             await logDataDeepMenu(entry, title, false, true);
+        } else if (input === 'u') { 
+            pushUpdates = true;
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
 
         // update changes
-        if (changedFields.length) {
-            listsReference = await updateMAL(listsReference, changedFields, entry, logAuthURL ?? options.logAuthURL); // update MAL entry
-            changedFields = []; // clear changedFields
-            // re-find entry reference
-            entry = listsReference[getType(list_status)]                    // type
-                                  .flatMap(s => s)                          // status
-                                  .find(e =>  e.node.id === entry.node.id); // entry
-        }
+        if (pushUpdates) {
+            pushUpdates = false; 
+            listsReference = await updateMAL(listsReference, Object.entries(list_status), entry, logAuthURL ?? options.logAuthURL); // update MAL entry
+            entry = listsReference[getType(list_status)].flat(Infinity).find(e =>  e.node.id === entry.node.id); // re-find entry reference
+        } 
     }
 }
 
@@ -768,61 +773,58 @@ async function searchListsByTitleMenu() {
     }
 }
 
-async function selectNodesFromFetchResults (searches, lists) {        
-    const allSearchResults = searches.flatMap(({ searchResults }) => searchResults); 
+async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthURL = false) {        
+    // 
+    // finalResults: [ { searchResults: [ { node: { ... }, list_status: { ... } }, ... ], searchTitle: string }, ... ]
+    // 
     let input = null;
-    let selectedNodes = [];
 
-    const appendSelectedNode = (node) => { 
-        const isDuplicate = selectedNodes.some(selected => selected.node.id === node.id); // compare by id
-        if (!isDuplicate) selectedNodes.push({ node: node });                             // append node
-    }; 
-
-    // --- formatting searchSection ---
-    
-    let index = 0;
-    
-    const searchSection = searches.flatMap(({ searchResults, searchTitle }, sIndex) => {
-        const mappedResults = searchResults.map(({ node }) => {
-            const foundTitle     = node.title;
-            const typeLabel      = node.num_episodes >= 0 ? '* Anime' : '* Manga';
-            const formattedTitle = `${node.title} ${typeLabel}`;
-            return [index++, formattedTitle];
-        });
-        const noResults = [['?', 'No results found']];
-        const formattedResults = searchResults.length ? mappedResults : noResults;
-        return [ 
-            [`[${searchTitle}]`, null, '\n'], 
-            ...formattedResults,
-            (sIndex < searches.length - 1 ? '_' : null) // empty line between each result
-        ];
-    });
-
-    const resultCount = index;
-
-    while (input !== 'a' && input !== 'e')
+    while (input !== 'e')
     {
-        // --- formatting selected titles ---
+        let index = 0;
 
-        const selectedTitles = selectedNodes.map(({ node }) => 
-            [null, '-', node.title]
-        ); 
-        const noTitles = [[null, '-', 'No selected titles']];
-        const selectedTitlesSection = selectedTitles.length ? selectedTitles : noTitles;
-
-        // --- assemble menu ---
+        // filter existing entries and new entries
+        const { entriesToAdd, entriesToEdit } = finalResults.reduce((acc, result) => {
+            const foundAtLists = (searchResult) => lists[getTypeFromEntry(searchResult)].flat(Infinity).some(e => e.node.id === searchResult.node.id);
+            const { searchTitle, searchResults, node, list_status } = result;
+            // [ searchTitle: 'frieren', searchResults: ['frieren manga', 'frieren dj.', ...] ]
+            for (const searchResult of searchResults) {
+                const entryExists = foundAtLists(searchResult);
+                if (!entryExists) { // if found append to edit
+                    acc.entriesToAdd.push(searchResult);
+                } else { // else append to add
+                    acc.entriesToEdit.push(searchResult);
+                }
+            }
+            return acc;
+        }, { entriesToAdd: [], entriesToEdit: [] });
+        const formatSection = (entry) => {
+            const title          = entry.node.title;
+            const typeLabel      = getTypeFromEntry(entry) === ANIME ? '* Anime' : '* Manga';
+            const formattedTitle = `${title} ${typeLabel}`; 
+            return [index++, formattedTitle];
+        };
+        // [ { node, list_status, includeInMangadexFetch }, ... ]
+        const noResults   = [['?', 'No results found']];
+        const addSection  = entriesToAdd.length  ? entriesToAdd.map(entry => formatSection(entry))  : noResults;
+        const editSection = entriesToEdit.length ? entriesToEdit.map(entry => formatSection(entry)) : noResults;
+        const allEntries = [...entriesToAdd, ...entriesToEdit];
+        const resultCount = index;
+        const addHeader   = ['_', '_', ['Add section', null, null], '_'];
+        const editHeader  = ['_', ['Edit section', null, null], '_'];
+        
+        // return [ 
+        //     [`[${searchTitle}]`, null, '\n'], 
+        //     ...formattedResults,
+        //     (sIndex < reduced.entriesToAdd.length - 1 ? '_' : null) // empty line between each result
+        // ];
 
         const optionsArray = [
-            '_', '_',
-            ...searchSection,
-            '_', '_',
-            ['Selected titles', null, null],
-            '_',
-            ...selectedTitlesSection,
-            '_', '_',
-            ['a', 'Add selected titles to your MAL list'],
-            [SYM.INCLUDE, 'Include all titles'],
-            ['c', 'Clear selected titles']
+            ...addHeader,
+            ...addSection,
+            ...editHeader,
+            ...editSection, '_', 
+            ['?', 'Select result to add/edit']
         ];
 
         printMenuOptions(
@@ -833,21 +835,12 @@ async function selectNodesFromFetchResults (searches, lists) {
 
         input = await takeUserInput(true);
         
-        if (input >= 0 && input < resultCount) { // append selected
-            appendSelectedNode(allSearchResults[input].node);
-        } else if (input === '+') { // append all 
-            allSearchResults.forEach(obj => appendSelectedNode(obj.node));
-        } else if (input === 'a' && !selectedNodes.length) { 
-            console.log('\n\n  Nothing selected to be added to your MAL lists');
-            input = null;
-        } else if (input === 'c' || input === 'e') { // empty selected
-            selectedNodes = [];
-        } else if (input !== 'a') { // invalid input
+        if (input >= 0 && input < resultCount) {
+            await updateEntryMenu(allEntries[input], lists, logAuthURL);
+        } else if (input !== 'e') { // invalid input
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
-
-    return selectedNodes;
 }
 
-export { menuMAL, updateEntryMenu, selectNodesFromFetchResults };
+export { menuMAL, updateEntryMenu, editOrAddEntriesFromSearchResults };
