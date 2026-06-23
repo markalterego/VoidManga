@@ -38,8 +38,7 @@ async function searchMAL (lists, options, logAuthURL = false) {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
         const formattedResults = await searchAndFormatResults(options); // [ { searchResults: [ { node: { ... } }, ... ], searchTitle: string }, ... ] 
         const finalResults = appendListStatusesToSearchResults(formattedResults, lists); // [ { searchResults: [ { node: { ... }, list_status: { ... } }, ... ], searchTitle: string }, ... ]
-        console.dir(finalResults, { depth: null });
-        lists = await editOrAddEntriesFromSearchResults(finalResults, lists, logAuthURL); // access updateEntryMenu through this function
+        await editOrAddEntriesFromSearchResults(finalResults, lists, logAuthURL); // access updateEntryMenu through this function
     } catch (error) {
         logErrorDetails(error);
     }
@@ -90,7 +89,8 @@ async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
     try {
         const syncedEntry = await updateListEntry(changedFields, entry, logAuthURL); // update online
         const finalEntry = { ...entry, ...syncedEntry }; // merge existing entry + synced
-        removeOldEntry(lists, entry); // remove existing entry 
+        const entryExists = lists[type(entry)].flat(Infinity).some(e => e.node.id === entry.node.id);
+        if (entryExists) removeOldEntry(lists, entry); // remove existing entry 
         appendNewEntry(lists, finalEntry); // add entry to lists
         filehandle('mal', lists); // save data to file
     } catch (error) {
