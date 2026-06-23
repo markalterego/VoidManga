@@ -7,6 +7,7 @@
 function logErrorDetails (error) {
     const code = error.code;
     const message = error.message;
+    const stack = error.stack;
 
     const response = error.response;
 
@@ -32,6 +33,7 @@ function logErrorDetails (error) {
         if (responseHint)    console.error(`  Hint:       ${responseHint}`);
     } else { 
         if (code)    console.error(`  Code:       ${code}`);
+        if (stack)   console.error(`  Stack:      ${stack}`);
         if (message) console.error(`  Message:    ${message}`);
     }
 
