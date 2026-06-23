@@ -49,8 +49,10 @@ async function putListEntry (entry_id, type, data_fields) {
     // API expects num_episodes_watched as num_watched_episodes 
     // but returns num_episodes_watched
     data_fields = data_fields.map(([key, val]) => key === 'num_episodes_watched' ? ['num_watched_episodes', val] : [key, val])
+    const data = new URLSearchParams(data_fields);
     // deleting updated_at (list_status value which can't be updated by the user)
-    const data = new URLSearchParams(data_fields).delete('updated_at').toString();
+    data.delete('updated_at');
+    const data_string = data.toString();
     const headers = {
         'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -59,7 +61,7 @@ async function putListEntry (entry_id, type, data_fields) {
     // put update
     const response = await withRetry(() => 
         rateLimitedFetch(() => 
-            axios.put(url, data, { headers })
+            axios.put(url, data_string, { headers })
         )
     );
     
