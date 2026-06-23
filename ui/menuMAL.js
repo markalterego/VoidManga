@@ -82,8 +82,8 @@ async function traverseMALMenu () {
 }
 
 async function fetchMALMenu (fetchMALOptions) {
-    const FETCH_LISTS = 0;
-    const SEARCH_MAL = 1;
+    const SEARCH_MAL = 0;
+    const FETCH_LISTS = 1;
     let input = null;
 
     while (input !== 'e') 
@@ -91,22 +91,22 @@ async function fetchMALMenu (fetchMALOptions) {
         printMenuOptions(
             'Fetch MAL',
             [
-                ['Fetch lists'], 
                 ['Search MAL'],
+                ['Fetch lists'], 
                 '_'
             ]
         );
 
         input = await takeUserInput(true);
 
-        if (input === FETCH_LISTS) {
-            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
-        } else if (input === SEARCH_MAL) {
+        if (input === SEARCH_MAL) {
             const testOptions = structuredClone(fetchMALOptions);
             // testOptions.limit = 5;
             // testOptions.searchStrings = ['berserk'];
             // testOptions.searchType = 'both';
             lists = await searchMAL(lists, testOptions, options.logAuthURL); // searches MAL for titles
+        } else if (input === FETCH_LISTS) {
+            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
