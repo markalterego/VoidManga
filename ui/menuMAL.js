@@ -1,6 +1,6 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
          escapeRegex, isLeapYear, padString } from "../helpers/functions.js";
-import { animeStatus, mangaStatus, SYM, MESSAGE } from "../helpers/export.js";
+import { animeStatus, mangaStatus, SYM, MESSAGE, fetchMALOptions } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
@@ -9,16 +9,24 @@ import cliTruncate from "cli-truncate";
 const ANIME = 0;
 const MANGA = 1;
 let lists = null; 
+let config = null;
 let options = null;
+let options_fetch = null;
 
-async function menuMAL (l, config) {
+const lowerCaseString  = (string)      => string?.toLowerCase(); 
+const getType          = (list_status) => list_status.num_episodes_watched === undefined ? MANGA : ANIME;
+const getTypeFromEntry = (entry)       => entry.node.num_episodes === undefined ? MANGA : ANIME;
+
+async function menuMAL (l, c) {
     const TRAVERSE_DATA = 0;
-    const FETCH_DATA = 1;
+    const SEARCH_MAL = 1;
 
     let input = null;
 
-    options = config.menuMALOptions; // reference to config.menuMALOptions
-    lists = l; // reference to lists
+    config = c; 
+    options = config.menuMALOptions; 
+    options_fetch = config.fetchMALOptions; 
+    lists = l; 
 
     if (options.fetchMALOnMenuOpen) {
         lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
@@ -30,17 +38,20 @@ async function menuMAL (l, config) {
             'MyAnimeList options', 
             [
                 ['Your lists'],
-                ['Fetch MAL'],
-                '_'
+                ['Search MAL'],
+                '_',
+                ['f', 'Fetch MAL lists']
             ]
         );
 
         input = await takeUserInput(true); 
         
         if (input === TRAVERSE_DATA) {
-            await traverseMALMenu(); // traverse local MAL lists
-        } else if (input === FETCH_DATA) {
-            await fetchMALMenu(config.fetchMALOptions); // fetch MAL API
+            await traverseMALMenu(); // traverse user MAL lists
+        } else if (input === SEARCH_MAL) {
+            await searchMALMenu(); // fetch anime (and/or) manga from MAL
+        } else if (input === 'f') {
+            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -81,32 +92,170 @@ async function traverseMALMenu () {
     }
 }
 
-async function fetchMALMenu (fetchMALOptions) {
+async function searchMALMenu() {
     const SEARCH_MAL = 0;
-    const FETCH_LISTS = 1;
+    const SEARCH_OPTIONS = 1;
     let input = null;
+
+    // TODO: 
+    // - make a display for fetchMALOptions
 
     while (input !== 'e') 
     {
+        console.dir(options_fetch, { depth: null }); 
+        
         printMenuOptions(
-            'Fetch MAL',
+            'Search MAL',
             [
                 ['Search MAL'],
-                ['Fetch lists'], 
-                '_'
+                ['Change search options'],
+                '_',
             ]
         );
 
         input = await takeUserInput(true);
 
         if (input === SEARCH_MAL) {
-            const testOptions = structuredClone(fetchMALOptions);
-            // testOptions.limit = 5;
-            // testOptions.searchStrings = ['berserk'];
-            // testOptions.searchType = 'both';
-            lists = await searchMAL(lists, testOptions, options.logAuthURL); // searches MAL for titles
-        } else if (input === FETCH_LISTS) {
-            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
+            lists = await searchMAL(lists, options_fetch, options.logAuthURL); // searches MAL for titles
+        } else if (input === SEARCH_OPTIONS) {
+            await updateSearchMALOptionsMenu(); // change search options
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function updateSearchMALOptionsMenu() { 
+    const SEARCH_QUEUE = 0;
+    const SEARCH_TYPE = 1;
+    const SEARCH_LIMIT = 2;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        console.dir(options_fetch, { depth: null }); 
+
+        const header = 'Change fetch options';
+        const optionsArray = [
+            ['Manage search queue'],
+            ['Search type'],
+            ['Search size'],
+            '_',
+            ['r', 'Reset default options']
+        ];
+
+        printMenuOptions(
+            header,
+            optionsArray
+        );
+
+        input = await takeUserInput(true);
+    
+        if (input === SEARCH_QUEUE) {
+            await updateSearchStrings(); // options_fetch.searchStrings
+        } else if (input === SEARCH_TYPE) {
+            await updateSearchType(); // options_fetch.searchType
+        } else if (input === SEARCH_LIMIT) {
+            await updateSearchLimit(); // options_fetch.limit
+        } else if (input === 'r') {
+            config.fetchMALOptions = JSON.parse(JSON.stringify(fetchMALOptions)); // reset default options
+            options_fetch = config.fetchMALOptions; // re-referencing options_fetch
+            MESSAGE.print(MESSAGE.RESET_OPTIONS);
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function updateSearchStrings() {
+    const MIN_LENGTH = 3;
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        console.dir(options_fetch, { depth: null }); 
+        
+        const optionsArray = [
+            ['?', 'Add to queue'],
+            '_',
+            ['c', 'Clear queue']
+        ];
+
+        printMenuOptions(
+            'Manage search queue',
+            optionsArray
+        );
+
+        input = await takeUserInput(false, true, { useMixedCase: true });
+
+        if (lowerCaseString(input) === 'c') {
+            options_fetch.searchStrings = [];
+        } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
+            options_fetch.searchStrings.push(input); 
+            options_fetch.searchStrings = [...new Set(options_fetch.searchStrings)]; // remove duplicates
+        } else if (lowerCaseString(input) !== 'e') {
+            console.log(`\n\n  Minimum required search length: ${MIN_LENGTH} characters`);
+        }
+    }
+}
+
+async function updateSearchType() {
+    const TYPE_BOTH = 0;
+    const TYPE_ANIME = 1;
+    const TYPE_MANGA = 2;
+    let input = null;
+
+    while (input !== 'e')
+    {
+        console.dir(options_fetch, { depth: null }); 
+
+        const { searchType } = options_fetch;
+
+        printMenuOptions(
+            'Select search type',
+            [
+                [`Search anime & manga [${searchType === 'both' ? 'x' : ''}]`],
+                [`Search anime         [${searchType === 'anime' ? 'x' : ''}]`],
+                [`Search manga         [${searchType === 'manga' ? 'x' : ''}]`],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+
+        if (input === TYPE_BOTH) {
+            options_fetch.searchType = 'both';
+        } else if (input === TYPE_ANIME) {
+            options_fetch.searchType = 'anime';
+        } else if (input === TYPE_MANGA) {
+            options_fetch.searchType = 'manga';
+        } else if (input !== 'e') {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function updateSearchLimit() {
+    let input = null;
+
+    while (input !== 'e') 
+    {
+        console.dir(options_fetch, { depth: null }); 
+
+        printMenuOptions(
+            'Change search size',
+            [
+                ['?', 'Input a value between 0-100'],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+
+        if (input >= 0 && input <= 100) {
+            options_fetch.limit = input;
+        } else if (input > 100 || input < 0) {
+            console.log('\n\n  The given value has to be be between 0-100');
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -137,8 +286,6 @@ async function traverseStatus (typeIndex) {
         }
     }
 }
-
-const getTypeFromEntry = (entry) => entry.node.num_episodes === undefined ? MANGA : ANIME;
 
 async function traverseEntry (typeIndex, statusIndex, entryArr) {
     
@@ -196,8 +343,6 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
     }
 }
 
-const getType = (list_status) => list_status.num_episodes_watched === undefined ? MANGA : ANIME;
-
 async function updateEntryMenu (entry, l = null, logAuthURL = null) {
 
     // parameters 'l' (standing for lists) and logAuthURL are supposed 
@@ -237,6 +382,9 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     //   to this function
     // - make it possible to delete an entry from lists (naturally local + 
     //   online in the same )
+    // - make it so that 'UPDATE NOW' actually displays something like 
+    //   'ADD ENTRY TO LISTS' and also hide it after said title is included
+    //   to lists
 
     while (input !== 'e') 
     {
@@ -692,12 +840,10 @@ async function updateIsReMenu (list_status) {
 }
 
 async function updateCommentsMenu (list_status) {
-    const commentsBeforeChange = list_status.comments
+    const commentsBeforeChange = list_status.comments;
     const MIN_LENGTH = 3; // min comment length
     let input = null;
     
-    const lowerCaseString = (string) => string?.toLowerCase(); 
-
     while (lowerCaseString(input) !== 'e') 
     {
         printMenuOptions(
@@ -714,10 +860,10 @@ async function updateCommentsMenu (list_status) {
         
         if (lowerCaseString(input) === 'c') { // clear comment
             list_status.comments = ''; 
-        } else if (lowerCaseString(input) !== 'e' && input?.length < MIN_LENGTH) { 
+        } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { 
+            list_status.comments = input; // update comments
+        } else if (lowerCaseString(input) !== 'e') { 
             console.log(`\n\n  Minimum required comment length: ${MIN_LENGTH} characters`);
-        } else if (lowerCaseString(input) !== 'e') { // comment is valid
-            list_status.comments = String(input); // update comments
         }
     }
 }
@@ -779,6 +925,14 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
     // 
     let input = null;
 
+    // TODO: 
+    // - consider making it possible to filter a long list 
+    //   of searched stuff with e.g. '\s frieren' similar
+    //   to traverseMangas at menuLogMangadex.js
+    // - somehow mark the searchStrings used in the logged
+    //   results ... maybe consider making it possible to
+    //   select results regarding a specific used searchString
+
     while (input !== 'e')
     {
         let index = 0;
@@ -823,7 +977,8 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
             ...addHeader,
             ...addSection,
             ...editHeader,
-            ...editSection, '_', 
+            ...editSection,
+            '_', '_',
             ['?', 'Select result to add/edit']
         ];
 
