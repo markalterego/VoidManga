@@ -6,17 +6,19 @@ import { filterEntriesFromFetch } from './menuFetchFilters.js';
 import { fetchWithOptions } from '../controller/controllerMangadex.js';
 
 let lists = null;
+let config = null;
 let options = null;
 let mangadexData = null;
 let mangadexFetchHistory = null;
 
-async function menuFetchMangadex (l, { fetchMangadexOptions }, m, mfh) {
+async function menuFetchMangadex (l, c, m, mfh) {
     const FETCH_MANGADEX = 0, CHANGE_OPTIONS = 1;
     let input = null;
 
-    lists = l, 
-    options = fetchMangadexOptions, 
-    mangadexData = m, 
+    lists = l;
+    config = c;
+    options = config.fetchMangadexOptions; 
+    mangadexData = m;
     mangadexFetchHistory = mfh;
 
     while (input !== 'e') 
@@ -94,8 +96,9 @@ async function fetchOptionsMenu() {
         } else if (input === 'r') { // reset default options
             // when an object is converted to string (JSON.stringify), the object's format changes and therefore reference breaks
             // we can then convert the changed string into an object (JSON.parse), which means we've succesfully cloned an object
-            options = JSON.parse(JSON.stringify(fetchMangadexOptions));
-            console.log('\n\n  Options reset to default');
+            config.fetchMangadexOptions = JSON.parse(JSON.stringify(fetchMangadexOptions));
+            options = config.fetchMangadexOptions;
+            MESSAGE.print(MESSAGE.RESET_OPTIONS);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
