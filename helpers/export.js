@@ -17,6 +17,7 @@ export const MESSAGE = {
     CHAPTER_NOT_FOUND: 'Chapter not found',
     MATCHES_NOT_FOUND: 'No matches found',
     URL_NOT_FOUND:     'URL not found',
+    RESET_OPTIONS:     'Options reset to default',
     print (message) {
         console.log(`\n\n  ${message}`);
     }
