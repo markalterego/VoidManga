@@ -162,7 +162,6 @@ export const menuMALOptions = {
 export const fetchMALOptions = {
     searchType: 'both', // 'both' or 'anime' or 'manga'
     limit: 10,          // default: 100, min: 0, max: 100 
-    offset: 0,          // default: 0, max: ???
     searchStrings: []   // strings to use in anime and manga search
 };
 export const DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME = {
