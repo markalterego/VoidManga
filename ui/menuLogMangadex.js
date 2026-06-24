@@ -904,4 +904,4 @@ async function openMangaAtLists (manga) {
     await updateEntryMenu(mangaEntry, lists, logAuthURL);
 }
 
-export { menuLogMangadex, updatePageDetails, pageContent, pagingOptions };
+export { menuLogMangadex, updatePageDetails, pageContent, pagingOptions, nextOrderType };
