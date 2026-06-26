@@ -1,5 +1,5 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
-         escapeRegex, isLeapYear, padString } from "../helpers/functions.js";
+         escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, SYM, MESSAGE, fetchMALOptions } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
@@ -97,20 +97,16 @@ async function searchMALMenu() {
     const SEARCH_OPTIONS = 1;
     let input = null;
 
-    // TODO: 
-    // - make a display for fetchMALOptions
-
     while (input !== 'e') 
     {
-        console.dir(options_fetch, { depth: null }); 
-        
         printMenuOptions(
             'Search MAL',
             [
                 ['Search MAL'],
                 ['Change search options'],
                 '_',
-            ]
+            ],
+            { displayFn: searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
@@ -133,8 +129,6 @@ async function updateSearchMALOptionsMenu() {
 
     while (input !== 'e') 
     {
-        console.dir(options_fetch, { depth: null }); 
-
         const header = 'Change fetch options';
         const optionsArray = [
             ['Manage search queue'],
@@ -146,7 +140,8 @@ async function updateSearchMALOptionsMenu() {
 
         printMenuOptions(
             header,
-            optionsArray
+            optionsArray,
+            { displayFn: searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
@@ -172,9 +167,7 @@ async function updateSearchStrings() {
     let input = null;
 
     while (input !== 'e') 
-    {
-        console.dir(options_fetch, { depth: null }); 
-        
+    {        
         const optionsArray = [
             ['?', 'Add to queue'],
             '_',
@@ -183,7 +176,8 @@ async function updateSearchStrings() {
 
         printMenuOptions(
             'Manage search queue',
-            optionsArray
+            optionsArray,
+            { displayFn: searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(false, true, { useMixedCase: true });
@@ -207,8 +201,6 @@ async function updateSearchType() {
 
     while (input !== 'e')
     {
-        console.dir(options_fetch, { depth: null }); 
-
         const { searchType } = options_fetch;
 
         printMenuOptions(
@@ -218,7 +210,8 @@ async function updateSearchType() {
                 [`Search anime         [${searchType === 'anime' ? 'x' : ''}]`],
                 [`Search manga         [${searchType === 'manga' ? 'x' : ''}]`],
                 '_'
-            ]
+            ],
+            { displayFn: searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
@@ -236,26 +229,27 @@ async function updateSearchType() {
 }
 
 async function updateSearchLimit() {
+    const MIN = 1; 
+    const MAX = 100;
     let input = null;
 
     while (input !== 'e') 
     {
-        console.dir(options_fetch, { depth: null }); 
-
         printMenuOptions(
             'Change search size',
             [
-                ['?', 'Input a value between 0-100'],
+                ['?', 'Input a value between 1-100'],
                 '_'
-            ]
+            ],
+            { displayFn: searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
 
-        if (input >= 0 && input <= 100) {
+        if (input >= MIN && input <= MAX) {
             options_fetch.limit = input;
-        } else if (input > 100 || input < 0) {
-            console.log('\n\n  The given value has to be be between 0-100');
+        } else if (input > MAX || input < MIN) {
+            console.log(`\n\n  The given value has to be be between ${MIN}-${MAX}`);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
