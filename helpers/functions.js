@@ -108,6 +108,44 @@ function customFetchMangadexDisplay ({ lists = null, options = null } = {}) {
     );
 }
 
+function searchMALDisplay ({ options = null } = {}) {    
+    // searchType    -- where
+    // searchStrings -- what
+    // limit         -- how much
+
+    // [null, paddedKey, paddedFormattedVal]
+
+    const { searchType, searchStrings, limit } = options;
+    const MAX = 2; // max displayed searchStrings
+   
+    const queue = searchStrings;
+    const queueSlicedJoined = `${queue.slice(0, MAX).join(', ')}`;
+    const queueWithMore = queue.length > MAX 
+        ? `${queueSlicedJoined}, ... and ${queue.length - MAX} more` 
+        : `${queueSlicedJoined}` || null; 
+    const queueWrappedString = queueWithMore ? `[${queueWithMore}]` : '(empty)';
+    
+    const typeString = searchType === 'both' ? 'Anime & Manga' : capitalFirstLetterString(searchType);
+    
+    const searchSizeString = searchType === 'both' ? `${limit} Anime, ${limit} Manga` : `${limit} ${capitalFirstLetterString(searchType)}`;
+
+    const optionsArray = [
+        '_', '_',
+        [null, 'Search queue:', queueWrappedString],
+        [null, 'Searching:', typeString],
+        [null, 'Search size:', searchSizeString]
+    ];
+
+    const longest = Math.max(...optionsArray.map(o => Array.isArray(o) ? o[1].length : null)); // longest based on longest option[1]
+    const paddedOptionsArray = optionsArray.map(o => Array.isArray(o) ? [o[0], o[1].padEnd(longest, ' '), o[2]] : o); // pad option[1] by longest
+
+    printMenuOptions(
+        null,
+        paddedOptionsArray,
+        { printHeader: false, printExit: false}
+    );
+}
+
 function capitalFirstLetterString (string) {
     return string.at(0).toUpperCase() + string.slice(1);
 }
@@ -176,7 +214,7 @@ function truncateThenPadString (str = '', targetWidth = 0, padding = ' ', padSta
     return padString(truncated, targetWidth, padding, padStart);
 }
 
-function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true } = {}) {
+function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true, displayFn = null } = {}) {
     // creates a simple menu in a standardized format
     // header = string
     // optionsArray = array of arrays (expect skipLine, separatorLine, pageFooter)
@@ -189,6 +227,9 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
     let i = 0;
 
     try {
+        // display
+        if (displayFn) displayFn();
+
         // header
         if (printHeader) console.log(`\n\n  ${header}\n`);
 
@@ -251,5 +292,6 @@ export {
     padString,
     truncateThenPadString,
     printMenuOptions,
-    isLeapYear
+    isLeapYear,
+    searchMALDisplay
 };
