@@ -33,12 +33,26 @@ function logErrorDetails (error) {
         if (responseHint)    console.error(`  Hint:       ${responseHint}`);
     } else { 
         if (code)    console.error(`  Code:       ${code}`);
-        if (stack)   console.error(`  Stack:      ${stack}`);
+        if (stack)   console.error(`  Location:   ${getFirstStackFrame(stack)}`);
         if (message) console.error(`  Message:    ${message}`);
     }
 
     // footer
     console.error('\n  -------------');
+}
+
+function getFirstStackFrame (stack) {
+    /*
+    From:
+        Stack:      AbortError: Aborted with Ctrl+C
+            at [_ttyWrite] (node:internal/readline/interface:1136:37)
+            at ReadStream.onkeypress (node:internal/readline/interface:271:20)
+            ...
+    To:
+        [_ttyWrite] (node:internal/readline/interface:1136:37)
+    */
+    const firstFrame = stack.split('\n').slice(1, 2)[0]; // at [_ttyWrite] (node:internal/readline/interface:1136:37)
+    return firstFrame.trim().replace('at ', '');         // [_ttyWrite] (node:internal/readline/interface:1136:37)
 }
 
 export { logErrorDetails };
