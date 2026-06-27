@@ -106,7 +106,7 @@ async function searchMALMenu() {
                 ['Change search options'],
                 '_',
             ],
-            { displayFn: searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
@@ -141,7 +141,7 @@ async function updateSearchMALOptionsMenu() {
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
@@ -177,7 +177,7 @@ async function updateSearchStrings() {
         printMenuOptions(
             'Manage search queue',
             optionsArray,
-            { displayFn: searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(false, true, { useMixedCase: true });
@@ -211,7 +211,7 @@ async function updateSearchType() {
                 [`Search manga         [${searchType === 'manga' ? 'x' : ''}]`],
                 '_'
             ],
-            { displayFn: searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);
@@ -241,7 +241,7 @@ async function updateSearchLimit() {
                 ['?', 'Input a value between 1-100'],
                 '_'
             ],
-            { displayFn: searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: options_fetch}) }
         );
 
         input = await takeUserInput(true);

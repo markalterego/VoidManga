@@ -30,7 +30,7 @@ async function menuFetchMangadex (l, c, m, mfh) {
                 ['Change options'],
                 '_'
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput(true);
@@ -71,7 +71,7 @@ async function fetchOptionsMenu() {
                 ['f', `Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`],
                 ['r', 'Reset default options']
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput(true);
@@ -114,7 +114,7 @@ async function mangaSearchStringsMenu() {
         printMenuOptions(
             'Search queue',
             optionsArray,
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput(false, true, { useMixedCase: true });
@@ -142,7 +142,7 @@ async function mangaOptionsMenu() {
                 ['Manga order'],
                 '_'
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
@@ -168,7 +168,7 @@ async function optionMangaLimit() {
                 ['?', 'Input a value between 0-100'],
                 '_'
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
@@ -199,7 +199,7 @@ async function optionMangaOrder() {
                 '_',
                 ['t', 'Toggle direction']
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput(); 
@@ -241,7 +241,7 @@ async function chapterOptionsMenu() {
         printMenuOptions(
             'Chapter options',
             optionsArray,
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
@@ -271,7 +271,7 @@ async function optionChapterLimit() {
                 ['?', 'Input a value between 0-100'],
                 '_'
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
@@ -302,7 +302,7 @@ async function optionChapterOrder() {
                 '_',
                 ['t', 'Toggle direction']
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput(); 
@@ -334,7 +334,7 @@ async function optionChapterOffset() {
         printMenuOptions(
             'Chapter offset',
             [['?', `Input a value between 0-${maxOffset}`], '_'],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
@@ -376,7 +376,7 @@ async function optionChapterLanguages() {
                 '_',
                 ['c', 'Clear filters']
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
@@ -408,7 +408,7 @@ async function optionContentRatings() {
                 '_',
                 [SYM.TOGGLE, 'Include/Exclude all']
             ],
-            { displayFn: customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
         input = await takeUserInput();
