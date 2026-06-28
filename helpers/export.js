@@ -1,3 +1,5 @@
+export const ANIME = 0;
+export const MANGA = 1;
 export const SYM = {
     UPTODATE:    '\u2022', // •
     UPDATED:     '\u2191', // ↑
@@ -18,8 +20,16 @@ export const MESSAGE = {
     MATCHES_NOT_FOUND: 'No matches found',
     URL_NOT_FOUND:     'URL not found',
     RESET_OPTIONS:     'Options reset to default',
+    LISTS_NOT_FOUND:   'MAL lists not found',
+    INVALID_KEY:       'The received key is not valid',
     print (message) {
         console.log(`\n\n  ${message}`);
+    },
+    printFlipMessage (boolean, type, status) {
+        const flippedTo    = boolean ? 'Included' : 'Excluded';
+        const whereFlipped = type === undefined ? null : Number.isFinite(status) ? (type === ANIME ? animeStatus[status] : mangaStatus[status]) : (type === ANIME ? 'anime' : 'manga');
+        const flippedAt    = !whereFlipped ? 'titles' : `${whereFlipped} titles`; 
+        console.log(`\n\n  ${flippedTo} all ${flippedAt}`);
     }
 };
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
