@@ -1,30 +1,38 @@
-import { takeUserInput, capitalFirstLetterString, printMenuOptions } from '../helpers/functions.js';
+import { takeUserInput, capitalFirstLetterString, printMenuOptions, customFetchMangadexDisplay } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters, SYM, MESSAGE } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
+import { pageContent, updatePageDetails } from './menuLogMangadex.js';
 
-const ANIME = 0, MANGA = 1;
+const ANIME = 0; 
+const MANGA = 1;
 let lists = null;
 let key = null;
+let options = null;
 
 // TODO:
 // - implement paging for traversing entries
 
-async function filterEntriesFromFetch (l, k) {      
-    lists = l; key = k; // referring lists and key accordingly
+async function filterEntriesFromFetch (l, k, o) {      
+    lists = l; 
+    key = k; 
+    options = o;
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
-    if (!lists) { // lists was undefined in given parameters
-        console.log(`\n\n  MAL lists not found`);
-    } else if (!isValidFilterKey) { // function parameter is not an expected value
-        console.log(`\n\n  The received value '${key}' is not valid`);
-    } else { // function parameter is an expected value
+    if (!lists) { 
+        MESSAGE.print(MESSAGE.LISTS_NOT_FOUND);
+    } else if (!isValidFilterKey) { 
+        MESSAGE.print(MESSAGE.INVALID_KEY);
+    } else { 
         await filterTypeMenu();
-        // save updated lists to file
-        filehandle('mal', lists);
+        filehandle('mal', lists); // save lists to file
     } 
 }
 
 async function filterTypeMenu() {
-    let input = 0;
+    const flipAllEntries = (boolean) => {
+        lists.flat(Infinity).forEach(e => e[key] = boolean);
+        MESSAGE.printFlipMessage(boolean);
+    };  
+    let input = null;
 
     while (input !== 'e') 
     {
@@ -33,24 +41,24 @@ async function filterTypeMenu() {
             ['Filter anime'],
             ['Fitler manga'],
             '_',
-            [SYM.TOGGLE, 'Include/Exclude all']  
+            [SYM.INCLUDE, 'Include all'],
+            ['c', 'Exclude all']
         ];
 
         printMenuOptions(
             header,
-            optionsArray  
+            optionsArray,
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
-        input = await takeUserInput();
+        input = await takeUserInput(true);
 
         if (input === ANIME || input === MANGA) {
             await filterStatusMenu(input);
         } else if (input === '+') {
-            lists.flat(2).forEach(e => e[key] = true);
-            console.log('\n\n  Included all titles');
-        } else if (input === '-') {
-            lists.flat(2).forEach(e => e[key] = false);
-            console.log('\n\n  Excluded all titles');
+            flipAllEntries(true);
+        } else if (input === 'c') {
+            flipAllEntries(false);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -58,7 +66,12 @@ async function filterTypeMenu() {
 }
 
 async function filterStatusMenu (type) {
-    let input = 0;
+    const isValidInput = (input) => input >= 0 && input < (type === ANIME ? animeStatus.length : mangaStatus.length);
+    const flipAllType = (type, boolean) => {
+        lists[type].flat(Infinity).forEach(e => e[key] = boolean);
+        MESSAGE.printFlipMessage(boolean, type);
+    };
+    let input = null;
     
     while (input !== 'e') 
     {
@@ -69,42 +82,24 @@ async function filterStatusMenu (type) {
         const optionsArray = [
             ...statuses,
             '_',
-            [SYM.TOGGLE, 'Include/Exclude all']
+            [SYM.INCLUDE, 'Include all'],
+            ['c', 'Exclude all']
         ];
 
         printMenuOptions(
             header,
-            optionsArray
+            optionsArray,
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
-        input = await takeUserInput();
+        input = await takeUserInput(true);
 
-        // logging titles by status
-        if ((type === ANIME && input < animeStatus.length) || (type === MANGA && input < mangaStatus.length)) { 
-            // saving the selected status
-            const status = input;
-            // going back to upper menu in case lists[type][status] is empty
-            if (!lists[type][status].length) { 
-                console.log('\n\n  No titles found for the selected status'); 
-            } else {
-                await filterEntriesMenu(type, status); // passing type + status
-            }
-        } else if (input === '+') { // include all
-            // reassigning fetch filters as true
-            for (const status of lists[type]) {
-                for (const item of status) {
-                    item[key] = true;
-                }
-            }
-            console.log(`\n\n  Included all ${type ? 'manga' : 'anime'} titles`);
-        } else if (input === '-') { // exclude all
-            // reassigning fetch filters as false
-            for (const status of lists[type]) {
-                for (const item of status) {
-                    item[key] = false;
-                }
-            }
-            console.log(`\n\n  Excluded all ${type ? 'manga' : 'anime'} titles`);
+        if (isValidInput(input)) { 
+            await filterEntriesMenu(type, input); 
+        } else if (input === '+') { 
+            flipAllType(type, true);
+        } else if (input === 'c') { 
+            flipAllType(type, false);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -112,43 +107,40 @@ async function filterStatusMenu (type) {
 }
 
 async function filterEntriesMenu (type, status) {
-    let input = 0;
+    const flipAllStatus = (type, status, boolean) => {
+        lists[type][status].forEach(e => e[key] = boolean);
+        MESSAGE.printFlipMessage(boolean, type, status);
+    };
+    let input = null;
 
     while (input !== 'e') 
     {
         const header = 'Select titles to be fetched';
         const entries = lists[type][status];
-        const titles = entries.map((entry, index) => [index, `[${entry[key] ? 'x' : ''}] ${entry.node.title}`]);
-        const noTitles = [['-', 'No titles found', '']];
+        const titles = entries.map(entry => [`[${entry[key] ? 'x' : ''}] ${entry.node.title}`]);
+        const noTitles = [['-', 'No titles found', null]];
         const optionsArray = [
             ...(titles.length ? titles : noTitles),
             '_',
-            [SYM.TOGGLE, 'Include/Exclude all']
+            [SYM.INCLUDE, 'Include all'],
+            ['c', 'Exclude all']
         ];
 
         printMenuOptions(
             header,
-            optionsArray
+            optionsArray,
+            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
 
-        input = await takeUserInput();
+        input = await takeUserInput(true);
 
-        // toggling filter at given option
-        if (input > -1 && input < lists[type][status].length) {
-            const item = lists[type][status][input]; // referring to item
-            item[key] = !item[key]; 
-        } else if (input === '+') { // include all
-            // reassigning fetch filters as true
-            for (const item of lists[type][status]) {
-                item[key] = true;
-            }
-            console.log(`\n\n  Included all ${type ? mangaStatus[status] : animeStatus[status]} titles`);
-        } else if (input === '-') { // exclude all
-            // reassigning fetch filters as false
-            for (const item of lists[type][status]) {
-                item[key] = false;
-            }
-            console.log(`\n\n  Excluded all ${type ? mangaStatus[status] : animeStatus[status]} titles`);
+        if (input >= 0 && input < lists[type][status].length) {
+            const item = lists[type][status][input];
+            item[key] = !item[key];
+        } else if (input === '+') { 
+            flipAllStatus(type, status, true);
+        } else if (input === 'c') { 
+            flipAllStatus(type, status, false);
         } else if (input !== 'e') {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
