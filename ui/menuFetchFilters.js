@@ -1,21 +1,18 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, customFetchMangadexDisplay } from '../helpers/functions.js';
-import { animeStatus, mangaStatus, expectedFilters, SYM, MESSAGE } from '../helpers/export.js';
+import { animeStatus, mangaStatus, expectedFilters, SYM, MESSAGE, ANIME, MANGA, COMMANDS } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
-import { pageContent, updatePageDetails } from './menuLogMangadex.js';
+import { pageContent, updatePageDetails, pagingOptions } from './menuLogMangadex.js';
 
-const ANIME = 0; 
-const MANGA = 1;
 let lists = null;
 let key = null;
 let options = null;
+let options_fetch = null;
 
-// TODO:
-// - implement paging for traversing entries
-
-async function filterEntriesFromFetch (l, k, o) {      
+async function filterEntriesFromFetch (l, k, o = {}, of = {}) {
     lists = l; 
     key = k; 
     options = o;
+    options_fetch = of;
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
     if (!lists) { 
         MESSAGE.print(MESSAGE.LISTS_NOT_FOUND);
@@ -34,32 +31,32 @@ async function filterTypeMenu() {
     };  
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         const header = `Filtering ${key}:`;
         const optionsArray = [
             ['Filter anime'],
             ['Fitler manga'],
             '_',
-            [SYM.INCLUDE, 'Include all'],
-            ['c', 'Exclude all']
+            [SYM.INCLUDE_ALL, 'Include all'],
+            [SYM.EXCLUDE_ALL, 'Exclude all']
         ];
 
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options: options_fetch })}
         );
 
         input = await takeUserInput(true);
 
         if (input === ANIME || input === MANGA) {
             await filterStatusMenu(input);
-        } else if (input === '+') {
+        } else if (input === COMMANDS.INCLUDE_ALL) {
             flipAllEntries(true);
-        } else if (input === 'c') {
+        } else if (input === COMMANDS.EXCLUDE_ALL) {
             flipAllEntries(false);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -73,7 +70,7 @@ async function filterStatusMenu (type) {
     };
     let input = null;
     
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         const header = 'Select a status';
         const statuses = type === ANIME
@@ -82,25 +79,25 @@ async function filterStatusMenu (type) {
         const optionsArray = [
             ...statuses,
             '_',
-            [SYM.INCLUDE, 'Include all'],
-            ['c', 'Exclude all']
+            [SYM.INCLUDE_ALL, 'Include all'],
+            [SYM.EXCLUDE_ALL, 'Exclude all']
         ];
 
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options: options_fetch })}
         );
 
         input = await takeUserInput(true);
 
         if (isValidInput(input)) { 
             await filterEntriesMenu(type, input); 
-        } else if (input === '+') { 
+        } else if (input === COMMANDS.INCLUDE_ALL) { 
             flipAllType(type, true);
-        } else if (input === 'c') { 
+        } else if (input === COMMANDS.EXCLUDE_ALL) { 
             flipAllType(type, false);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -112,36 +109,51 @@ async function filterEntriesMenu (type, status) {
         MESSAGE.printFlipMessage(boolean, type, status);
     };
     let input = null;
+    let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
 
-    while (input !== 'e') 
+    const header = 'Select titles to be fetched';
+    const entries = lists[type][status];
+    const noTitles = [['-', 'No titles found', null]];
+    
+    while (input !== COMMANDS.EXIT) 
     {
-        const header = 'Select titles to be fetched';
-        const entries = lists[type][status];
-        const titles = entries.map(entry => [`[${entry[key] ? 'x' : ''}] ${entry.node.title}`]);
-        const noTitles = [['-', 'No titles found', null]];
+        pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
+        const pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
+        const pageFooter = pagedEntries.length && options.enablePagingEntries ? 'p' : null;
+        
+        const titles = pagedEntries.length ? pagedEntries.map(entry => [`[${entry[key] ? 'x' : ''}] ${entry.node.title}`]) : noTitles;
         const optionsArray = [
-            ...(titles.length ? titles : noTitles),
+            '-',
             '_',
-            [SYM.INCLUDE, 'Include all'],
-            ['c', 'Exclude all']
+            ...titles,
+            pageFooter,
+            '_',
+            '_',
+            [SYM.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
+            ...(options.enablePagingEntries ? [[SYM.PAGE.NEXT, 'Next page'], [SYM.PAGE.PREVIOUS, 'Previous page']] : [null]),
+            [SYM.INCLUDE_ALL, 'Include all'],
+            [SYM.EXCLUDE_ALL, 'Exclude all']
         ];
-
+            
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: () => customFetchMangadexDisplay({ lists, options })}
+            { pageDetails, displayFn: () => customFetchMangadexDisplay({ lists, options: options_fetch }) }
         );
 
         input = await takeUserInput(true);
 
-        if (input >= 0 && input < lists[type][status].length) {
-            const item = lists[type][status][input];
-            item[key] = !item[key];
-        } else if (input === '+') { 
+        if (input >= 0 && input < pagedEntries.length) {
+            pagedEntries[input][key] = !pagedEntries[input][key];
+        } else if (input === COMMANDS.INCLUDE_ALL) { 
             flipAllStatus(type, status, true);
-        } else if (input === 'c') { 
+        } else if (input === COMMANDS.EXCLUDE_ALL) { 
             flipAllStatus(type, status, false);
-        } else if (input !== 'e') {
+        } else if (input === COMMANDS.PAGE.TOGGLE) { 
+            options.enablePagingEntries = !options.enablePagingEntries;
+        } else if (options.enablePagingEntries && ((Object.values(COMMANDS.PAGE).some(c => c === input)) || input?.[0] === 'p')) { // paging options
+            pageDetails = pagingOptions(input, entries, pageDetails);
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
