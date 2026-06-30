@@ -1,17 +1,27 @@
 export const ANIME = 0;
 export const MANGA = 1;
 export const SYM = {
-    UPTODATE:    '\u2022', // •
-    UPDATED:     '\u2191', // ↑
-    NEW:         '\u002B', // +
-    INCLUDE:     '\u002B', // sab (same as before)
-    EXCLUDE:     '\u002D', // -
-    BORDER_H:    '\u2500', // ─
-    POINTS_TO:   '\u2192', // →
-    TOGGLE:      '\u00B1', // ±
-    CHANGE_PAGE: '\u00B1', // sab
-    ADJUST:      '\u00B1', // sab
-    PADFILLER:   '\u28A4', // ⢤
+    UPTODATE:      '\u2022', // •
+    UPDATED:       '\u2191', // ↑
+    NEW:           '\u002B', // +
+    INCLUDE:       '\u002B', // sab (same as before)
+    EXCLUDE:       '\u002D', // -
+    BORDER_H:      '\u2500', // ─
+    POINTS_TO:     '\u2192', // →
+    TOGGLE:        '\u00B1', // ±
+    CHANGE_PAGE:   '\u00B1', // sab
+    ADJUST:        '\u00B1', // sab
+    PADFILLER:     '\u28A4', // ⢤
+    PAGE: {
+        TOGGLE:   't',
+        PREVIOUS: ',',
+        NEXT:     '.',
+        FIRST:    ',,',
+        LAST:     '..'
+    },
+    CLEAR: 'c',
+    INCLUDE_ALL: '+',
+    EXCLUDE_ALL: 'c',
 };
 export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
@@ -34,11 +44,14 @@ export const MESSAGE = {
 };
 export const COMMANDS = {
     PAGE: {
+        TOGGLE:   't',
         PREVIOUS: ',',
         NEXT:     '.',
         FIRST:    ',,',
         LAST:     '..'
     },
+    INCLUDE_ALL:   '+',
+    EXCLUDE_ALL:   'c',
     CLEAR:         'c',
     EXIT:          'e',
 };
