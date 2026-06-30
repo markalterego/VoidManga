@@ -77,7 +77,7 @@ async function fetchOptionsMenu() {
         input = await takeUserInput(true);
         
         if (input === SEARCHQUEUE) { // Include/exclude titles
-            options.fetchMangasByMALTitles ? await filterEntriesFromFetch(lists, 'includeInMangadexFetch', options) : await mangaSearchStringsMenu();
+            options.fetchMangasByMALTitles ? await filterEntriesFromFetch(lists, 'includeInMangadexFetch', config.menuFetchFiltersOptions, options) : await mangaSearchStringsMenu();
         } else if (input === MANGAFETCH) { // manga fetch options
             await mangaOptionsMenu();
         } else if (input === CHAPTERFETCH) { // chapter fetch options
