@@ -27,8 +27,13 @@ export const COMMANDS = {
             EXCLUDE_ALL:               'c',
             TOGGLE_QUEUE_TYPE:         's',
             TOGGLE_FETCH_ALL_CHAPTERS: 'f',
+            TOGGLE_ORDER_DIRECTION:    't',
             RESET_DEFAULT_OPTIONS:     'r',
             CLEAR_QUEUE:               'c',
+            CLEAR_FILTERS:             'c',
+            SEARCH_MANGAS:             's',
+            INCLUDE_MANGAS_MANGALIST:  'i',
+            INCLUDE_MANGAS_MDXDATA:    'd',
         },
         QUICK_SEARCH: {
             CLEAR: 'c',
