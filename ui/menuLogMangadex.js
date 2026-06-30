@@ -1,6 +1,6 @@
 import { takeUserInput, printMenuOptions, isValidLangCode, escapeRegex,
          openURLInBrowser, isISODate, formatDate, isMatchingAtStart } from '../helpers/functions.js';
-import { MESSAGE, SYM, logOrderTypes } from '../helpers/export.js';
+import { MESSAGE, SYM, logOrderTypes, COMMANDS } from '../helpers/export.js';
 const { mangaOrderTypes, chapterOrderTypes, historyOrderTypes } = logOrderTypes;
 import { updateEntryMenu } from './menuMAL.js';
 import cliTruncate from 'cli-truncate';
@@ -649,19 +649,19 @@ function pagingOptions (input, sortedContent, pageDetails) {
     const isSpecificPage = (input) => {
         return /^p[0-9]+$/i.test(input);
     };
-    if (input === '+') { // next page
+    if (input === COMMANDS.PAGE.NEXT) { // next page
         if (sortedContent.length / 10 > 0 && pageDetails.currentPageIndex + 1 <= pageDetails.lastPageIndex) {
             pageDetails.currentPageIndex++; 
         } 
-    } else if (input === '-') { // previous page
+    } else if (input === COMMANDS.PAGE.PREVIOUS) { // previous page
         if ((sortedContent.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
             pageDetails.currentPageIndex--; 
         }
-    } else if (input === '++') { // navigate to last page
+    } else if (input === COMMANDS.PAGE.LAST) { // navigate to last page
         if (sortedContent.length / 10 > 0) {
             pageDetails.currentPageIndex = pageDetails.lastPageIndex;
         }
-    } else if (input === '--') { // navigate to first page
+    } else if (input === COMMANDS.PAGE.FIRST) { // navigate to first page
         if (sortedContent.length / 10 > 0) {
             pageDetails.currentPageIndex = 0;
         }
