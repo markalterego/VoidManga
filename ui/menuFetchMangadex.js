@@ -71,7 +71,7 @@ async function fetchOptionsMenu() {
                 '_',
                 [COMMANDS.MENU.FETCH_MANGADEX.TOGGLE_QUEUE_TYPE, `Search mangas using ${options.fetchMangasByMALTitles ? 'manual input' : 'MAL titles'}`],
                 [COMMANDS.MENU.FETCH_MANGADEX.TOGGLE_FETCH_ALL_CHAPTERS, `Fetch all chapters [${options.fetchAllChapters ? 'x' : ''}]`],
-                [COMMANDS.MENU.FETCH_MANGADEX.RESET_DEFAULT_OPTIONS, 'Reset default options']
+                [COMMANDS.MENU.RESET_DEFAULT_OPTIONS, 'Reset default options']
             ],
             { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
@@ -90,7 +90,7 @@ async function fetchOptionsMenu() {
             options.fetchMangasByMALTitles = !options.fetchMangasByMALTitles;
         } else if (input === COMMANDS.MENU.FETCH_MANGADEX.TOGGLE_FETCH_ALL_CHAPTERS) { // toggle fetching all chapters per selected manga
             options.fetchAllChapters = !options.fetchAllChapters;
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.RESET_DEFAULT_OPTIONS) { // reset default options
+        } else if (input === COMMANDS.MENU.RESET_DEFAULT_OPTIONS) { // reset default options
             // when an object is converted to string (JSON.stringify), the object's format changes and therefore reference breaks
             // we can then convert the changed string into an object (JSON.parse), which means we've succesfully cloned an object
             config.fetchMangadexOptions = JSON.parse(JSON.stringify(fetchMangadexOptions));
@@ -416,8 +416,8 @@ async function optionContentRatings() {
             [
                 ...contentRatings.map(contentRating => [capitalFirstLetterString(contentRating)]), 
                 '_',
-                [COMMANDS.MENU.FETCH_MANGADEX.INCLUDE_ALL, 'Include all'],
-                [COMMANDS.MENU.FETCH_MANGADEX.EXCLUDE_ALL, 'Exclude all']
+                [COMMANDS.MENU.INCLUDE_ALL, 'Include all'],
+                [COMMANDS.MENU.EXCLUDE_ALL, 'Exclude all']
             ],
             { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
@@ -428,9 +428,9 @@ async function optionContentRatings() {
         if (input >= 0 && input < contentRatings.length) {
             options.contentRating.push(contentRatings[input]); 
             options.contentRating = [...new Set(options.contentRating)]; // get rid of duplicate values
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.INCLUDE_ALL) {
+        } else if (input === COMMANDS.MENU.INCLUDE_ALL) {
             options.contentRating = [...contentRatings];
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.EXCLUDE_ALL) {
+        } else if (input === COMMANDS.MENU.EXCLUDE_ALL) {
             options.contentRating = [];
         } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -494,8 +494,8 @@ async function selectMangasFromFetchResults (mangaSearches, lists, mangadexData)
             [COMMANDS.MENU.FETCH_MANGADEX.SEARCH_MANGAS, 'Search chapters'],
             [COMMANDS.MENU.FETCH_MANGADEX.INCLUDE_MANGAS_MANGALIST, 'Include mangas found at mangalist'],
             [COMMANDS.MENU.FETCH_MANGADEX.INCLUDE_MANGAS_MDXDATA, 'Include mangas found at mangadexData'],
-            [COMMANDS.MENU.FETCH_MANGADEX.INCLUDE_ALL, 'Include all titles'],
-            [COMMANDS.MENU.FETCH_MANGADEX.EXCLUDE_ALL, 'Clear selected titles']
+            [COMMANDS.MENU.INCLUDE_ALL, 'Include all titles'],
+            [COMMANDS.MENU.EXCLUDE_ALL, 'Clear selected titles']
         ];  
 
         printMenuOptions(
@@ -518,12 +518,12 @@ async function selectMangasFromFetchResults (mangaSearches, lists, mangadexData)
                 mangadexData.some(({ manga }) => manga.id === result.id)
             );
             foundMangas.forEach(result => appendSelectedManga(result));
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.INCLUDE_ALL) { // including all titles to fetch
+        } else if (input === COMMANDS.MENU.INCLUDE_ALL) { // including all titles to fetch
             allSearchResults.forEach(result => appendSelectedManga(result));
         } else if (input === COMMANDS.MENU.FETCH_MANGADEX.SEARCH_MANGAS && !hasSelectedMangas(selectedMangas)) { 
             console.log('\n\n  Select at least one title to perform a search');
             input = null;
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.EXCLUDE_ALL || input === COMMANDS.MENU.EXIT) { // clear selected titles
+        } else if (input === COMMANDS.MENU.EXCLUDE_ALL || input === COMMANDS.MENU.EXIT) { // clear selected titles
             selectedMangas = [];
         } else if (input !== COMMANDS.MENU.FETCH_MANGADEX.SEARCH_MANGAS) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);

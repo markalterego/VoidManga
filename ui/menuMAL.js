@@ -133,7 +133,7 @@ async function updateSearchMALOptionsMenu() {
             ['Search type'],
             ['Search size'],
             '_',
-            [COMMANDS.MENU.MAL.RESET_DEFAULT_OPTIONS, 'Reset default options']
+            [COMMANDS.MENU.RESET_DEFAULT_OPTIONS, 'Reset default options']
         ];
 
         printMenuOptions(
@@ -150,7 +150,7 @@ async function updateSearchMALOptionsMenu() {
             await updateSearchType(); // options_fetch.searchType
         } else if (input === SEARCH_LIMIT) {
             await updateSearchLimit(); // options_fetch.limit
-        } else if (input === COMMANDS.MENU.MAL.RESET_DEFAULT_OPTIONS) {
+        } else if (input === COMMANDS.MENU.RESET_DEFAULT_OPTIONS) {
             config.fetchMALOptions = JSON.parse(JSON.stringify(fetchMALOptions)); // reset default options
             options_fetch = config.fetchMALOptions; // re-referencing options_fetch
             MESSAGE.print(MESSAGE.RESET_OPTIONS);

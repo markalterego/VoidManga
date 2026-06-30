@@ -18,24 +18,16 @@ export const COMMANDS = {
         MAIN: {
             SETTINGS: 's',
         },
-        FETCH_FILTERS: {
-            INCLUDE_ALL: '+',
-            EXCLUDE_ALL: 'c',
-        },
         FETCH_MANGADEX: {
-            INCLUDE_ALL:               '+',
-            EXCLUDE_ALL:               'c',
             TOGGLE_QUEUE_TYPE:         's',
             TOGGLE_FETCH_ALL_CHAPTERS: 'f',
             TOGGLE_ORDER_DIRECTION:    't',
-            RESET_DEFAULT_OPTIONS:     'r',
             SEARCH_MANGAS:             's',
             INCLUDE_MANGAS_MANGALIST:  'i',
             INCLUDE_MANGAS_MDXDATA:    'd',
         },
         MAL: {
             FETCH_USER_LISTS:      'f',
-            RESET_DEFAULT_OPTIONS: 'r',
             ENTRY_UPDATE:          'u',
             ENTRY_LOG:             'l',
             PROGRESS_INCREASE:     '+',
@@ -50,8 +42,11 @@ export const COMMANDS = {
             FIRST:    ',,',
             LAST:     '..'
         },
-        CLEAR: 'c',
-        EXIT:  'e',
+        RESET_DEFAULT_OPTIONS: 'r',
+        INCLUDE_ALL:           '+',
+        EXCLUDE_ALL:           'c',
+        CLEAR:                 'c',
+        EXIT:                  'e',
     },
 };
 export const MESSAGE = {

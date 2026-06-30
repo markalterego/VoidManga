@@ -38,8 +38,8 @@ async function filterTypeMenu() {
             ['Filter anime'],
             ['Fitler manga'],
             '_',
-            [COMMANDS.MENU.FETCH_FILTERS.INCLUDE_ALL, 'Include all'],
-            [COMMANDS.MENU.FETCH_FILTERS.EXCLUDE_ALL, 'Exclude all']
+            [COMMANDS.MENU.INCLUDE_ALL, 'Include all'],
+            [COMMANDS.MENU.EXCLUDE_ALL, 'Exclude all']
         ];
 
         printMenuOptions(
@@ -52,9 +52,9 @@ async function filterTypeMenu() {
 
         if (input === ANIME || input === MANGA) {
             await filterStatusMenu(input);
-        } else if (input === COMMANDS.MENU.FETCH_FILTERS.INCLUDE_ALL) {
+        } else if (input === COMMANDS.MENU.INCLUDE_ALL) {
             flipAllEntries(true);
-        } else if (input === COMMANDS.MENU.FETCH_FILTERS.EXCLUDE_ALL) {
+        } else if (input === COMMANDS.MENU.EXCLUDE_ALL) {
             flipAllEntries(false);
         } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -79,8 +79,8 @@ async function filterStatusMenu (type) {
         const optionsArray = [
             ...statuses,
             '_',
-            [COMMANDS.MENU.FETCH_FILTERS.INCLUDE_ALL, 'Include all'],
-            [COMMANDS.MENU.FETCH_FILTERS.EXCLUDE_ALL, 'Exclude all']
+            [COMMANDS.MENU.INCLUDE_ALL, 'Include all'],
+            [COMMANDS.MENU.EXCLUDE_ALL, 'Exclude all']
         ];
 
         printMenuOptions(
@@ -93,9 +93,9 @@ async function filterStatusMenu (type) {
 
         if (isValidInput(input)) { 
             await filterEntriesMenu(type, input); 
-        } else if (input === COMMANDS.MENU.FETCH_FILTERS.INCLUDE_ALL) { 
+        } else if (input === COMMANDS.MENU.INCLUDE_ALL) { 
             flipAllType(type, true);
-        } else if (input === COMMANDS.MENU.FETCH_FILTERS.EXCLUDE_ALL) { 
+        } else if (input === COMMANDS.MENU.EXCLUDE_ALL) { 
             flipAllType(type, false);
         } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -131,8 +131,8 @@ async function filterEntriesMenu (type, status) {
             '_',
             [COMMANDS.MENU.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
             ...(options.enablePagingEntries ? [[COMMANDS.MENU.PAGE.NEXT, 'Next page'], [COMMANDS.MENU.PAGE.PREVIOUS, 'Previous page']] : [null]),
-            [COMMANDS.MENU.FETCH_FILTERS.INCLUDE_ALL, 'Include all'],
-            [COMMANDS.MENU.FETCH_FILTERS.EXCLUDE_ALL, 'Exclude all']
+            [COMMANDS.MENU.INCLUDE_ALL, 'Include all'],
+            [COMMANDS.MENU.EXCLUDE_ALL, 'Exclude all']
         ];
             
         printMenuOptions(
@@ -145,9 +145,9 @@ async function filterEntriesMenu (type, status) {
 
         if (input >= 0 && input < pagedEntries.length) {
             pagedEntries[input][key] = !pagedEntries[input][key];
-        } else if (input === COMMANDS.MENU.FETCH_FILTERS.INCLUDE_ALL) { 
+        } else if (input === COMMANDS.MENU.INCLUDE_ALL) { 
             flipAllStatus(type, status, true);
-        } else if (input === COMMANDS.MENU.FETCH_FILTERS.EXCLUDE_ALL) { 
+        } else if (input === COMMANDS.MENU.EXCLUDE_ALL) { 
             flipAllStatus(type, status, false);
         } else if (input === COMMANDS.MENU.PAGE.TOGGLE) { 
             options.enablePagingEntries = !options.enablePagingEntries;
