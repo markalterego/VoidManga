@@ -110,7 +110,7 @@ async function mangaSearchStringsMenu() {
         const optionsArray = [
             ['?', 'Add to queue'],
             '_',
-            [COMMANDS.MENU.FETCH_MANGADEX.CLEAR_QUEUE, 'Clear queue']
+            [COMMANDS.MENU.CLEAR, 'Clear queue']
         ];
 
         printMenuOptions(
@@ -123,7 +123,7 @@ async function mangaSearchStringsMenu() {
         
         if (typeof input === 'string' && input.length && input !== COMMANDS.MENU.EXIT && input !== 'c') {
             options.mangaSearchStrings = [...new Set(options.mangaSearchStrings).add(input)];
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.CLEAR_QUEUE) {
+        } else if (input === COMMANDS.MENU.CLEAR) {
             options.mangaSearchStrings = [];
         } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -384,7 +384,7 @@ async function optionChapterLanguages() {
             [
                 ...chapterTranslatedLanguages.map(lang => [capitalFirstLetterString(lang)]), 
                 '_',
-                [COMMANDS.MENU.FETCH_MANGADEX.CLEAR_FILTERS, 'Clear filters']
+                [COMMANDS.MENU.CLEAR, 'Clear filters']
             ],
             { displayFn: () => customFetchMangadexDisplay({ lists, options })}
         );
@@ -395,7 +395,7 @@ async function optionChapterLanguages() {
         if (input >= 0 && input < chapterTranslatedLanguages.length) { // pre-defined language options
             options.chapterTranslatedLanguage.push(chapterTranslatedLanguages[input]);
             options.chapterTranslatedLanguage = [...new Set(options.chapterTranslatedLanguage)]; // filter duplicates
-        } else if (input === COMMANDS.MENU.FETCH_MANGADEX.CLEAR_FILTERS) { // clear current translatedLanguage options 
+        } else if (input === COMMANDS.MENU.CLEAR) { // clear current translatedLanguage options 
             options.chapterTranslatedLanguage = []; 
         } else if (isValidLangCode(input)) { // custom input e.g. 'en' or 'pt-br'
             options.chapterTranslatedLanguage.push(input);

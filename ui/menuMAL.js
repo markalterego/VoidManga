@@ -169,7 +169,7 @@ async function updateSearchStrings() {
         const optionsArray = [
             ['?', 'Add to queue'],
             '_',
-            [COMMANDS.MENU.MAL.CLEAR_QUEUE, 'Clear queue']
+            [COMMANDS.MENU.CLEAR, 'Clear queue']
         ];
 
         printMenuOptions(
@@ -180,7 +180,7 @@ async function updateSearchStrings() {
 
         input = await takeUserInput(false, true, { useMixedCase: true });
 
-        if (lowerCaseString(input) === COMMANDS.MENU.MAL.CLEAR_QUEUE) {
+        if (lowerCaseString(input) === COMMANDS.MENU.CLEAR) {
             options_fetch.searchStrings = [];
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
             options_fetch.searchStrings.push(input); 
@@ -669,16 +669,16 @@ async function updateStartDateMenu (list_status) {
                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` })`,
             [
                 ['?', 'Input date (year-mm-dd)'], 
-                [COMMANDS.MENU.MAL.CLEAR_DATE, 'Clear date'], 
+                [COMMANDS.MENU.CLEAR, 'Clear date'], 
                 '_'
             ]
         );  
         
         input = await takeUserInput(); // take user input
 
-        if (input !== COMMANDS.MENU.MAL.CLEAR_DATE && input !== COMMANDS.MENU.EXIT && isValidDate(input)) { // is valid date
+        if (input !== COMMANDS.MENU.CLEAR && input !== COMMANDS.MENU.EXIT && isValidDate(input)) { // is valid date
             list_status.start_date = input; 
-        } else if (input === COMMANDS.MENU.MAL.CLEAR_DATE && list_status.start_date) { // clear date
+        } else if (input === COMMANDS.MENU.CLEAR && list_status.start_date) { // clear date
             list_status.start_date = '0000-00-00';
         } 
     }
@@ -695,16 +695,16 @@ async function updateFinishDateMenu (list_status) {
                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` })`,
             [
                 ['?', 'Input date (\"year-mm-dd\")'], 
-                [COMMANDS.MENU.MAL.CLEAR_DATE, 'Clear date'], 
+                [COMMANDS.MENU.CLEAR, 'Clear date'], 
                 '_'
             ]
         );
         
         input = await takeUserInput(); // take user input
 
-        if (input !== COMMANDS.MENU.MAL.CLEAR_DATE && input !== COMMANDS.MENU.EXIT && isValidDate(input)) { // is valid date
+        if (input !== COMMANDS.MENU.CLEAR && input !== COMMANDS.MENU.EXIT && isValidDate(input)) { // is valid date
             list_status.finish_date = input; 
-        } else if (input === COMMANDS.MENU.MAL.CLEAR_DATE && list_status.finish_date) { // clear date
+        } else if (input === COMMANDS.MENU.CLEAR && list_status.finish_date) { // clear date
             list_status.finish_date = '0000-00-00';
         } 
     }
@@ -854,14 +854,14 @@ async function updateCommentsMenu (list_status) {
                                                                                (`update to: "${list_status.comments}" - from: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set` }`)})`,
             [
                 ['?', `Input comment (minimum ${MIN_LENGTH} characters)`], 
-                [COMMANDS.MENU.MAL.CLEAR_COMMENT, 'Clear comment'], 
+                [COMMANDS.MENU.CLEAR, 'Clear comment'], 
                 '_'
             ]
         );
 
         input = await takeUserInput(false, true, { useMixedCase: true });
         
-        if (lowerCaseString(input) === COMMANDS.MENU.MAL.CLEAR_COMMENT) { // clear comment
+        if (lowerCaseString(input) === COMMANDS.MENU.CLEAR) { // clear comment
             list_status.comments = ''; 
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { 
             list_status.comments = input; // update comments

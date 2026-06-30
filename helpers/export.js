@@ -29,8 +29,6 @@ export const COMMANDS = {
             TOGGLE_FETCH_ALL_CHAPTERS: 'f',
             TOGGLE_ORDER_DIRECTION:    't',
             RESET_DEFAULT_OPTIONS:     'r',
-            CLEAR_QUEUE:               'c',
-            CLEAR_FILTERS:             'c',
             SEARCH_MANGAS:             's',
             INCLUDE_MANGAS_MANGALIST:  'i',
             INCLUDE_MANGAS_MDXDATA:    'd',
@@ -38,18 +36,12 @@ export const COMMANDS = {
         MAL: {
             FETCH_USER_LISTS:      'f',
             RESET_DEFAULT_OPTIONS: 'r',
-            CLEAR_QUEUE:           'c',
             ENTRY_UPDATE:          'u',
             ENTRY_LOG:             'l',
             PROGRESS_INCREASE:     '+',
             PROGRESS_DECREASE:     '-',
             PROGRESS_MAX:          '++',
             PROGRESS_MIN:          '--',
-            CLEAR_DATE:            'c',
-            CLEAR_COMMENT:         'c',
-        },
-        QUICK_SEARCH: {
-            CLEAR: 'c',
         },
         PAGE: {
             TOGGLE:   't',
@@ -58,6 +50,7 @@ export const COMMANDS = {
             FIRST:    ',,',
             LAST:     '..'
         },
+        CLEAR: 'c',
         EXIT:  'e',
     },
 };
