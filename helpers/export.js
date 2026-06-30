@@ -12,16 +12,28 @@ export const SYM = {
     CHANGE_PAGE:   '\u00B1', // sab
     ADJUST:        '\u00B1', // sab
     PADFILLER:     '\u28A4', // ⢤
-    PAGE: {
-        TOGGLE:   't',
-        PREVIOUS: ',',
-        NEXT:     '.',
-        FIRST:    ',,',
-        LAST:     '..'
+};
+export const COMMANDS = {
+    MENU: { 
+        MAIN: {
+            SETTINGS: 's',
+        },
+        FETCH_FILTERS: {
+            INCLUDE_ALL: '+',
+            EXCLUDE_ALL: 'c',
+        },
+        QUICK_SEARCH: {
+            CLEAR: 'c',
+        },
+        PAGE: {
+            TOGGLE:   't',
+            PREVIOUS: ',',
+            NEXT:     '.',
+            FIRST:    ',,',
+            LAST:     '..'
+        },
+        EXIT:  'e',
     },
-    CLEAR: 'c',
-    INCLUDE_ALL: '+',
-    EXCLUDE_ALL: 'c',
 };
 export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
@@ -41,19 +53,6 @@ export const MESSAGE = {
         const flippedAt    = !whereFlipped ? 'titles' : `${whereFlipped} titles`; 
         console.log(`\n\n  ${flippedTo} all ${flippedAt}`);
     }
-};
-export const COMMANDS = {
-    PAGE: {
-        TOGGLE:   't',
-        PREVIOUS: ',',
-        NEXT:     '.',
-        FIRST:    ',,',
-        LAST:     '..'
-    },
-    INCLUDE_ALL:   '+',
-    EXCLUDE_ALL:   'c',
-    CLEAR:         'c',
-    EXIT:          'e',
 };
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
