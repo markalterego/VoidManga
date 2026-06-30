@@ -1,13 +1,11 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
          escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
-import { animeStatus, mangaStatus, SYM, MESSAGE, fetchMALOptions } from "../helpers/export.js";
+import { animeStatus, mangaStatus, MESSAGE, fetchMALOptions, ANIME, MANGA, COMMANDS } from "../helpers/export.js";
 import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
 import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
 
-const ANIME = 0;
-const MANGA = 1;
 let lists = null; 
 let config = null;
 let options = null;
@@ -32,7 +30,7 @@ async function menuMAL (l, c) {
         lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
     }
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'MyAnimeList options', 
@@ -40,7 +38,7 @@ async function menuMAL (l, c) {
                 ['Your lists'],
                 ['Search MAL'],
                 '_',
-                ['f', 'Fetch MAL lists']
+                [COMMANDS.MENU.MAL.FETCH_USER_LISTS, 'Fetch MAL lists']
             ]
         );
 
@@ -50,9 +48,9 @@ async function menuMAL (l, c) {
             await traverseMALMenu(); // traverse user MAL lists
         } else if (input === SEARCH_MAL) {
             await searchMALMenu(); // fetch anime (and/or) manga from MAL
-        } else if (input === 'f') {
+        } else if (input === COMMANDS.MENU.MAL.FETCH_USER_LISTS) {
             lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -66,7 +64,7 @@ async function traverseMALMenu () {
     const SEARCH_LISTS = 2;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'Your MyAnimeList',
@@ -86,7 +84,7 @@ async function traverseMALMenu () {
             await traverseStatus(MANGA); // manga list
         } else if (input === SEARCH_LISTS) {
             await searchListsMenu(); // search lists
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -97,7 +95,7 @@ async function searchMALMenu() {
     const SEARCH_OPTIONS = 1;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'Search MAL',
@@ -115,7 +113,7 @@ async function searchMALMenu() {
             lists = await searchMAL(lists, options_fetch, options.logAuthURL); // searches MAL for titles
         } else if (input === SEARCH_OPTIONS) {
             await updateSearchMALOptionsMenu(); // change search options
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -127,7 +125,7 @@ async function updateSearchMALOptionsMenu() {
     const SEARCH_LIMIT = 2;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         const header = 'Change fetch options';
         const optionsArray = [
@@ -135,7 +133,7 @@ async function updateSearchMALOptionsMenu() {
             ['Search type'],
             ['Search size'],
             '_',
-            ['r', 'Reset default options']
+            [COMMANDS.MENU.MAL.RESET_DEFAULT_OPTIONS, 'Reset default options']
         ];
 
         printMenuOptions(
@@ -152,11 +150,11 @@ async function updateSearchMALOptionsMenu() {
             await updateSearchType(); // options_fetch.searchType
         } else if (input === SEARCH_LIMIT) {
             await updateSearchLimit(); // options_fetch.limit
-        } else if (input === 'r') {
+        } else if (input === COMMANDS.MENU.MAL.RESET_DEFAULT_OPTIONS) {
             config.fetchMALOptions = JSON.parse(JSON.stringify(fetchMALOptions)); // reset default options
             options_fetch = config.fetchMALOptions; // re-referencing options_fetch
             MESSAGE.print(MESSAGE.RESET_OPTIONS);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -166,12 +164,12 @@ async function updateSearchStrings() {
     const MIN_LENGTH = 3;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {        
         const optionsArray = [
             ['?', 'Add to queue'],
             '_',
-            ['c', 'Clear queue']
+            [COMMANDS.MENU.MAL.CLEAR_QUEUE, 'Clear queue']
         ];
 
         printMenuOptions(
@@ -182,12 +180,12 @@ async function updateSearchStrings() {
 
         input = await takeUserInput(false, true, { useMixedCase: true });
 
-        if (lowerCaseString(input) === 'c') {
+        if (lowerCaseString(input) === COMMANDS.MENU.MAL.CLEAR_QUEUE) {
             options_fetch.searchStrings = [];
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
             options_fetch.searchStrings.push(input); 
             options_fetch.searchStrings = [...new Set(options_fetch.searchStrings)]; // remove duplicates
-        } else if (lowerCaseString(input) !== 'e') {
+        } else if (lowerCaseString(input) !== COMMANDS.MENU.EXIT) {
             console.log(`\n\n  Minimum required search length: ${MIN_LENGTH} characters`);
         }
     }
@@ -199,7 +197,7 @@ async function updateSearchType() {
     const TYPE_MANGA = 2;
     let input = null;
 
-    while (input !== 'e')
+    while (input !== COMMANDS.MENU.EXIT)
     {
         const { searchType } = options_fetch;
 
@@ -222,7 +220,7 @@ async function updateSearchType() {
             options_fetch.searchType = 'anime';
         } else if (input === TYPE_MANGA) {
             options_fetch.searchType = 'manga';
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -233,7 +231,7 @@ async function updateSearchLimit() {
     const MAX = 100;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'Change search size',
@@ -250,7 +248,7 @@ async function updateSearchLimit() {
             options_fetch.limit = input;
         } else if (input > MAX || input < MIN) {
             console.log(`\n\n  The given value has to be be between ${MIN}-${MAX}`);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -260,7 +258,7 @@ async function traverseStatus (typeIndex) {
     const statuses = typeIndex === ANIME ? animeStatus : mangaStatus; // list of statuses for type
     let input = 0; 
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Type: ${typeIndex === ANIME ? 'Anime' : 'Manga'}`,
@@ -275,7 +273,7 @@ async function traverseStatus (typeIndex) {
         if (input >= 0 && input < statuses.length) {
             const statusIndex = input; // selected status
             await traverseEntry(typeIndex, statusIndex); // traverse entries for lists[typeIndex][statusIndex]
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -294,7 +292,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
     let entries = entryArr ?? lists[typeIndex][statusIndex];
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
         let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
@@ -310,8 +308,8 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             pageFooter,
             '_',
             '_',
-            ['t', `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            (options.enablePagingEntries ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
+            [COMMANDS.MENU.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
+            ...(options.enablePagingEntries ? [[COMMANDS.MENU.PAGE.NEXT, 'Next page'], [COMMANDS.MENU.PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         printMenuOptions(
@@ -327,11 +325,11 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             await updateEntryMenu(entry); // update stuff related to selected entry
             const indexAtEntries = entries.findIndex(e => e.node.id === entry.node.id && getTypeFromEntry(e) === getTypeFromEntry(entry));
             entries[indexAtEntries] = lists[getTypeFromEntry(entry)].flat(Infinity).find(e => e.node.id === entry.node.id);
-        } else if (input === 't') { // toggle paging on/off
+        } else if (input === COMMANDS.MENU.PAGE.TOGGLE) { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (options.enablePagingEntries && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // paging options
+        } else if (options.enablePagingEntries && (Object.values(COMMANDS.MENU.PAGE).some(c => c === input) || input?.[0] === 'p')) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -380,7 +378,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     //   'ADD ENTRY TO LISTS' and also hide it after said title is included
     //   to lists
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         // entry_clone is updated within deeper updateMenu functions, 
         // after user returns to this function (updateEntryMenu), entry_clone
@@ -426,8 +424,8 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             [s_isRe], 
             [s_comments], 
             '_', '-', '_',
-            ['u', 'Update now'],
-            ['l', 'Log entry']
+            [COMMANDS.MENU.MAL.ENTRY_UPDATE, 'Update now'],
+            [COMMANDS.MENU.MAL.ENTRY_LOG, 'Log entry']
         ];
         
         printMenuOptions(
@@ -466,11 +464,11 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
                 if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
                 else return oldVal !== newVal;
             });
-        } else if (input === 'l') {
+        } else if (input === COMMANDS.MENU.MAL.ENTRY_LOG) {
             await logDataDeepMenu(entry, title, false, true);
-        } else if (input === 'u') { 
+        } else if (input === COMMANDS.MENU.MAL.ENTRY_UPDATE) { 
             pushUpdates = true;
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
 
@@ -486,9 +484,9 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
 async function updateStatusMenu (list_status) {
     const statuses = list_status.num_episodes_watched !== undefined ? animeStatus : mangaStatus; // arr of available statuses
     const statusBeforeChange = list_status.status;
-    let input = 0;
+    let input = null;
     
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Pick from available statuses (${statusBeforeChange === list_status.status ? `current: ${list_status.status}` : 
@@ -500,7 +498,7 @@ async function updateStatusMenu (list_status) {
 
         if (input >= 0 && input < statuses.length) {
             list_status.status = statuses[input]; // update entry_clone status
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -508,9 +506,9 @@ async function updateStatusMenu (list_status) {
 
 async function updateScoreMenu (list_status) {
     const scoreBeforeChange = list_status.score;
-    let input = 0;
+    let input = null;
     
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Pick a score (${scoreBeforeChange === list_status.score ? `current: ${list_status.score}` :
@@ -522,7 +520,7 @@ async function updateScoreMenu (list_status) {
 
         if (input >= 0 && input <= 10) {
             list_status.score = input; // save user input
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -533,7 +531,7 @@ async function updateEpisodesMenu (entry) {
     const { num_episodes_watched } = list_status;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         const episodesLabel = `Update episodes`;
         const progressLabel = num_episodes_watched === list_status.num_episodes_watched 
@@ -543,7 +541,8 @@ async function updateEpisodesMenu (entry) {
 
         const episodes = num_episodes > 0 ? num_episodes : '?';
         const optionsArray = [
-            [SYM.ADJUST, 'Increase/Decrease progress'], 
+            [COMMANDS.MENU.MAL.PROGRESS_INCREASE, 'Increase progress'],
+            [COMMANDS.MENU.MAL.PROGRESS_DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${episodes}]`], 
             '_'
         ];
@@ -557,15 +556,15 @@ async function updateEpisodesMenu (entry) {
         
         if (input >= 0 && input <= num_episodes || !num_episodes && input >= 0) {
             list_status.num_episodes_watched = input;
-        } else if (input === '+' && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_INCREASE && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
             list_status.num_episodes_watched++;
-        } else if (input === '-' && list_status.num_episodes_watched - 1 >= 0) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_DECREASE && list_status.num_episodes_watched - 1 >= 0) {
             list_status.num_episodes_watched--;
-        } else if (input === '++' && num_episodes) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_MAX && num_episodes) {
             list_status.num_episodes_watched = num_episodes;
-        } else if (input === '--') {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_MIN) {
             list_status.num_episodes_watched = 0;
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -576,7 +575,7 @@ async function updateVolumesMenu (entry) {
     const { num_volumes_read } = list_status;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         const volumesLabel = `Update volumes`;
         const progressLabel = num_volumes_read === list_status.num_volumes_read 
@@ -586,7 +585,8 @@ async function updateVolumesMenu (entry) {
 
         const volumes = num_volumes > 0 ? num_volumes : '?';
         const optionsArray = [
-            [SYM.ADJUST, 'Increase/Decrease progress'], 
+            [COMMANDS.MENU.MAL.PROGRESS_INCREASE, 'Increase progress'],
+            [COMMANDS.MENU.MAL.PROGRESS_DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${volumes}]`], 
             '_'
         ];
@@ -600,15 +600,15 @@ async function updateVolumesMenu (entry) {
 
         if (input >= 0 && input <= num_volumes || !num_volumes && input >= 0) {
             list_status.num_volumes_read = input;
-        } else if (input === '+' && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_INCREASE && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
             list_status.num_volumes_read++;
-        } else if (input === '-' && list_status.num_volumes_read - 1 >= 0) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_DECREASE && list_status.num_volumes_read - 1 >= 0) {
             list_status.num_volumes_read--;
-        } else if (input === '++' && num_volumes) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_MAX && num_volumes) {
             list_status.num_volumes_read = num_volumes;
-        } else if (input === '--') {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_MIN) {
             list_status.num_volumes_read = 0;
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -619,7 +619,7 @@ async function updateChaptersMenu (entry) {
     const { num_chapters_read } = list_status;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         const chaptersLabel = `Update chapters`;
         const progressLabel = num_chapters_read === list_status.num_chapters_read 
@@ -629,7 +629,8 @@ async function updateChaptersMenu (entry) {
 
         const chapters = num_chapters > 0 ? num_chapters : '?';
         const optionsArray = [
-            [SYM.ADJUST, 'Increase/Decrease progress'], 
+            [COMMANDS.MENU.MAL.PROGRESS_INCREASE, 'Increase progress'],
+            [COMMANDS.MENU.MAL.PROGRESS_DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${chapters}]`], 
             '_'
         ];
@@ -643,15 +644,15 @@ async function updateChaptersMenu (entry) {
 
         if (input >= 0 && input <= num_chapters || !num_chapters && input >= 0) {
             list_status.num_chapters_read = input;
-        } else if (input === '+' && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_INCREASE && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
             list_status.num_chapters_read++;
-        } else if (input === '-' && list_status.num_chapters_read - 1 >= 0) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_DECREASE && list_status.num_chapters_read - 1 >= 0) {
             list_status.num_chapters_read--;
-        } else if (input === '++' && num_chapters) {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_MAX && num_chapters) {
             list_status.num_chapters_read = num_chapters;
-        } else if (input === '--') {
+        } else if (input === COMMANDS.MENU.MAL.PROGRESS_MIN) {
             list_status.num_chapters_read = 0;
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -659,21 +660,25 @@ async function updateChaptersMenu (entry) {
 
 async function updateStartDateMenu (list_status) {
     const startDateBeforeChange = list_status.start_date;
-    let input = 0;
+    let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Update start date (${startDateBeforeChange === list_status.start_date ? `current: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` : 
                                                                                      `update to: ${list_status.start_date} - from: ${startDateBeforeChange?.length > 0 ? startDateBeforeChange : 'Not set'}` })`,
-            [['?', 'Input date (year-mm-dd)'], ['c', 'Clear date'], '_']
+            [
+                ['?', 'Input date (year-mm-dd)'], 
+                [COMMANDS.MENU.MAL.CLEAR_DATE, 'Clear date'], 
+                '_'
+            ]
         );  
         
         input = await takeUserInput(); // take user input
 
-        if (input !== 'c' && input !== 'e' && isValidDate(input)) { // is valid date
+        if (input !== COMMANDS.MENU.MAL.CLEAR_DATE && input !== COMMANDS.MENU.EXIT && isValidDate(input)) { // is valid date
             list_status.start_date = input; 
-        } else if (input === 'c' && list_status.start_date) { // clear date
+        } else if (input === COMMANDS.MENU.MAL.CLEAR_DATE && list_status.start_date) { // clear date
             list_status.start_date = '0000-00-00';
         } 
     }
@@ -681,21 +686,25 @@ async function updateStartDateMenu (list_status) {
 
 async function updateFinishDateMenu (list_status) {
     const finishDateBeforeChange = list_status.finish_date;
-    let input = 0;
+    let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Update finish date (${finishDateBeforeChange === list_status.finish_date ? `current: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` : 
                                                                                         `update to: ${list_status.finish_date} - from: ${finishDateBeforeChange?.length > 0 ? finishDateBeforeChange : 'Not set'}` })`,
-            [['?', 'Input date (\"year-mm-dd\")'], ['c', 'Clear date'], '_']
+            [
+                ['?', 'Input date (\"year-mm-dd\")'], 
+                [COMMANDS.MENU.MAL.CLEAR_DATE, 'Clear date'], 
+                '_'
+            ]
         );
         
         input = await takeUserInput(); // take user input
 
-        if (input !== 'c' && input !== 'e' && isValidDate(input)) { // is valid date
+        if (input !== COMMANDS.MENU.MAL.CLEAR_DATE && input !== COMMANDS.MENU.EXIT && isValidDate(input)) { // is valid date
             list_status.finish_date = input; 
-        } else if (input === 'c' && list_status.finish_date) { // clear date
+        } else if (input === COMMANDS.MENU.MAL.CLEAR_DATE && list_status.finish_date) { // clear date
             list_status.finish_date = '0000-00-00';
         } 
     }
@@ -808,9 +817,9 @@ async function updateIsReMenu (list_status) {
     const getIsRe = (list_status) => getType(list_status) === ANIME ? list_status.is_rewatching : list_status.is_rereading;
     const setIsRe = (list_status, value) => getType(list_status) === ANIME ? list_status.is_rewatching = value : list_status.is_rereading = value;
     const isReBeforeChange = getIsRe(list_status);
-    let input = 0;
+    let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
@@ -826,8 +835,8 @@ async function updateIsReMenu (list_status) {
         
         if (input >= 0 && input <= 1) {
             const value = input === 0 ? false : true; // isRe value
-            setIsRe(list_status, value);          // update isRe
-        } else if (input !== 'e') {
+            setIsRe(list_status, value);              // update isRe
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         } 
     }
@@ -838,25 +847,25 @@ async function updateCommentsMenu (list_status) {
     const MIN_LENGTH = 3; // min comment length
     let input = null;
     
-    while (lowerCaseString(input) !== 'e') 
+    while (lowerCaseString(input) !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             `Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
                                                                                (`update to: "${list_status.comments}" - from: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set` }`)})`,
             [
                 ['?', `Input comment (minimum ${MIN_LENGTH} characters)`], 
-                ['c', 'Clear comment'], 
+                [COMMANDS.MENU.MAL.CLEAR_COMMENT, 'Clear comment'], 
                 '_'
             ]
         );
 
         input = await takeUserInput(false, true, { useMixedCase: true });
         
-        if (lowerCaseString(input) === 'c') { // clear comment
+        if (lowerCaseString(input) === COMMANDS.MENU.MAL.CLEAR_COMMENT) { // clear comment
             list_status.comments = ''; 
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { 
             list_status.comments = input; // update comments
-        } else if (lowerCaseString(input) !== 'e') { 
+        } else if (lowerCaseString(input) !== COMMANDS.MENU.EXIT) { 
             console.log(`\n\n  Minimum required comment length: ${MIN_LENGTH} characters`);
         }
     }
@@ -866,7 +875,7 @@ async function searchListsMenu() {
     const SEARCH_BY_TITLE = 0;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'Search for entry', 
@@ -880,7 +889,7 @@ async function searchListsMenu() {
         
         if (input === SEARCH_BY_TITLE) {
             await searchListsByTitleMenu(); // search lists by title
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -889,7 +898,7 @@ async function searchListsMenu() {
 async function searchListsByTitleMenu() {
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'Search lists by title', 
@@ -898,7 +907,7 @@ async function searchListsByTitleMenu() {
 
         input = await takeUserInput(false, true); // take user input
         
-        if (typeof input === 'string' && input.length && input !== 'e') {
+        if (typeof input === 'string' && input.length && input !== COMMANDS.MENU.EXIT) {
             const regex = new RegExp(`\\b${escapeRegex(input)}`, 'i'); // regex matches input at beginning of each word
             const matching = lists.flat(2) // arr of entries
                                   .filter(e => regex.test(e.node.title)); // match title to input
@@ -907,7 +916,7 @@ async function searchListsByTitleMenu() {
             } else { // traverse results
                 await traverseEntry(null, null, matching);
             }
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -927,7 +936,7 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
     //   results ... maybe consider making it possible to
     //   select results regarding a specific used searchString
 
-    while (input !== 'e')
+    while (input !== COMMANDS.MENU.EXIT)
     {
         let index = 0;
 
@@ -986,7 +995,7 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
         
         if (input >= 0 && input < resultCount) {
             await updateEntryMenu(allEntries[input], lists, logAuthURL);
-        } else if (input !== 'e') { // invalid input
+        } else if (input !== COMMANDS.MENU.EXIT) { // invalid input
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
