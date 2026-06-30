@@ -1,7 +1,7 @@
 import { menuMAL } from "./menuMAL.js";
 import { filehandle, writeEnv } from "../filehandling/filehandle.js";
 import { clearScreen, printMenuOptions, takeUserInput } from "../helpers/functions.js";
-import { MESSAGE } from "../helpers/export.js";
+import { MESSAGE, COMMANDS } from "../helpers/export.js";
 import { menuFetchMangadex } from "./menuFetchMangadex.js";
 import { menuLogMangadex } from "./menuLogMangadex.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
@@ -29,7 +29,7 @@ async function rootMenu() {
     const MYANIMELIST = 0, LOGMANGADEX = 1, FETCHMANGADEX = 2;
     let input = 0; 
     
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'What would you like to do?',
@@ -38,7 +38,7 @@ async function rootMenu() {
                 ['Log Mangadex'], 
                 ['Fetch Mangadex'], 
                 '_', 
-                ['s', 'Settings']
+                [COMMANDS.MENU.MAIN.SETTINGS, 'Settings']
             ]
         );
 
@@ -55,10 +55,10 @@ async function rootMenu() {
             case FETCHMANGADEX:
                 await menuFetchMangadex(lists, config, mangadexData, mangadexFetchHistory); // fetch Mangadex by preference
                 break;
-            case 's':
+            case COMMANDS.MENU.MAIN.SETTINGS:
                 await settingsMenu();
                 break;
-            case 'e': 
+            case COMMANDS.MENU.EXIT: 
                 break;                 
             default:
                 MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -75,7 +75,7 @@ async function settingsMenu() {
     // TODO: 
     // - make an option for clearing all MAL/Mangadex data
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.MENU.EXIT) 
     {
         printMenuOptions(
             'Settings',
@@ -100,7 +100,7 @@ async function settingsMenu() {
             case LOGAUTHURL: 
                 menuMALOptions.logAuthURL = !menuMALOptions.logAuthURL;
                 break;
-            case 'e':
+            case COMMANDS.MENU.EXIT:
                 break;
             default:
                 MESSAGE.print(MESSAGE.INVALID_INPUT);
