@@ -32,6 +32,16 @@ export const MESSAGE = {
         console.log(`\n\n  ${flippedTo} all ${flippedAt}`);
     }
 };
+export const COMMANDS = {
+    PAGE: {
+        PREVIOUS: ',',
+        NEXT:     '.',
+        FIRST:    ',,',
+        LAST:     '..'
+    },
+    CLEAR:         'c',
+    EXIT:          'e',
+};
 export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
 export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 export const fetchMangadexOptions = { 
@@ -174,6 +184,9 @@ export const fetchMALOptions = {
     searchType: 'both', // 'both' or 'anime' or 'manga'
     limit: 10,          // default: 100, min: 0, max: 100 
     searchStrings: []   // strings to use in anime and manga search
+};
+export const menuFetchFiltersOptions = {
+    enablePagingEntries: true // true, false 
 };
 export const DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME = {
     list_status: {
