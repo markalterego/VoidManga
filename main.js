@@ -1,7 +1,7 @@
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { animeStatus, mangaStatus, fetchMangadexOptions, logMangadexOptions, menuMALOptions, fetchMALOptions } from "./helpers/export.js";
+import { animeStatus, mangaStatus, fetchMangadexOptions, logMangadexOptions, menuMALOptions, fetchMALOptions, menuFetchFiltersOptions } from "./helpers/export.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
 import readline from 'readline/promises';
@@ -38,7 +38,8 @@ dotenv.config(); // load .env file to process.env
             menuMALOptions,
             fetchMangadexOptions,
             logMangadexOptions,
-            fetchMALOptions
+            fetchMALOptions,
+            menuFetchFiltersOptions
         }; 
         filehandle('config', config);
     } else {    
