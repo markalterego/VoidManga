@@ -22,6 +22,14 @@ export const COMMANDS = {
             INCLUDE_ALL: '+',
             EXCLUDE_ALL: 'c',
         },
+        FETCH_MANGADEX: {
+            INCLUDE_ALL:               '+',
+            EXCLUDE_ALL:               'c',
+            TOGGLE_QUEUE_TYPE:         's',
+            TOGGLE_FETCH_ALL_CHAPTERS: 'f',
+            RESET_DEFAULT_OPTIONS:     'r',
+            CLEAR_QUEUE:               'c',
+        },
         QUICK_SEARCH: {
             CLEAR: 'c',
         },
