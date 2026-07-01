@@ -104,6 +104,7 @@ async function filterStatusMenu (type) {
 }
 
 async function filterEntriesMenu (type, status) {
+    const isPagingInput = (input) => Object.values(COMMANDS.MENU.PAGE).some(c => c === input) || input?.[0] === 'p';
     const flipAllStatus = (type, status, boolean) => {
         lists[type][status].forEach(e => e[key] = boolean);
         MESSAGE.printFlipMessage(boolean, type, status);
@@ -129,10 +130,10 @@ async function filterEntriesMenu (type, status) {
             pageFooter,
             '_',
             '_',
-            [COMMANDS.MENU.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            ...(options.enablePagingEntries ? [[COMMANDS.MENU.PAGE.NEXT, 'Next page'], [COMMANDS.MENU.PAGE.PREVIOUS, 'Previous page']] : [null]),
             [COMMANDS.MENU.INCLUDE_ALL, 'Include all'],
-            [COMMANDS.MENU.EXCLUDE_ALL, 'Exclude all']
+            [COMMANDS.MENU.EXCLUDE_ALL, 'Exclude all'],
+            [COMMANDS.MENU.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
+            ...(options.enablePagingEntries ? [[COMMANDS.MENU.PAGE.NEXT, 'Next page'], [COMMANDS.MENU.PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
             
         printMenuOptions(
@@ -151,7 +152,7 @@ async function filterEntriesMenu (type, status) {
             flipAllStatus(type, status, false);
         } else if (input === COMMANDS.MENU.PAGE.TOGGLE) { 
             options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (options.enablePagingEntries && ((Object.values(COMMANDS.PAGE).some(c => c === input)) || input?.[0] === 'p')) { // paging options
+        } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
