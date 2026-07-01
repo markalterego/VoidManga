@@ -1,7 +1,7 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, customFetchMangadexDisplay } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters, MESSAGE, ANIME, MANGA, COMMANDS } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
-import { pageContent, updatePageDetails, pagingOptions } from './menuLogMangadex.js';
+import { updatePageDetails, pageContent, pagingOptions } from '../helpers/pageHelpers.js';
 
 let lists = null;
 let key = null;
