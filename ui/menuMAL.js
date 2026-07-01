@@ -1,7 +1,7 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
          escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, MESSAGE, fetchMALOptions, ANIME, MANGA, COMMANDS } from "../helpers/export.js";
-import { updatePageDetails, pageContent, pagingOptions } from "./menuLogMangadex.js";
+import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
@@ -327,7 +327,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             entries[indexAtEntries] = lists[getTypeFromEntry(entry)].flat(Infinity).find(e => e.node.id === entry.node.id);
         } else if (input === COMMANDS.MENU.PAGE.TOGGLE) { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (options.enablePagingEntries && (Object.values(COMMANDS.MENU.PAGE).some(c => c === input) || input?.[0] === 'p')) { // paging options
+        } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== COMMANDS.MENU.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
