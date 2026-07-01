@@ -1,7 +1,7 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, customFetchMangadexDisplay } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters, MESSAGE, ANIME, MANGA, COMMANDS } from '../helpers/export.js';
 import { filehandle } from '../filehandling/filehandle.js';
-import { updatePageDetails, pageContent, pagingOptions } from '../helpers/pageHelpers.js';
+import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 
 let lists = null;
 let key = null;
@@ -104,7 +104,6 @@ async function filterStatusMenu (type) {
 }
 
 async function filterEntriesMenu (type, status) {
-    const isPagingInput = (input) => Object.values(COMMANDS.MENU.PAGE).some(c => c === input) || input?.[0] === 'p';
     const flipAllStatus = (type, status, boolean) => {
         lists[type][status].forEach(e => e[key] = boolean);
         MESSAGE.printFlipMessage(boolean, type, status);
