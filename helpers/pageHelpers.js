@@ -1,5 +1,5 @@
 import { COMMANDS } from "./export.js"; 
-const { PAGE } = COMMANDS.MENU;
+const { PAGE } = COMMANDS;
 
 function updatePageDetails (pageDetails, sortedContent) {
     // calculating lastPageIndex
