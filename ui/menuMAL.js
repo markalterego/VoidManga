@@ -1,6 +1,7 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
          escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
 import { animeStatus, mangaStatus, MESSAGE, fetchMALOptions, ANIME, MANGA, COMMANDS } from "../helpers/export.js";
+const { MAL, PAGE } = COMMANDS;
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
@@ -38,7 +39,7 @@ async function menuMAL (l, c) {
                 ['Your lists'],
                 ['Search MAL'],
                 '_',
-                [COMMANDS.MAL.FETCH_USER_LISTS, 'Fetch MAL lists']
+                [MAL.FETCH_USER_LISTS, 'Fetch MAL lists']
             ]
         );
 
@@ -48,7 +49,7 @@ async function menuMAL (l, c) {
             await traverseMALMenu(); // traverse user MAL lists
         } else if (input === SEARCH_MAL) {
             await searchMALMenu(); // fetch anime (and/or) manga from MAL
-        } else if (input === COMMANDS.MAL.FETCH_USER_LISTS) {
+        } else if (input === MAL.FETCH_USER_LISTS) {
             lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -308,8 +309,8 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             pageFooter,
             '_',
             '_',
-            [COMMANDS.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            ...(options.enablePagingEntries ? [[COMMANDS.PAGE.NEXT, 'Next page'], [COMMANDS.PAGE.PREVIOUS, 'Previous page']] : [null])
+            [PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
+            ...(options.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         printMenuOptions(
@@ -325,7 +326,7 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
             await updateEntryMenu(entry); // update stuff related to selected entry
             const indexAtEntries = entries.findIndex(e => e.node.id === entry.node.id && getTypeFromEntry(e) === getTypeFromEntry(entry));
             entries[indexAtEntries] = lists[getTypeFromEntry(entry)].flat(Infinity).find(e => e.node.id === entry.node.id);
-        } else if (input === COMMANDS.PAGE.TOGGLE) { // toggle paging on/off
+        } else if (input === PAGE.TOGGLE) { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
         } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
@@ -424,8 +425,8 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             [s_isRe], 
             [s_comments], 
             '_', '-', '_',
-            [COMMANDS.MAL.ENTRY_UPDATE, 'Update now'],
-            [COMMANDS.MAL.ENTRY_LOG, 'Log entry']
+            [MAL.ENTRY_UPDATE, 'Update now'],
+            [MAL.ENTRY_LOG, 'Log entry']
         ];
         
         printMenuOptions(
@@ -464,9 +465,9 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
                 if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
                 else return oldVal !== newVal;
             });
-        } else if (input === COMMANDS.MAL.ENTRY_LOG) {
+        } else if (input === MAL.ENTRY_LOG) {
             await logDataDeepMenu(entry, title, false, true);
-        } else if (input === COMMANDS.MAL.ENTRY_UPDATE) { 
+        } else if (input === MAL.ENTRY_UPDATE) { 
             pushUpdates = true;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -541,8 +542,8 @@ async function updateEpisodesMenu (entry) {
 
         const episodes = num_episodes > 0 ? num_episodes : '?';
         const optionsArray = [
-            [COMMANDS.MAL.PROGRESS_INCREASE, 'Increase progress'],
-            [COMMANDS.MAL.PROGRESS_DECREASE, 'Decrease progress'], 
+            [MAL.PROGRESS_INCREASE, 'Increase progress'],
+            [MAL.PROGRESS_DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${episodes}]`], 
             '_'
         ];
@@ -556,13 +557,13 @@ async function updateEpisodesMenu (entry) {
         
         if (input >= 0 && input <= num_episodes || !num_episodes && input >= 0) {
             list_status.num_episodes_watched = input;
-        } else if (input === COMMANDS.MAL.PROGRESS_INCREASE && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
+        } else if (input === MAL.PROGRESS_INCREASE && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
             list_status.num_episodes_watched++;
-        } else if (input === COMMANDS.MAL.PROGRESS_DECREASE && list_status.num_episodes_watched - 1 >= 0) {
+        } else if (input === MAL.PROGRESS_DECREASE && list_status.num_episodes_watched - 1 >= 0) {
             list_status.num_episodes_watched--;
-        } else if (input === COMMANDS.MAL.PROGRESS_MAX && num_episodes) {
+        } else if (input === MAL.PROGRESS_MAX && num_episodes) {
             list_status.num_episodes_watched = num_episodes;
-        } else if (input === COMMANDS.MAL.PROGRESS_MIN) {
+        } else if (input === MAL.PROGRESS_MIN) {
             list_status.num_episodes_watched = 0;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -585,8 +586,8 @@ async function updateVolumesMenu (entry) {
 
         const volumes = num_volumes > 0 ? num_volumes : '?';
         const optionsArray = [
-            [COMMANDS.MAL.PROGRESS_INCREASE, 'Increase progress'],
-            [COMMANDS.MAL.PROGRESS_DECREASE, 'Decrease progress'], 
+            [MAL.PROGRESS_INCREASE, 'Increase progress'],
+            [MAL.PROGRESS_DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${volumes}]`], 
             '_'
         ];
@@ -600,13 +601,13 @@ async function updateVolumesMenu (entry) {
 
         if (input >= 0 && input <= num_volumes || !num_volumes && input >= 0) {
             list_status.num_volumes_read = input;
-        } else if (input === COMMANDS.MAL.PROGRESS_INCREASE && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
+        } else if (input === MAL.PROGRESS_INCREASE && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
             list_status.num_volumes_read++;
-        } else if (input === COMMANDS.MAL.PROGRESS_DECREASE && list_status.num_volumes_read - 1 >= 0) {
+        } else if (input === MAL.PROGRESS_DECREASE && list_status.num_volumes_read - 1 >= 0) {
             list_status.num_volumes_read--;
-        } else if (input === COMMANDS.MAL.PROGRESS_MAX && num_volumes) {
+        } else if (input === MAL.PROGRESS_MAX && num_volumes) {
             list_status.num_volumes_read = num_volumes;
-        } else if (input === COMMANDS.MAL.PROGRESS_MIN) {
+        } else if (input === MAL.PROGRESS_MIN) {
             list_status.num_volumes_read = 0;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -629,8 +630,8 @@ async function updateChaptersMenu (entry) {
 
         const chapters = num_chapters > 0 ? num_chapters : '?';
         const optionsArray = [
-            [COMMANDS.MAL.PROGRESS_INCREASE, 'Increase progress'],
-            [COMMANDS.MAL.PROGRESS_DECREASE, 'Decrease progress'], 
+            [MAL.PROGRESS_INCREASE, 'Increase progress'],
+            [MAL.PROGRESS_DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${chapters}]`], 
             '_'
         ];
@@ -644,13 +645,13 @@ async function updateChaptersMenu (entry) {
 
         if (input >= 0 && input <= num_chapters || !num_chapters && input >= 0) {
             list_status.num_chapters_read = input;
-        } else if (input === COMMANDS.MAL.PROGRESS_INCREASE && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
+        } else if (input === MAL.PROGRESS_INCREASE && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
             list_status.num_chapters_read++;
-        } else if (input === COMMANDS.MAL.PROGRESS_DECREASE && list_status.num_chapters_read - 1 >= 0) {
+        } else if (input === MAL.PROGRESS_DECREASE && list_status.num_chapters_read - 1 >= 0) {
             list_status.num_chapters_read--;
-        } else if (input === COMMANDS.MAL.PROGRESS_MAX && num_chapters) {
+        } else if (input === MAL.PROGRESS_MAX && num_chapters) {
             list_status.num_chapters_read = num_chapters;
-        } else if (input === COMMANDS.MAL.PROGRESS_MIN) {
+        } else if (input === MAL.PROGRESS_MIN) {
             list_status.num_chapters_read = 0;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
