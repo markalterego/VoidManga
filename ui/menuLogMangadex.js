@@ -9,6 +9,7 @@ import { filehandle } from '../filehandling/filehandle.js';
 import { existsSync } from 'fs';
 import { logDataDeepMenu } from './menuLogDataDeep.js';
 import { fetchWithOptions } from '../controller/controllerMangadex.js';
+import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 
 // TODO:
 // - maybe save stuff like 'currentPage' to config as e.g. 'currentPageManga'
@@ -24,7 +25,9 @@ let mangadexFetchHistory = null; // fetch related info
 let fetchMangadexOptions = null; // config.fetchMangadexOptions
 
 async function menuLogMangadex (m, l, config, mfh) {
-    const TRAVERSEMANGAS = 0, SEARCHMANGAS = 1, TRAVERSE_HISTORY = 2, FETCHNEWESTCHAPTERS = 'u';
+    const TRAVERSEMANGAS = 0;
+    const SEARCHMANGAS = 1;
+    const TRAVERSE_HISTORY = 2;
     let input = null;
 
     mangadexData = m; 
@@ -34,7 +37,7 @@ async function menuLogMangadex (m, l, config, mfh) {
     lists = l;
     mangadexFetchHistory = mfh;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'Log MangaDex',
@@ -43,7 +46,7 @@ async function menuLogMangadex (m, l, config, mfh) {
                 ['Search mangas'],
                 ['Traverse history'],
                 '_',
-                ['u', `Update chapters for all mangas (${mangadexData.length})`]
+                [COMMANDS.MDX.LOG.UPDATE_CHAPTERS, `Update chapters for all mangas (${mangadexData.length})`]
             ]
         );
 
@@ -55,7 +58,7 @@ async function menuLogMangadex (m, l, config, mfh) {
             await searchMangas();
         } else if (input === TRAVERSE_HISTORY) {
             await traverseHistory();
-        } else if (input === FETCHNEWESTCHAPTERS) {
+        } else if (input === COMMANDS.MDX.LOG.UPDATE_CHAPTERS) {
             await fetchWithOptions({ 
                 l: lists,
                 md: mangadexData, 
@@ -63,7 +66,7 @@ async function menuLogMangadex (m, l, config, mfh) {
                 sm: mangadexData, 
                 o: fetchMangadexOptions
             });
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -83,9 +86,9 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
             this.searchString = str;
         }
     };
-    let input = null, 
-        pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, 
-        sortedMangas;
+    let input = null;
+    let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
+    let sortedMangas;
 
     const parseSearchString = (str) => typeof str === 'string' && str.startsWith('\\s ') && str.slice(3).trim() || null;
     const formatMangaTitle = (index, title, chaptersLength) => {
@@ -101,15 +104,16 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
     // - if manga is found on the user's MAL lists, appends e.g. "*reading" or similar
     //   to the end of that specific title
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
-        const shouldSort = [null, 'f', 'h', 's', 'o'].some(o => o === input) || quickSearch.getAndResetJustUpdated();
+        const sortingOptions = [null, ...Object.values(COMMANDS.MDX.LOG.MANGA), ...Object.values(COMMANDS.MDX.LOG.SORT)];
+        const shouldSort = sortingOptions.some(o => o === input) || quickSearch.getAndResetJustUpdated();
         sortedMangas = shouldSort ? sortMangas(traversable ?? mangadexData, { searchString: quickSearch.searchString }) : sortedMangas; 
         pageDetails = options.enablePagingManga ? updatePageDetails(pageDetails, sortedMangas) : pageDetails;
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, options.enablePagingManga); 
 
         // formatting printMenuOptions parameters
-        const header = `Select manga ${quickSearch.searchString ? `[search: ${quickSearch.searchString}] (c ${SYM.POINTS_TO} clear)` : ''}`; 
+        const header = `Select manga ${quickSearch.searchString ? `[search: ${quickSearch.searchString}] (${COMMANDS.CLEAR} ${SYM.POINTS_TO} clear)` : ''}`; 
         const mangaTitles = pagedMangas.map((obj, index) => formatMangaTitle(index, Object.values(obj.manga.attributes.title)[0], obj.chapters.length));
         const pageFooter = mangaTitles.length && options.enablePagingManga ? 'p' : null;
         const titles = pagedMangas.length ? [...mangaTitles] : [['?', 'No manga found']];
@@ -121,12 +125,12 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
             pageFooter,
             '_',
             '_',
-            ['f', `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`],
-            ['h', `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`],
-            ['s', `Sort ${mangaOrderTypes[options.mangaOrderType][(options.logMangaDirection === 'asc' ? 'desc' : 'asc')]}`],
-            ['o', `Order by ${nextOrderType({ orderType: options.mangaOrderType, orderTypes: mangaOrderTypes })}`],
-            ['t', `Toggle paging [${options.enablePagingManga ? 'x' : ''}]`],
-            (options.enablePagingManga ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
+            [COMMANDS.MDX.LOG.MANGA.TOGGLE_FILTER_MANGALIST, `Filter by mangalist [${options.filterByMangasFoundAtMangalist ? 'x' : ''}]`],
+            [COMMANDS.MDX.LOG.MANGA.TOGGLE_HIDE_NO_CHAPTERS, `Hide manga with no chapters [${options.hideZeroLengthManga ? 'x' : ''}]`],
+            [COMMANDS.MDX.LOG.SORT.SORT_DIRECTION,           `Sort ${mangaOrderTypes[options.mangaOrderType][(options.logMangaDirection === 'asc' ? 'desc' : 'asc')]}`],
+            [COMMANDS.MDX.LOG.SORT.ORDER_TYPE,               `Order by ${nextOrderType({ orderType: options.mangaOrderType, orderTypes: mangaOrderTypes })}`],
+            [COMMANDS.PAGE.TOGGLE,                           `Toggle paging [${options.enablePagingManga ? 'x' : ''}]`],
+            ...(options.enablePagingManga ? [[COMMANDS.PAGE.NEXT, 'Next page'], [COMMANDS.PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         // calling printMenuOptions
@@ -140,21 +144,21 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
         
         if (input >= 0 && input < pagedMangas.length) {
             skipToTraverseChapters ? await traverseChapters(pagedMangas[input]) : await mangaOptionsMenu(pagedMangas[input]);
-        } else if (input === 'f') { // filter mangas found at user's MAL mangalist
+        } else if (input === COMMANDS.MDX.LOG.MANGA.TOGGLE_FILTER_MANGALIST) { 
             options.filterByMangasFoundAtMangalist = !options.filterByMangasFoundAtMangalist;
-        } else if (input === 'h') { // toggle hide/show zero length manga
+        } else if (input === COMMANDS.MDX.LOG.MANGA.TOGGLE_HIDE_NO_CHAPTERS) { 
             options.hideZeroLengthManga = !options.hideZeroLengthManga;
-        } else if (input === 's') { // toggle ascending/descending
+        } else if (input === COMMANDS.MDX.LOG.SORT.SORT_DIRECTION) { 
             options.logMangaDirection = options.logMangaDirection === 'asc' ? 'desc' : 'asc';
-        } else if (input === 'o') { // order type
+        } else if (input === COMMANDS.MDX.LOG.SORT.ORDER_TYPE) {
             options.mangaOrderType = nextOrderType({ orderType: options.mangaOrderType, orderTypes: mangaOrderTypes });
-        } else if (input === 't') { // toggle paging on/off
+        } else if (input === COMMANDS.PAGE.TOGGLE) { 
             options.enablePagingManga = !options.enablePagingManga;
-        } else if (options.enablePagingManga && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
+        } else if (options.enablePagingManga && isPagingInput(input)) { 
             pageDetails = pagingOptions(input, sortedMangas, pageDetails);
-        } else if (parseSearchString(input) || input === 'c') { // quick search/clear quick search
+        } else if (parseSearchString(input) || input === COMMANDS.CLEAR) { // quick search/clear quick search
             quickSearch.updateSearchString(parseSearchString(input));
-        } else if (input !== 'e') { 
+        } else if (input !== COMMANDS.EXIT) { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }    
@@ -193,7 +197,7 @@ async function searchMangas() {
     const MANGATITLE = 0;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'Search mangas',
@@ -207,7 +211,7 @@ async function searchMangas() {
 
         if (input === MANGATITLE) {
             await findMangaByMangaTitle();
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -263,7 +267,7 @@ function findLatestFetchInfo({ status = null, min = 1 } = {}) {
 async function findMangaByMangaTitle() {
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'Input a manga title:'
@@ -271,7 +275,7 @@ async function findMangaByMangaTitle() {
 
         input = await takeUserInput(false, true);
 
-        if (typeof input === 'string' && input.length && input !== 'e') {
+        if (typeof input === 'string' && input.length && input !== COMMANDS.EXIT) {
             const matching = mangadexData.filter(({manga: {attributes: {title}}}) => isMatchingAtStart(input, Object.values(title)[0])); // match title to input
             if (!matching.length) { // no matching results
                 MESSAGE.print(MESSAGE.MATCHES_NOT_FOUND);
@@ -280,17 +284,19 @@ async function findMangaByMangaTitle() {
             } else { // traverse results
                 await traverseMangas(matching);
             }
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
 async function mangaOptionsMenu (selectedManga) {
-    const OPENINBROWSER = 0, TRAVERSECHAPTERS = 1, FINDCHAPTEROFMANGA = 2, LOGDATA = 'l', FETCHNEWESTCHAPTERS = 'u';
+    const OPENINBROWSER = 0;
+    const TRAVERSECHAPTERS = 1;
+    const FINDCHAPTEROFMANGA = 2;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         const title = Object.values(selectedManga.manga.attributes.title)[0]; // first title of titles
         
@@ -301,8 +307,8 @@ async function mangaOptionsMenu (selectedManga) {
                 ['Traverse chapters'], 
                 ['Search for chapter'],
                 '_',
-                ['l', 'Log manga data'],
-                ['u', 'Update chapters']
+                [COMMANDS.MDX.LOG.LOG_DATA, 'Log manga data'],
+                [COMMANDS.MDX.LOG.UPDATE_CHAPTERS, 'Update chapters']
             ]
         );
 
@@ -314,9 +320,9 @@ async function mangaOptionsMenu (selectedManga) {
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
             await searchChapters(title, selectedManga);
-        } else if (input === LOGDATA) {
+        } else if (input === COMMANDS.MDX.LOG.LOG_DATA) {
             await logDataDeepMenu(selectedManga.manga, title, true);
-        } else if (input === FETCHNEWESTCHAPTERS) { 
+        } else if (input === COMMANDS.MDX.LOG.UPDATE_CHAPTERS) { 
             // sm sourced from mangadexData (not selectedManga) to prevent fetching 
             // data based on stale chapters stored in traverseHistory
             await fetchWithOptions({ 
@@ -326,14 +332,18 @@ async function mangaOptionsMenu (selectedManga) {
                 sm: [mangadexData.find(({ manga }) => manga.id === selectedManga.manga.id)], 
                 o: fetchMangadexOptions
             });
-        } else if (input !== 'e') { 
+        } else if (input !== COMMANDS.EXIT) { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
 async function traverseHistory() {
-    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedHistory, pagedHistory;
+    let input = null; 
+    let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
+    let sortedHistory;
+    let pagedHistory;
+    
     const formatFetchInfo = (fetchInfo) => {
         // counting mangas/chapters fetched
         const values = Object.values(fetchInfo);
@@ -345,9 +355,9 @@ async function traverseHistory() {
         return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
     };
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
-        const shouldSort = [null, 's', 'o'].some(o => o === input) || (input >= 0 && input < pagedHistory.length);
+        const shouldSort = [null, COMMANDS.MDX.LOG.SORT.SORT_DIRECTION, COMMANDS.MDX.LOG.SORT.ORDER_TYPE].some(o => o === input) || (input >= 0 && input < pagedHistory.length);
         sortedHistory = shouldSort ? sortHistory() : sortedHistory;
         pageDetails   = options.enablePagingHistory ? updatePageDetails(pageDetails, sortedHistory) : pageDetails;
         pagedHistory  = pageContent(sortedHistory, pageDetails.currentPageIndex, options.enablePagingHistory);
@@ -363,10 +373,10 @@ async function traverseHistory() {
             pageFooter,
             '_',
             '_',
-            ['s', `Sort ${historyOrderTypes[options.historyOrderType][(options.logHistoryDirection === 'asc' ? 'desc' : 'asc')]}`],
-            ['o', `Order by ${nextOrderType({ orderType: options.historyOrderType, orderTypes: historyOrderTypes })}`],
-            ['t', `Toggle paging [${options.enablePagingHistory ? 'x' : ''}]`],
-            (options.enablePagingHistory ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
+            [COMMANDS.MDX.LOG.SORT.SORT_DIRECTION, `Sort ${historyOrderTypes[options.historyOrderType][(options.logHistoryDirection === 'asc' ? 'desc' : 'asc')]}`],
+            [COMMANDS.MDX.LOG.SORT.ORDER_TYPE, `Order by ${nextOrderType({ orderType: options.historyOrderType, orderTypes: historyOrderTypes })}`],
+            [COMMANDS.PAGE.TOGGLE, `Toggle paging [${options.enablePagingHistory ? 'x' : ''}]`],
+            ...(options.enablePagingHistory ? [[COMMANDS.PAGE.NEXT, 'Next page'], [COMMANDS.PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         printMenuOptions(
@@ -379,15 +389,15 @@ async function traverseHistory() {
 
         if (input >= 0 && input < pagedHistory.length) {
             await historyOptionsMenu(pagedHistory[input]);
-        } else if (input === 't') { // enable paging
-            options.enablePagingHistory = !options.enablePagingHistory;
-        } else if (input === 's') { // sort direction
+        } else if (input === COMMANDS.MDX.LOG.SORT.SORT_DIRECTION) { // sort direction
             options.logHistoryDirection = options.logHistoryDirection === 'asc' ? 'desc' : 'asc';
-        } else if (input === 'o') { // order type
+        } else if (input === COMMANDS.MDX.LOG.SORT.ORDER_TYPE) { // order type
             options.historyOrderType = nextOrderType({ orderType: options.historyOrderType, orderTypes: historyOrderTypes });
-        } else if (options.enablePagingHistory && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) {
+        } else if (input === COMMANDS.PAGE.TOGGLE) {
+            options.enablePagingHistory = !options.enablePagingHistory;
+        } else if (options.enablePagingHistory && isPagingInput(input)) {
             pageDetails = pagingOptions(input, sortedHistory, pageDetails);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -432,14 +442,17 @@ function countFetchedChapters (values) {
 }
 
 async function historyOptionsMenu (selectedFetch) {    
-    const ALL = 0, NEW = 1, UPDATED = 2, UPTODATE = 3;
+    const ALL = 0;
+    const NEW = 1;
+    const UPDATED = 2;
+    const UPTODATE = 3;
     const { details } = selectedFetch;
     const { newMangas, updatedMangas, uptodateMangas } = details;
     const formattedDate = formatDate(details.fetchedAt);
-    const header        = `Fetch (${formattedDate})`;
+    const header = `Fetch (${formattedDate})`;
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             header,
@@ -462,7 +475,7 @@ async function historyOptionsMenu (selectedFetch) {
             await findMangasByFetchInfo({ fetchInfo: selectedFetch, status: 'updated'});
         } else if (input === UPTODATE) {
             await findMangasByFetchInfo({ fetchInfo: selectedFetch, status: 'uptodate'});
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -471,7 +484,11 @@ async function historyOptionsMenu (selectedFetch) {
 async function traverseChapters (selectedManga, chapterArr) {
     const chapters = chapterArr ?? selectedManga.chapters;
     const manga = chapterArr ? selectedManga : selectedManga.manga;
-    let input = null, pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }, sortedChapters, pagedChapters;
+    let input = null;
+    let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
+    let sortedChapters;
+    let pagedChapters;
+
     const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
         const indexWithPadding = String(index).padEnd(4); // pads up to 4 digit indexes
         const separatorWithPadding = ':'.padEnd(1); // pads separator once
@@ -491,10 +508,12 @@ async function traverseChapters (selectedManga, chapterArr) {
         return [indexWithPadding, separatorWithPadding, `${progressLabelWithPadding}${truncatedTitleWithPadding}${transLangWithPadding}${unreadFlag}`];
     };
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         const foundManga = findEntryAtLists(manga);
-        sortedChapters = input === 'h' || input === 'l' || isValidLangCode(input) || input === 's' || input === 'o' || input === null || (input >= 0 && input <= pagedChapters.length && options.hideReadChapters) ? sortChapters(chapters, foundManga) : sortedChapters;
+        const sortingOptions = [null, ...Object.values(COMMANDS.MDX.LOG.CHAPTER), ...Object.values(COMMANDS.MDX.LOG.SORT)];
+        const shouldSort = sortingOptions.some(o => o === input) || isValidLangCode(input) || (input >= 0 && input <= pagedChapters.length && options.hideReadChapters);
+        sortedChapters = shouldSort ? sortChapters(chapters, foundManga) : sortedChapters;
         pageDetails = options.enablePagingChapter ? updatePageDetails(pageDetails, sortedChapters) : pageDetails;
         pagedChapters = pageContent(sortedChapters, pageDetails.currentPageIndex, options.enablePagingChapter);
 
@@ -510,12 +529,12 @@ async function traverseChapters (selectedManga, chapterArr) {
             pageFooter,
             '_',
             '_',
-            ['h', `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`],
-            ['?', `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (l to clear)`],
-            ['s', `Sort ${chapterOrderTypes[options.chapterOrderType][options.logChapterDirection === 'asc' ? 'desc' : 'asc']}`],
-            ['o', `Order by ${nextOrderType({ orderType: options.chapterOrderType, orderTypes: chapterOrderTypes })}`],
-            ['t', `Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`],
-            (options.enablePagingChapter ? [SYM.CHANGE_PAGE, 'Next/Previous page'] : null)
+            [COMMANDS.MDX.LOG.CHAPTER.HIDE_READ_CHAPTERS, `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`],
+            ['?', `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (${COMMANDS.MDX.LOG.CHAPTER.CLEAR_LANG_CODES} to clear)`],
+            [COMMANDS.MDX.LOG.SORT.SORT_DIRECTION, `Sort ${chapterOrderTypes[options.chapterOrderType][options.logChapterDirection === 'asc' ? 'desc' : 'asc']}`],
+            [COMMANDS.MDX.LOG.SORT.ORDER_TYPE, `Order by ${nextOrderType({ orderType: options.chapterOrderType, orderTypes: chapterOrderTypes })}`],
+            [COMMANDS.PAGE.TOGGLE, `Toggle paging [${options.enablePagingChapter ? 'x' : ''}]`],
+            ...(options.enablePagingChapter ? [[COMMANDS.PAGE.NEXT, 'Next page'], [COMMANDS.PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         // calling printMenuOptions
@@ -529,22 +548,22 @@ async function traverseChapters (selectedManga, chapterArr) {
 
         if (input >= 0 && input < pagedChapters.length) { 
             await chapterOptionsMenu(pagedChapters[input], manga);
-        } else if (input === 'h') { // toggle hide read chapters
+        } else if (input === COMMANDS.MDX.LOG.CHAPTER.HIDE_READ_CHAPTERS) { // toggle hide read chapters
             options.hideReadChapters = !options.hideReadChapters;
-        } else if (input === 'l') { // clear lang-codes
+        } else if (input === COMMANDS.MDX.LOG.CHAPTER.CLEAR_LANG_CODES) { // clear lang-codes
             options.filterChapterLanguages = [];
         } else if (isValidLangCode(input)) { // add lang-code
             options.filterChapterLanguages.push(input); 
             options.filterChapterLanguages = [...new Set(options.filterChapterLanguages)]; // clear duplicates
-        } else if (input === 's') { // toggle sort direction
+        } else if (input === COMMANDS.MDX.LOG.SORT.SORT_DIRECTION) { // toggle sort direction
             options.logChapterDirection = options.logChapterDirection === 'asc' ? 'desc' : 'asc';
-        } else if (input === 'o') { // order type
+        } else if (input === COMMANDS.MDX.LOG.SORT.ORDER_TYPE) { // order type
             options.chapterOrderType = nextOrderType({ orderType: options.chapterOrderType, orderTypes: chapterOrderTypes });
-        } else if (input === 't') { // toggle paging on/off
+        } else if (input === COMMANDS.PAGE.TOGGLE) { 
             options.enablePagingChapter = !options.enablePagingChapter;
-        } else if (options.enablePagingChapter && (input === '+' || input === '-' || input === '++' || input === '--' || input?.[0] === 'p')) { // pageOptions
+        } else if (options.enablePagingChapter && isPagingInput(input)) { 
             pageDetails = pagingOptions(input, sortedChapters, pageDetails);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -620,60 +639,6 @@ function sortChapters (chapters, foundManga) {
     }   
 }
 
-function updatePageDetails (pageDetails, sortedContent) {
-    // calculating lastPageIndex
-    pageDetails.lastPageIndex = sortedContent.length > 10 ? Math.ceil(sortedContent.length / 10) - 1 : 0;
-    // checking currentPageIndex value
-    const isAllowedPage = pageDetails.currentPageIndex <= pageDetails.lastPageIndex;
-    // set currentPage to lastPage if not allowed
-    if (!isAllowedPage) pageDetails.currentPageIndex = pageDetails.lastPageIndex;
-    return pageDetails;
-}
-
-function pageContent (sortedContent, currentPage, enablePaging) {
-    // page content (sortedMangas/sortedChapters)
-    if (enablePaging) { 
-        // page is always of 10 length, unless 
-        // there's not enough items to fill it
-        let startIndex = currentPage > 0 ? currentPage * 10 : 0; // 0, 10, 20
-        let endIndex = startIndex + 9; // 0 -> 9, 10 -> 19, 20 -> 30
-        // filter 10 mangas from sortedMangas by range of startIndex - endIndex 
-        return sortedContent.filter((_, index) => {
-            return index >= startIndex && index <= endIndex;
-        });
-    } 
-    return sortedContent;
-}
-
-function pagingOptions (input, sortedContent, pageDetails) {
-    const isSpecificPage = (input) => {
-        return /^p[0-9]+$/i.test(input);
-    };
-    if (input === COMMANDS.PAGE.NEXT) { // next page
-        if (sortedContent.length / 10 > 0 && pageDetails.currentPageIndex + 1 <= pageDetails.lastPageIndex) {
-            pageDetails.currentPageIndex++; 
-        } 
-    } else if (input === COMMANDS.PAGE.PREVIOUS) { // previous page
-        if ((sortedContent.length / 10 > 0) && (pageDetails.currentPageIndex - 1) >= 0) {
-            pageDetails.currentPageIndex--; 
-        }
-    } else if (input === COMMANDS.PAGE.LAST) { // navigate to last page
-        if (sortedContent.length / 10 > 0) {
-            pageDetails.currentPageIndex = pageDetails.lastPageIndex;
-        }
-    } else if (input === COMMANDS.PAGE.FIRST) { // navigate to first page
-        if (sortedContent.length / 10 > 0) {
-            pageDetails.currentPageIndex = 0;
-        }
-    } else if (isSpecificPage(input)) { // navigate to specific page
-        const pageNumIndex = Number(input.slice(1)) - 1;
-        if ((sortedContent.length / 10 > 0) && pageNumIndex >= 0 && pageNumIndex <= pageDetails.lastPageIndex) {
-            pageDetails.currentPageIndex = pageNumIndex;
-        }
-    } 
-    return pageDetails;
-}
-
 function logSeriesProgress (manga) {
     const foundManga = findEntryAtLists(manga);
     if (!foundManga) {
@@ -684,15 +649,14 @@ function logSeriesProgress (manga) {
 }
 
 async function searchChapters (title, selectedManga) {
-    const NEXTUNREADCHAPTER = 0, LOWESTCHAPTER = 1, HIGHESTCHAPTER = 2, SPECIFICCHAPTER = 3, CHAPTERTITLE = 4; 
+    const NEXTUNREADCHAPTER = 0;
+    const LOWESTCHAPTER = 1;
+    const HIGHESTCHAPTER = 2;
+    const SPECIFICCHAPTER = 3;
+    const CHAPTERTITLE = 4; 
     let input = 0; 
 
-    // TODO: 
-    // - if multiple chapters found, give user the option to pick a specific one
-    //   e.g. could try something like if multiple chapters found, run traverseChapters
-    //   with the array of found chapters etc...
-
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             `Search ${title}`,
@@ -718,7 +682,7 @@ async function searchChapters (title, selectedManga) {
             await findChapterByChapterNumber(selectedManga);
         } else if (input === CHAPTERTITLE) {
             await findChapterByChapterTitle(selectedManga);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -800,7 +764,7 @@ async function findChapterByChapterNumber (selectedManga) {
     const {manga, chapters} = selectedManga;
     let input = 0;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'Input a chapter number:'
@@ -817,7 +781,7 @@ async function findChapterByChapterNumber (selectedManga) {
             } else { // traverse chapters
                 await traverseChapters(manga, foundChapters);
             }
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
@@ -827,7 +791,7 @@ async function findChapterByChapterTitle (selectedManga) {
     const {manga, chapters} = selectedManga;
     let input = 0;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'Input a chapter title:'
@@ -835,7 +799,7 @@ async function findChapterByChapterTitle (selectedManga) {
 
         input = await takeUserInput(false, true);
 
-        if (typeof input === 'string' && input.length && input !== 'e') {
+        if (typeof input === 'string' && input.length && input !== COMMANDS.EXIT) {
             const matching = chapters.filter(chapter => isMatchingAtStart(input, chapter.attributes.title)); // match title to input
             if (!matching.length) { // no matching results
                 MESSAGE.print(MESSAGE.MATCHES_NOT_FOUND);
@@ -844,14 +808,15 @@ async function findChapterByChapterTitle (selectedManga) {
             } else { // traverse results
                 await traverseChapters(manga, matching);
             }
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
 async function chapterOptionsMenu (selectedChapter, manga) {
-    const OPENINBROWSER = 0, OPENATLISTS = 1, LOGDATA = 'l';
+    const OPENINBROWSER = 0;
+    const OPENATLISTS = 1;
     const { volume, chapter } = selectedChapter.attributes;
     const formattedTitle = (({ attributes: { title: chapterTitle, translatedLanguage }}) => {
         const title         = chapterTitle?.trim() || Object.values(manga.attributes.title)[0]?.trim();
@@ -866,7 +831,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
     const typeLabel = volume && !chapter ? 'volume' : 'chapter';
     let input = null;
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             formattedTitle,
@@ -874,7 +839,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
                 [`Open ${typeLabel} in browser`], 
                 ['Find manga at lists'], 
                 '_',
-                ['l', `Log ${typeLabel}`] 
+                [COMMANDS.MDX.LOG.LOG_DATA, `Log ${typeLabel}`] 
             ]
         );
         
@@ -884,9 +849,9 @@ async function chapterOptionsMenu (selectedChapter, manga) {
             await openURLInBrowser(selectedChapter?.url, typeLabel);
         } else if (input === OPENATLISTS) {
             await openMangaAtLists(manga);
-        } else if (input === LOGDATA) {
+        } else if (input === COMMANDS.MDX.LOG.LOG_DATA) {
             await logDataDeepMenu(selectedChapter, formattedTitle, true);
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
