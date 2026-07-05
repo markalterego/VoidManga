@@ -29,7 +29,7 @@ async function rootMenu() {
     const MYANIMELIST = 0, LOGMANGADEX = 1, FETCHMANGADEX = 2;
     let input = 0; 
     
-    while (input !== COMMANDS.MENU.EXIT) 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'What would you like to do?',
@@ -38,7 +38,7 @@ async function rootMenu() {
                 ['Log Mangadex'], 
                 ['Fetch Mangadex'], 
                 '_', 
-                [COMMANDS.MENU.MAIN.SETTINGS, 'Settings']
+                [COMMANDS.MAIN.SETTINGS, 'Settings']
             ]
         );
 
@@ -55,10 +55,10 @@ async function rootMenu() {
             case FETCHMANGADEX:
                 await menuFetchMangadex(lists, config, mangadexData, mangadexFetchHistory); // fetch Mangadex by preference
                 break;
-            case COMMANDS.MENU.MAIN.SETTINGS:
+            case COMMANDS.MAIN.SETTINGS:
                 await settingsMenu();
                 break;
-            case COMMANDS.MENU.EXIT: 
+            case COMMANDS.EXIT: 
                 break;                 
             default:
                 MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -75,7 +75,7 @@ async function settingsMenu() {
     // TODO: 
     // - make an option for clearing all MAL/Mangadex data
 
-    while (input !== COMMANDS.MENU.EXIT) 
+    while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             'Settings',
@@ -100,7 +100,7 @@ async function settingsMenu() {
             case LOGAUTHURL: 
                 menuMALOptions.logAuthURL = !menuMALOptions.logAuthURL;
                 break;
-            case COMMANDS.MENU.EXIT:
+            case COMMANDS.EXIT:
                 break;
             default:
                 MESSAGE.print(MESSAGE.INVALID_INPUT);
