@@ -1,6 +1,6 @@
 import { takeUserInput, capitalFirstLetterString, isISODate, 
          formatDate, longStringToArray, printMenuOptions} from "../helpers/functions.js";
-import { MESSAGE } from "../helpers/export.js";
+import { MESSAGE, COMMANDS } from "../helpers/export.js";
 
 async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSkipSorting) {
     let input = null;
@@ -9,7 +9,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
         data = sortObjectByKeysAlphabetical(data, 'asc'); // sort by keys a-z
     }
 
-    while (input !== 'e') 
+    while (input !== COMMANDS.EXIT) 
     {   
         const dataEntries = Object.entries(data);
         const header = capitalFirstLetterString(dataTitle);
@@ -53,7 +53,7 @@ async function logDataDeepMenu (data, dataTitle, sortByKeysAlphabetical, forceSk
                 const object = isFlattenable ? flattenAndGroupArrayOfObjects(value) : reformatArrayObjectsToObject(value, key);
                 await logDataDeepMenu(object, key, isFlattenable, forceSkipSorting); // isFlattenable triggers alphabetical sorting if true
             }
-        } else if (input !== 'e') {
+        } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
