@@ -1,5 +1,6 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, customFetchMangadexDisplay } from '../helpers/functions.js';
 import { animeStatus, mangaStatus, expectedFilters, MESSAGE, ANIME, MANGA, COMMANDS } from '../helpers/export.js';
+const { PAGE } = COMMANDS;
 import { filehandle } from '../filehandling/filehandle.js';
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 
@@ -36,7 +37,7 @@ async function filterTypeMenu() {
         const header = `Filtering ${key}:`;
         const optionsArray = [
             ['Filter anime'],
-            ['Fitler manga'],
+            ['Filter manga'],
             '_',
             [COMMANDS.INCLUDE_ALL, 'Include all'],
             [COMMANDS.EXCLUDE_ALL, 'Exclude all']
@@ -131,8 +132,8 @@ async function filterEntriesMenu (type, status) {
             '_',
             [COMMANDS.INCLUDE_ALL, 'Include all'],
             [COMMANDS.EXCLUDE_ALL, 'Exclude all'],
-            [COMMANDS.PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            ...(options.enablePagingEntries ? [[COMMANDS.PAGE.NEXT, 'Next page'], [COMMANDS.PAGE.PREVIOUS, 'Previous page']] : [null])
+            [PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
+            ...(options.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
             
         printMenuOptions(
@@ -149,7 +150,7 @@ async function filterEntriesMenu (type, status) {
             flipAllStatus(type, status, true);
         } else if (input === COMMANDS.EXCLUDE_ALL) { 
             flipAllStatus(type, status, false);
-        } else if (input === COMMANDS.PAGE.TOGGLE) { 
+        } else if (input === PAGE.TOGGLE) { 
             options.enablePagingEntries = !options.enablePagingEntries;
         } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
