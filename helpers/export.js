@@ -14,11 +14,11 @@ export const SYM = {
     PADFILLER:     '\u28A4', // ⢤
 };
 export const COMMANDS = {
-    MENU: { 
-        MAIN: {
-            SETTINGS: 's',
-        },
-        FETCH_MANGADEX: {
+    MAIN: {
+        SETTINGS: 's',
+    },
+    MDX: {
+        FETCH: {
             TOGGLE_QUEUE_TYPE:         's',
             TOGGLE_FETCH_ALL_CHAPTERS: 'f',
             TOGGLE_ORDER_DIRECTION:    't',
@@ -26,28 +26,44 @@ export const COMMANDS = {
             INCLUDE_MANGAS_MANGALIST:  'i',
             INCLUDE_MANGAS_MDXDATA:    'd',
         },
-        MAL: {
-            FETCH_USER_LISTS:      'f',
-            ENTRY_UPDATE:          'u',
-            ENTRY_LOG:             'l',
-            PROGRESS_INCREASE:     '+',
-            PROGRESS_DECREASE:     '-',
-            PROGRESS_MAX:          '++',
-            PROGRESS_MIN:          '--',
+        LOG: {
+            SORT: {
+                ORDER_TYPE:     'o',
+                SORT_DIRECTION: 's',
+            },
+            MANGA: {
+                TOGGLE_FILTER_MANGALIST: 'f',
+                TOGGLE_HIDE_NO_CHAPTERS: 'h',
+            },
+            CHAPTER: {
+                HIDE_READ_CHAPTERS: 'h',
+                CLEAR_LANG_CODES:   'l',
+            },
+            UPDATE_CHAPTERS: 'u',
+            LOG_DATA:        'l',
         },
-        PAGE: {
-            TOGGLE:   't',
-            PREVIOUS: ',',
-            NEXT:     '.',
-            FIRST:    ',,',
-            LAST:     '..'
-        },
-        RESET_DEFAULT_OPTIONS: 'r',
-        INCLUDE_ALL:           '+',
-        EXCLUDE_ALL:           'c',
-        CLEAR:                 'c',
-        EXIT:                  'e',
     },
+    MAL: {
+        FETCH_USER_LISTS:  'f',
+        ENTRY_UPDATE:      'u',
+        ENTRY_LOG:         'l',
+        PROGRESS_INCREASE: '+',
+        PROGRESS_DECREASE: '-',
+        PROGRESS_MAX:      '++',
+        PROGRESS_MIN:      '--',
+    },
+    PAGE: {
+        TOGGLE:   't',
+        PREVIOUS: ',',
+        NEXT:     '.',
+        FIRST:    ',,',
+        LAST:     '..'
+    },
+    RESET_DEFAULT_OPTIONS: 'r',
+    INCLUDE_ALL:           '+',
+    EXCLUDE_ALL:           'c',
+    CLEAR:                 'c',
+    EXIT:                  'e',
 };
 export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
