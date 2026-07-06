@@ -1,5 +1,5 @@
 import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga } from "../fetch/fetchMAL.js";
-import { animeStatus, mangaStatus, DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA } from "../helpers/export.js";
+import { animeStatus, mangaStatus, DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA, ANIME, MANGA } from "../helpers/export.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
 import { editOrAddEntriesFromSearchResults } from '../ui/menuMAL.js';
@@ -14,9 +14,6 @@ import he from "he";
 //   then at start tokens are updated, the passed function is
 //   ran from within the function and then results are handled 
 //   accordingly right after 
-
-const ANIME = 0;
-const MANGA = 1;
 
 async function fetchMALUserLists (lists, logAuthURL = false) {
     try {
@@ -148,7 +145,6 @@ function sortSeriesByStatus (animelist, mangalist, old_lists) {
         Array(animeStatus.length).fill(null).map(() => []), // animelist
         Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
     ]; 
-    const ANIME = 0, MANGA = 1;
     animeStatus.forEach((status, status_index) => { // anime statuses
         animelist.forEach((entry) => { // entries
             const entry_status = entry.list_status.status;
