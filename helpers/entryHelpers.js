@@ -8,6 +8,14 @@ TODO:
 */
 
 /**
+ * Array of anime status strings = [watching, completed, on_hold, dropped, plan_to_watch]
+ */
+export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
+/**
+ * Array of manga status strings = [reading, completed, on_hold, dropped, plan_to_read ]
+ */
+export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
+/**
  * Index for anime entries at lists.
  */
 export const ANIME = 0;
