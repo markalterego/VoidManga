@@ -1,5 +1,6 @@
-import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga } from "../fetch/fetchMAL.js";
-import { animeStatus, mangaStatus, DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA, ANIME, MANGA } from "../helpers/export.js";
+import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga, deleteEntryFromLists } from "../fetch/fetchMAL.js";
+import { DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA } from "../helpers/export.js";
+import { getType, getStatus, getId, ANIME, MANGA, animeStatus, mangaStatus, getTypeString } from "../helpers/entryHelpers.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
 import { editOrAddEntriesFromSearchResults } from '../ui/menuMAL.js';
@@ -67,8 +68,8 @@ function appendListStatusesToSearchResults (formattedResults, lists) {
     // ---> [ { searchResults: [ { node: { ... }, list_status: { ... } }, ... ], searchTitle: string }, ... ]
     return formattedResults.map(item => {
         const formattedSearchResults = item.searchResults.map(({ node }) => {
-            const type          = node.num_episodes >= 0 ? ANIME : MANGA;
-            const existingEntry = lists[type].flat(Infinity).find(e => e.node.id === node.id);
+            const type          = getType({ node }); 
+            const existingEntry = lists[type].flat(Infinity).find(e => getId(e) === getId({ node }));
             // New Nodes included to either
             // 1. existing entries found at lists
             // 2. default entry frameworks based on type
@@ -86,7 +87,7 @@ async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
     try {
         const syncedEntry = await updateListEntry(changedFields, entry, logAuthURL); // update online
         const finalEntry = { ...entry, ...syncedEntry }; // merge existing entry + synced
-        const entryExists = lists[type(entry)].flat(Infinity).some(e => e.node.id === entry.node.id);
+        const entryExists = lists[getType(entry)].flat(Infinity).some(e => getId(e) === getId(entry));
         if (entryExists) removeOldEntry(lists, entry); // remove existing entry 
         appendNewEntry(lists, finalEntry); // add entry to lists
         filehandle('mal', lists); // save data to file
@@ -99,8 +100,7 @@ async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
 async function updateListEntry (changedFields, entry, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
-        const type = entry.node.num_episodes === undefined ? 'manga' : 'anime'; // type 
-        const updatedListStatus = await putListEntry(entry.node.id, type, changedFields); // put to MAL
+        const updatedListStatus = await putListEntry(getId(entry), getTypeString(entry), changedFields); // put to MAL
         updatedListStatus.comments = he.decode(updatedListStatus.comments); // decode comments
         return { ...entry, list_status: updatedListStatus };
     } catch (error) {
@@ -109,22 +109,16 @@ async function updateListEntry (changedFields, entry, logAuthURL = false) {
     }
 }
 
-const type   = (entry) => entry.node.num_episodes === undefined ? MANGA : ANIME;
-const status = (entry) => type(entry) === ANIME 
-                            ? animeStatus.findIndex(s => s === entry.list_status.status) 
-                            : mangaStatus.findIndex(s => s === entry.list_status.status);    
-const id     = (entry) => entry.node.id;
-
 function removeOldEntry (lists, entry) {
     // finds and removes given entry at lists
-    lists[type(entry)][status(entry)].splice(
-        lists[type(entry)][status(entry)].findIndex((e) => id(e) === id(entry))
+    lists[getType(entry)][getStatus(entry)].splice(
+        lists[getType(entry)][getStatus(entry)].findIndex((e) => getId(e) === getId(entry))
     , 1);
 }
 
 function appendNewEntry (lists, entry) {
-    lists[type(entry)][status(entry)].push(entry); // append entry to lists
-    lists[type(entry)][status(entry)].sort((a,b) => a.node.title.localeCompare(b.node.title)); // sort at lists alphabetical
+    lists[getType(entry)][getStatus(entry)].push(entry); // append entry to lists
+    lists[getType(entry)][getStatus(entry)].sort((a,b) => a.node.title.localeCompare(b.node.title)); // sort at lists alphabetical
 }
 
 function sortSeriesByStatus (animelist, mangalist, old_lists) {
@@ -209,4 +203,18 @@ function decodeComments (lists) {
     return lists;
 }
 
-export { fetchMALUserLists, updateMAL, searchMAL };
+async function deleteMAL (lists, entry, logAuthURL = false) {
+    try {
+        await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
+        const entryExists = lists[getType(entry)].flat(Infinity).some(e => getId(e) === getId(entry));
+        if (!entryExists) throw new Error(`Can't remove non-existing entry. Type: ${getTypeString(entry)} Id: ${getId(entry)}`);
+        await deleteEntryFromLists(getId(entry), getTypeString(entry)); // delete online
+        removeOldEntry(lists, entry); // delete locally
+        filehandle('mal', lists); // save data to file
+    } catch (error) {
+        logErrorDetails(error);
+    } 
+    return lists;
+}
+
+export { fetchMALUserLists, updateMAL, searchMAL, deleteMAL };
