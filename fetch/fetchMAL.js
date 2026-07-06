@@ -132,4 +132,43 @@ async function fetchManga (searchTitle, { limit, offset }) {
     };
 }
 
-export { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga };
+async function deleteEntryFromLists (entry_id, type) {
+    // Whether using the anime or the manga endpoint,
+    // the only thing expected from them to be returned
+    // is either an empty array OR an error simply stating
+    // '404 Not found' ... 
+    // 
+    // The catch is that, you can pretty much delete an id
+    // which when looked up from 'https://myanimelist.net/anime/115165'
+    // only shows a 404 page BUT when deleting this same id
+    // through the API, instead of returning an error, the
+    // API returns the empty array ... 
+    //
+    // My conclusion is that, as of 2026-07-06, I wouldn't 
+    // trust what the API returns. 
+    // 
+    // I think that there's probably something like a hard limit
+    // for the API, which when given a value e.g. (val === null || val < 1 || val > 999999),
+    // the API will throw no matter what. 
+    // 
+    // I also think that if the value is accepted, it will essentially do 
+    // something like send a command e.g. 'delete this id from this person's lists',
+    // and then just return an empty array without checking if anything was 
+    // actually deleted.
+    
+    // https://api.myanimelist.net/v2/anime/${entry_id}/my_list_status
+    // https://api.myanimelist.net/v2/manga/${entry_id}/my_list_status
+
+    const url = `https://api.myanimelist.net/v2/${type}/${entry_id}/my_list_status`;
+    const headers = {
+        'Authorization': `Bearer ${process.env.ACCESS_TOKEN}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }; 
+    const response = await withRetry(() =>
+        rateLimitedFetch(() =>
+            axios.delete(url, { headers })
+        )
+    );
+}
+
+export { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga, deleteEntryFromLists };
