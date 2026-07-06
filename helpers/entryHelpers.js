@@ -51,4 +51,9 @@ export const getStatus = (entry) => getType(entry) === ANIME
 export const getStatusString = (entry) => getType(entry) === ANIME 
                             ? animeStatus.find(s => s === entry.list_status.status) 
                             : mangaStatus.find(s => s === entry.list_status.status);
+/**
+ * 
+ * @param {*} entry 
+ * @returns Id of given entry = entry.node.id.
+ */
 export const getId = (entry) => entry.node.id;
