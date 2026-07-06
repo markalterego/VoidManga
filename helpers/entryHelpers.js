@@ -24,12 +24,14 @@ export const ANIME = 0;
  */
 export const MANGA = 1;
 /**
+ * Index is based on entry.node.num_episodes === undefined.
  * 
  * @param {*} entry Item at lists[type][status].
  * @returns Index corresponding to ANIME = 0 or MANGA = 1.
  */
 export const getType = (entry) => entry.node.num_episodes === undefined ? MANGA : ANIME;
 /**
+ * Index is based on entry.node.num_episodes === undefined.
  * 
  * @param {*} entry Item at lists[type][status].
  * @returns String corresponding to ANIME = 'anime' or MANGA = 'manga'.
