@@ -426,7 +426,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             [s_comments], 
             '_', '-', '_',
             [MAL.ENTRY_UPDATE, 'Update now'],
-            [MAL.ENTRY_LOG, 'Log entry']
+            [COMMANDS.LOG, 'Log entry']
         ];
         
         printMenuOptions(
@@ -465,7 +465,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
                 if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
                 else return oldVal !== newVal;
             });
-        } else if (input === MAL.ENTRY_LOG) {
+        } else if (input === COMMANDS.LOG) {
             await logDataDeepMenu(entry, title, false, true);
         } else if (input === MAL.ENTRY_UPDATE) { 
             pushUpdates = true;

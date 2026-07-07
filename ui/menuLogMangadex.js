@@ -310,7 +310,7 @@ async function mangaOptionsMenu (selectedManga) {
                 ['Traverse chapters'], 
                 ['Search for chapter'],
                 '_',
-                [LOG.LOG_DATA, 'Log manga data'],
+                [COMMANDS.LOG, 'Log manga data'],
                 [LOG.UPDATE_CHAPTERS, 'Update chapters']
             ]
         );
@@ -323,7 +323,7 @@ async function mangaOptionsMenu (selectedManga) {
             await traverseChapters(selectedManga); 
         } else if (input === FINDCHAPTEROFMANGA) { 
             await searchChapters(title, selectedManga);
-        } else if (input === LOG.LOG_DATA) {
+        } else if (input === COMMANDS.LOG) {
             await logDataDeepMenu(selectedManga.manga, title, true);
         } else if (input === LOG.UPDATE_CHAPTERS) { 
             // sm sourced from mangadexData (not selectedManga) to prevent fetching 
@@ -842,7 +842,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
                 [`Open ${typeLabel} in browser`], 
                 ['Find manga at lists'], 
                 '_',
-                [LOG.LOG_DATA, `Log ${typeLabel}`] 
+                [COMMANDS.LOG, `Log ${typeLabel}`] 
             ]
         );
         
@@ -852,7 +852,7 @@ async function chapterOptionsMenu (selectedChapter, manga) {
             await openURLInBrowser(selectedChapter?.url, typeLabel);
         } else if (input === OPENATLISTS) {
             await openMangaAtLists(manga);
-        } else if (input === LOG.LOG_DATA) {
+        } else if (input === COMMANDS.LOG) {
             await logDataDeepMenu(selectedChapter, formattedTitle, true);
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);

@@ -40,7 +40,6 @@ export const COMMANDS = {
                 CLEAR_LANG_CODES:   'l',
             },
             UPDATE_CHAPTERS: 'u',
-            LOG_DATA:        'l',
         },
     },
     MAL: {
@@ -62,6 +61,7 @@ export const COMMANDS = {
     RESET_DEFAULT_OPTIONS: 'r',
     INCLUDE_ALL:           '+',
     EXCLUDE_ALL:           'c',
+    LOG:                   'l',
     CLEAR:                 'c',
     EXIT:                  'e',
 };
