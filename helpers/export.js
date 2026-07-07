@@ -44,8 +44,8 @@ export const COMMANDS = {
     },
     MAL: {
         FETCH_USER_LISTS:  'f',
-        ENTRY_UPDATE:      'u',
-        ENTRY_LOG:         'l',
+        ENTRY_ADD:         'a',
+        ENTRY_DELETE:      'd',
         PROGRESS_INCREASE: '+',
         PROGRESS_DECREASE: '-',
         PROGRESS_MAX:      '++',
