@@ -83,29 +83,29 @@ function appendListStatusesToSearchResults (formattedResults, lists) {
     });
 }
 
-async function updateMAL (lists, changedFields, entry, logAuthURL = false) {
+async function updateMAL (lists, draft, logAuthURL = false) {
     try {
-        const syncedEntry = await updateListEntry(changedFields, entry, logAuthURL); // update online
-        const finalEntry = { ...entry, ...syncedEntry }; // merge existing entry + synced
-        const entryExists = lists[getType(entry)].flat(Infinity).some(e => getId(e) === getId(entry));
-        if (entryExists) removeOldEntry(lists, entry); // remove existing entry 
+        const syncedEntry = await updateListEntry(Object.entries(draft.list_status), draft, logAuthURL); // update online
+        const finalEntry  = { ...draft, ...syncedEntry }; // merge existing data + synced
+        const entryExists = lists[getType(draft)].flat(Infinity).some(e => getId(e) === getId(draft));
+        if (entryExists) removeOldEntry(lists, draft); // remove existing data 
         appendNewEntry(lists, finalEntry); // add entry to lists
         filehandle('mal', lists); // save data to file
+        return { lists, success: true };
     } catch (error) {
         logErrorDetails(error);
+        return { lists, success: false };
     }
-    return lists; // return updated lists
 }
 
-async function updateListEntry (changedFields, entry, logAuthURL = false) {
+async function updateListEntry (changedFields, draft, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
-        const updatedListStatus = await putListEntry(getId(entry), getTypeString(entry), changedFields); // put to MAL
+        const updatedListStatus = await putListEntry(getId(draft), getTypeString(draft), changedFields); // put to MAL
         updatedListStatus.comments = he.decode(updatedListStatus.comments); // decode comments
-        return { ...entry, list_status: updatedListStatus };
+        return { ...draft, list_status: updatedListStatus };
     } catch (error) {
-        logErrorDetails(error);
-        throw new Error('Failed to update MAL entry');
+        throw error;
     }
 }
 
