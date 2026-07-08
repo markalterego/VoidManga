@@ -203,18 +203,19 @@ function decodeComments (lists) {
     return lists;
 }
 
-async function deleteMAL (lists, entry, logAuthURL = false) {
+async function deleteMAL (lists, draft, logAuthURL = false) {
     try {
         await checkAndUpdateTokens(logAuthURL); // check token validity + update if necessary
-        const entryExists = lists[getType(entry)].flat(Infinity).some(e => getId(e) === getId(entry));
-        if (!entryExists) throw new Error(`Can't remove non-existing entry. Type: ${getTypeString(entry)} Id: ${getId(entry)}`);
-        await deleteEntryFromLists(getId(entry), getTypeString(entry)); // delete online
-        removeOldEntry(lists, entry); // delete locally
+        const entryExists = lists[getType(draft)].flat(Infinity).some(e => getId(e) === getId(draft));
+        if (!entryExists) throw new Error(`Can't remove non-existing entry. Type: ${getTypeString(draft)} Id: ${getId(draft)}`);
+        await deleteEntryFromLists(getId(draft), getTypeString(draft)); // delete online
+        removeOldEntry(lists, draft); // delete locally
         filehandle('mal', lists); // save data to file
+        return { lists, success: true };
     } catch (error) {
         logErrorDetails(error);
+        return { lists, success: false };
     } 
-    return lists;
 }
 
 export { fetchMALUserLists, updateMAL, searchMAL, deleteMAL };
