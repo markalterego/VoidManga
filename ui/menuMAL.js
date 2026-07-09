@@ -1,9 +1,10 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
          escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
-import { animeStatus, mangaStatus, MESSAGE, fetchMALOptions, ANIME, MANGA, COMMANDS } from "../helpers/export.js";
+import { MESSAGE, fetchMALOptions, COMMANDS } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
+import { ANIME, MANGA, getId, getStatus, getType, animeStatus, mangaStatus } from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
-import { fetchMALUserLists, updateMAL, searchMAL } from "../controller/controllerMAL.js";
+import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
 
@@ -12,9 +13,7 @@ let config = null;
 let options = null;
 let options_fetch = null;
 
-const lowerCaseString  = (string)      => string?.toLowerCase(); 
-const getType          = (list_status) => list_status.num_episodes_watched === undefined ? MANGA : ANIME;
-const getTypeFromEntry = (entry)       => entry.node.num_episodes === undefined ? MANGA : ANIME;
+const lowerCaseString = (string) => string?.toLowerCase(); 
 
 async function menuMAL (l, c) {
     const TRAVERSE_DATA = 0;
@@ -165,7 +164,7 @@ async function updateSearchStrings() {
     const MIN_LENGTH = 3;
     let input = null;
 
-    while (input !== COMMANDS.EXIT) 
+    while (input?.toLowerCase() !== COMMANDS.EXIT) 
     {        
         const optionsArray = [
             ['?', 'Add to queue'],
@@ -181,12 +180,12 @@ async function updateSearchStrings() {
 
         input = await takeUserInput(false, true, { useMixedCase: true });
 
-        if (lowerCaseString(input) === COMMANDS.CLEAR) {
+        if (input?.toLowerCase() === COMMANDS.CLEAR) {
             options_fetch.searchStrings = [];
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
             options_fetch.searchStrings.push(input); 
             options_fetch.searchStrings = [...new Set(options_fetch.searchStrings)]; // remove duplicates
-        } else if (lowerCaseString(input) !== COMMANDS.EXIT) {
+        } else if (input?.toLowerCase() !== COMMANDS.EXIT) {
             console.log(`\n\n  Minimum required search length: ${MIN_LENGTH} characters`);
         }
     }
@@ -280,18 +279,18 @@ async function traverseStatus (typeIndex) {
     }
 }
 
-async function traverseEntry (typeIndex, statusIndex, entryArr) {
+async function traverseEntry (typeIndex, statusIndex, searchResults) {
     
     // function is used for: 
     // - traversing lists[typeIndex][statusIndex] 
-    // - traversing entryArr
+    // - traversing searchResults
 
-    const status = entryArr ? null : (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]);
-    const header = entryArr ? 'Search results' : `Status: ${capitalFirstLetterString(status)}`;
+    const status = searchResults ? null : (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]);
+    const header = searchResults ? 'Search results' : `Status: ${capitalFirstLetterString(status)}`;
     
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
-    let entries = entryArr ?? lists[typeIndex][statusIndex];
+    let entries = searchResults ?? lists[typeIndex][statusIndex];
 
     while (input !== COMMANDS.EXIT) 
     {
@@ -323,9 +322,17 @@ async function traverseEntry (typeIndex, statusIndex, entryArr) {
         
         if (input >= 0 && input < pagedEntries.length) {
             const entry = pagedEntries[input]; // reference to selected entry
-            await updateEntryMenu(entry); // update stuff related to selected entry
-            const indexAtEntries = entries.findIndex(e => e.node.id === entry.node.id && getTypeFromEntry(e) === getTypeFromEntry(entry));
-            entries[indexAtEntries] = lists[getTypeFromEntry(entry)].flat(Infinity).find(e => e.node.id === entry.node.id);
+            const entryExistsAtLists = await updateEntryMenu(entry); // update stuff related to selected entry
+
+            // If an entry is deleted through updateEntryMenu 
+            // and entries was initialized with searchResults (SR),
+            // entry must be manually spliced from SR in order for
+            // SR to reflect results existing at lists
+
+            if (searchResults && !entryExistsAtLists) {
+                const idx = entries.indexOf(entry);
+                if (idx !== -1) entries.splice(idx, 1);
+            }
         } else if (input === PAGE.TOGGLE) { // toggle paging on/off
             options.enablePagingEntries = !options.enablePagingEntries;
         } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
@@ -341,30 +348,43 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     // parameters 'l' (standing for lists) and logAuthURL are supposed 
     // to be used when calling updateEntryMenu from outside menuMAL.js 
 
-    const STATUS = 0; 
-    const SCORE = 1;
+    const STATUS   = 0; 
+    const SCORE    = 1;
     const EPISODES = 2;
-    const VOLUMES = 2;
+    const VOLUMES  = 2;
     const CHAPTERS = 3;
 
-    const append = getType(entry.list_status); // manga adds one selectable option
+    const append = getType(entry); // manga adds one selectable option
     
-    const START_DATE = 3 + append
+    const START_DATE  = 3 + append
     const FINISH_DATE = 4 + append
-    const ISRE = 5 + append;
-    const COMMENTS = 6 + append;
+    const ISRE        = 5 + append;
+    const COMMENTS    = 6 + append;
 
     // PADEND && PADSTART mean the LENGTH OF
     // STRING after padding at START/END
 
-    const PADEND = 12; 
+    const PADEND   = 12; 
     const PADSTART = 0; 
-    const NOT_SET = 'Not set';
+    const NOT_SET  = 'Not set';
     const COMMENTS_LENGTH = 10;
 
     let input = null;
     let listsReference = l ?? lists;
     let pushUpdates = false;
+    let draft = structuredClone(entry); 
+    let entryExists = null;
+
+    const formatString = (s_left, s_right) => `${padString(s_left, PADEND, ' ')}: ${padString(s_right, PADSTART, ' ', true)}`; 
+    const draftUpdated = (list_status, old_list_status) => {
+        return Object.keys(list_status).some(key => {
+            const oldVal = old_list_status[key];
+            const newVal = list_status[key]; 
+            // arrays compared as string because arr[1, 2, 3] === arr[33, 1] would be true
+            return Array.isArray(newVal) ? JSON.stringify(oldVal) !== JSON.stringify(newVal) : oldVal !== newVal;
+        });
+    }
+    const isEntryAtLists = () => listsReference[getType(draft)].flat(Infinity).some(e => getId(e) === getId(draft));
 
     // TODO: 
     // - make it so that start/finish dates are automatically applied
@@ -373,32 +393,27 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     // - make new menu's for updating priority, num_times_rewatched, 
     //   rewatch_value, tags and num_times_reread and connect them 
     //   to this function
-    // - make it possible to delete an entry from lists (naturally local + 
-    //   online in the same )
-    // - make it so that 'UPDATE NOW' actually displays something like 
-    //   'ADD ENTRY TO LISTS' and also hide it after said title is included
-    //   to lists
+
+    // Draft is updated within deeper updateMenu functions, 
+    // after user returns to this function (updateEntryMenu), draft
+    // is compared to the original entry. If any value of draft 
+    // differs from the original entry, all values from draft 
+    // are passed to updateMAL. If update is successful, draft
+    // is cloned onto entry, if update failed, entry is cloned
+    // onto draft, essentially reverting to latest synced edit. 
 
     while (input !== COMMANDS.EXIT) 
     {
-        // entry_clone is updated within deeper updateMenu functions, 
-        // after user returns to this function (updateEntryMenu), entry_clone
-        // is compared to the original entry. If any value of entry_clone 
-        // differs from the original entry, all values from entry_clone 
-        // are passed to updateMAL 
-
-        const entry_clone = structuredClone(entry); 
-        const { num_episodes, num_chapters, num_volumes, title } = entry_clone.node; 
-        const list_status = entry_clone.list_status; 
+        entryExists = isEntryAtLists();
+        const { num_episodes, num_chapters, num_volumes, title } = draft.node; 
+        const list_status = draft.list_status;
         const { status, is_rereading, is_rewatching, num_volumes_read, 
                 num_chapters_read, num_episodes_watched, score, updated_at,
                 start_date, finish_date, comments, priority, num_times_reread,
                 num_times_rewatched, reread_value, rewatch_value, tags } = list_status;
         
-        // formatting printMenuOptions parameters 
+        // --- formatting printMenuOptions params 
 
-        const formatString = (s_left, s_right) => `${padString(s_left, PADEND, ' ')}: ${padString(s_right, PADSTART, ' ', true)}`; 
-        
         const s_status       = formatString('Status', capitalFirstLetterString(status));
         const s_score        = formatString('Score', !!score ? score : NOT_SET);
         const s_episodes     = formatString('Episodes', `${num_episodes_watched} / ${!!num_episodes ? num_episodes : '?'}`);
@@ -409,11 +424,13 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         const s_isReWatching = formatString('Re-watching', !!is_rewatching ? 'Yes' : 'No');
         const s_isReReading  = formatString('Re-reading', !!is_rereading ? 'Yes' : 'No');
         const s_comments     = formatString('Comments', !!comments ? cliTruncate(comments, COMMENTS_LENGTH) : NOT_SET);
-        
-        const s_progress = getType(list_status) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
-        const s_isRe     = getType(list_status) === ANIME ? s_isReWatching : s_isReReading; 
 
-        const entryExists = listsReference[getType(list_status)].flat(Infinity).some(e => e.node.id === entry_clone.node.id);
+        const s_progress = getType(draft) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
+        const s_isRe     = getType(draft) === ANIME ? s_isReWatching : s_isReReading; 
+
+        const s_toggleEntry = entryExists ? [MAL.ENTRY_DELETE, 'Delete entry from lists'] : [MAL.ENTRY_ADD, 'Add entry to lists'];
+        const s_log         = [COMMANDS.LOG, 'Log entry'];
+
         const header = `${entryExists ? 'UPDATE' : 'ADD'} - ${title}`;
         const optionsArray = [
             '-', '_',
@@ -425,8 +442,8 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             [s_isRe], 
             [s_comments], 
             '_', '-', '_',
-            [MAL.ENTRY_UPDATE, 'Update now'],
-            [COMMANDS.LOG, 'Log entry']
+            s_toggleEntry,
+            s_log
         ];
         
         printMenuOptions(
@@ -436,53 +453,55 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
 
         input = await takeUserInput(true); 
 
-        // selectable fields mapped to refer to their corresponding updateMenu function
-        const selectableFields = {
-            [STATUS]:      { field: 'status',                                          updater: updateStatusMenu     },
-            [SCORE]:       { field: 'score',                                           updater: updateScoreMenu      },
-            ...(getType(list_status) === ANIME
-                ? {[EPISODES]: { field: 'episodes', updater: updateEpisodesMenu }}  
-                : {[VOLUMES]:  { field: 'volumes',  updater: updateVolumesMenu  }, [CHAPTERS]: { field: 'chapters', updater: updateChaptersMenu }}
-            ),
-            [START_DATE]:  { field: 'start_date',                                      updater: updateStartDateMenu  },
-            [FINISH_DATE]: { field: 'finish_date',                                     updater: updateFinishDateMenu },
-            [ISRE]:        { field: (is_rereading ? 'is_rereading' : 'is_rewatching'), updater: updateIsReMenu       },
-            [COMMENTS]:    { field: 'comments',                                        updater: updateCommentsMenu   }
+        // --- selectable fields mapped to refer to their corresponding updateMenu function
+        
+        const updaterFunctions = {
+            [STATUS]:      updateStatusMenu,
+            [SCORE]:       updateScoreMenu,
+            ...(getType(draft) === ANIME ? { [EPISODES]: updateEpisodesMenu } : { [VOLUMES]:  updateVolumesMenu, [CHAPTERS]: updateChaptersMenu }),
+            [START_DATE]:  updateStartDateMenu,
+            [FINISH_DATE]: updateFinishDateMenu,
+            [ISRE]:        updateIsReMenu,
+            [COMMENTS]:    updateCommentsMenu  
         };
 
-        const selected = selectableFields[input];
+        const updater = updaterFunctions[input];
 
-        if (selected) { 
-            const { field, updater } = selected;
+        // 1. entry not at lists, need to manually push
+        // 2. entry at lists, push automatically on each update
+
+        if (updater) { 
             const old_list_status = structuredClone(list_status);
-            const requiresEntryAsParameter = ['episodes', 'volumes', 'chapters'].some(v => v === field);
-            requiresEntryAsParameter ? await updater(entry_clone) : await updater(list_status);
-            // check for updates
-            pushUpdates = Object.keys(list_status).some(key => {
-                const oldVal = old_list_status[key];
-                const newVal = list_status[key]; 
-                // arrays compared as string because arr[1] === arr[2] would be true
-                if (Array.isArray(newVal)) return JSON.stringify(oldVal) !== JSON.stringify(newVal);
-                else return oldVal !== newVal;
-            });
+            await updater(draft);
+            pushUpdates = entryExists && draftUpdated(list_status, old_list_status);
         } else if (input === COMMANDS.LOG) {
             await logDataDeepMenu(entry, title, false, true);
-        } else if (input === MAL.ENTRY_UPDATE) { 
+        } else if (!entryExists && input === MAL.ENTRY_ADD) { 
             pushUpdates = true;
+        } else if (entryExists && input === MAL.ENTRY_DELETE) {
+            const { lists: updatedLists, success } = await deleteMAL(listsReference, draft, logAuthURL ?? options.logAuthURL);
+            listsReference = updatedLists;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
 
         // update changes
         if (pushUpdates) {
-            pushUpdates = false; 
-            listsReference = await updateMAL(listsReference, Object.entries(list_status), entry, logAuthURL ?? options.logAuthURL); // update MAL entry
-            entry = listsReference[getType(list_status)].flat(Infinity).find(e =>  e.node.id === entry.node.id); // re-find entry reference
+            pushUpdates = false;  
+            const { lists: updatedLists, success } = await updateMAL(listsReference, draft, logAuthURL ?? options.logAuthURL); // update MAL entry
+            listsReference = updatedLists;
+            if (success) {
+                entry = structuredClone(draft);
+            } else {
+                draft = structuredClone(entry);
+            }
         } 
     }
+    return entryExists;
 }
 
-async function updateStatusMenu (list_status) {
+async function updateStatusMenu (entry) {
+    const list_status = entry.list_status;
     const statuses = list_status.num_episodes_watched !== undefined ? animeStatus : mangaStatus; // arr of available statuses
     const statusBeforeChange = list_status.status;
     let input = null;
@@ -498,14 +517,15 @@ async function updateStatusMenu (list_status) {
         input = await takeUserInput(true); // take whole num as user input
 
         if (input >= 0 && input < statuses.length) {
-            list_status.status = statuses[input]; // update entry_clone status
+            list_status.status = statuses[input]; // update status
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function updateScoreMenu (list_status) {
+async function updateScoreMenu (entry) {
+    const list_status = entry.list_status;
     const scoreBeforeChange = list_status.score;
     let input = null;
     
@@ -659,7 +679,8 @@ async function updateChaptersMenu (entry) {
     }
 }
 
-async function updateStartDateMenu (list_status) {
+async function updateStartDateMenu (entry) {
+    const list_status = entry.list_status;
     const startDateBeforeChange = list_status.start_date;
     let input = null;
 
@@ -685,7 +706,8 @@ async function updateStartDateMenu (list_status) {
     }
 }
 
-async function updateFinishDateMenu (list_status) {
+async function updateFinishDateMenu (entry) {
+    const list_status = entry.list_status;
     const finishDateBeforeChange = list_status.finish_date;
     let input = null;
 
@@ -814,17 +836,18 @@ function isValidDate (date) {
     return true; // given date is valid
 }
 
-async function updateIsReMenu (list_status) {
-    const getIsRe = (list_status) => getType(list_status) === ANIME ? list_status.is_rewatching : list_status.is_rereading;
-    const setIsRe = (list_status, value) => getType(list_status) === ANIME ? list_status.is_rewatching = value : list_status.is_rereading = value;
+async function updateIsReMenu (entry) {
+    const list_status = entry.list_status;
+    const getIsRe = (list_status)        => getType(entry) === ANIME ? list_status.is_rewatching         : list_status.is_rereading;
+    const setIsRe = (list_status, value) => getType(entry) === ANIME ? list_status.is_rewatching = value : list_status.is_rereading = value;
     const isReBeforeChange = getIsRe(list_status);
     let input = null;
 
     while (input !== COMMANDS.EXIT) 
     {
         printMenuOptions(
-            `Update ${getType(list_status) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
-                                                                                                                          `update to: ${getIsRe(list_status) ? 'yes' : 'no'} - from: ${isReBeforeChange ? 'yes' : 'no'}`})`,
+            `Update ${getType(entry) ? 're-reading' : 're-watching'} (${isReBeforeChange === getIsRe(list_status) ? `current: ${isReBeforeChange ? 'yes' : 'no'}` : 
+                                                                                                                    `update to: ${getIsRe(list_status) ? 'yes' : 'no'} - from: ${isReBeforeChange ? 'yes' : 'no'}`})`,
             [
                 ['no'], 
                 ['yes'], 
@@ -835,20 +858,21 @@ async function updateIsReMenu (list_status) {
         input = await takeUserInput(true); 
         
         if (input >= 0 && input <= 1) {
-            const value = input === 0 ? false : true; // isRe value
-            setIsRe(list_status, value);              // update isRe
+            const value = !!input;       // isRe value
+            setIsRe(list_status, value); // update isRe
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         } 
     }
 }
 
-async function updateCommentsMenu (list_status) {
+async function updateCommentsMenu (entry) {
+    const list_status = entry.list_status;
     const commentsBeforeChange = list_status.comments;
     const MIN_LENGTH = 3; // min comment length
     let input = null;
     
-    while (lowerCaseString(input) !== COMMANDS.EXIT) 
+    while (input?.toLowerCase() !== COMMANDS.EXIT) 
     {
         printMenuOptions(
             `Update comment (${commentsBeforeChange === list_status.comments ? (`current: ${commentsBeforeChange.length > 0 ? `"${commentsBeforeChange}"` : `Not Set`}`) : // hasn't been updated
@@ -862,11 +886,11 @@ async function updateCommentsMenu (list_status) {
 
         input = await takeUserInput(false, true, { useMixedCase: true });
         
-        if (lowerCaseString(input) === COMMANDS.CLEAR) { // clear comment
+        if (input?.toLowerCase() === COMMANDS.CLEAR) { // clear comment
             list_status.comments = ''; 
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { 
             list_status.comments = input; // update comments
-        } else if (lowerCaseString(input) !== COMMANDS.EXIT) { 
+        } else if (input?.toLowerCase() !== COMMANDS.EXIT) { 
             console.log(`\n\n  Minimum required comment length: ${MIN_LENGTH} characters`);
         }
     }
@@ -943,7 +967,7 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
 
         // filter existing entries and new entries
         const { entriesToAdd, entriesToEdit } = finalResults.reduce((acc, result) => {
-            const foundAtLists = (searchResult) => lists[getTypeFromEntry(searchResult)].flat(Infinity).some(e => e.node.id === searchResult.node.id);
+            const foundAtLists = (searchResult) => lists[getType(searchResult)].flat(Infinity).some(e => e.node.id === searchResult.node.id);
             const { searchTitle, searchResults, node, list_status } = result;
             // [ searchTitle: 'frieren', searchResults: ['frieren manga', 'frieren dj.', ...] ]
             for (const searchResult of searchResults) {
@@ -958,7 +982,7 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
         }, { entriesToAdd: [], entriesToEdit: [] });
         const formatSection = (entry) => {
             const title          = entry.node.title;
-            const typeLabel      = getTypeFromEntry(entry) === ANIME ? '* Anime' : '* Manga';
+            const typeLabel      = getType(entry) === ANIME ? '* Anime' : '* Manga';
             const formattedTitle = `${title} ${typeLabel}`; 
             return [index++, formattedTitle];
         };
