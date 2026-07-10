@@ -83,15 +83,15 @@ function appendListStatusesToSearchResults (formattedResults, lists) {
     });
 }
 
-async function updateMAL (lists, draft, logAuthURL = false) {
+async function updateMAL (lists, draft, oldEntry, logAuthURL = false) {
     try {
         const syncedEntry = await updateListEntry(Object.entries(draft.list_status), draft, logAuthURL); // update online
         const finalEntry  = { ...draft, ...syncedEntry }; // merge existing data + synced
         const entryExists = lists[getType(draft)].flat(Infinity).some(e => getId(e) === getId(draft));
-        if (entryExists) removeOldEntry(lists, draft); // remove existing data 
-        appendNewEntry(lists, finalEntry); // add entry to lists
+        if (entryExists) removeOldEntry(lists, oldEntry); // remove existing data 
+        const newEntry = appendNewEntry(lists, finalEntry); // add entry to lists
         filehandle('mal', lists); // save data to file
-        return { lists, success: true };
+        return { lists, success: true, newEntry };
     } catch (error) {
         logErrorDetails(error);
         return { lists, success: false };
@@ -119,6 +119,7 @@ function removeOldEntry (lists, entry) {
 function appendNewEntry (lists, entry) {
     lists[getType(entry)][getStatus(entry)].push(entry); // append entry to lists
     lists[getType(entry)][getStatus(entry)].sort((a,b) => a.node.title.localeCompare(b.node.title)); // sort at lists alphabetical
+    return lists[getType(entry)].flat(Infinity).find(e => getId(e) === getId(entry));
 }
 
 function sortSeriesByStatus (animelist, mangalist, old_lists) {
