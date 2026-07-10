@@ -488,13 +488,10 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         // update changes
         if (pushUpdates) {
             pushUpdates = false;  
-            const { lists: updatedLists, success } = await updateMAL(listsReference, draft, logAuthURL ?? options.logAuthURL); // update MAL entry
+            const { lists: updatedLists, success, newEntry } = await updateMAL(listsReference, draft, entry, logAuthURL ?? options.logAuthURL); // update MAL entry
             listsReference = updatedLists;
-            if (success) {
-                entry = structuredClone(draft);
-            } else {
-                draft = structuredClone(entry);
-            }
+            if (success) entry = newEntry;
+            draft = structuredClone(entry);
         } 
     }
     return entryExists;
