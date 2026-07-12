@@ -576,10 +576,17 @@ function sortChapters (chapters, foundManga) {
     const { hideReadChapters, filterChapterLanguages, 
             logChapterDirection: logDirection, 
             chapterOrderType: orderType } = options;
+    const { num_chapters_read, num_volumes_read } = foundManga.list_status;  
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
     if (hideReadChapters && foundManga) { // don't hide if foundManga undefined
-        sortedChapters = sortedChapters.filter(chapter => chapter.attributes.chapter > parseInt(foundManga.list_status.num_chapters_read)); 
+        sortedChapters = sortedChapters.filter(({ attributes: { chapter, volume }}) => {
+            return chapter && volume
+                ? chapter > parseInt(num_chapters_read) || volume > parseInt(num_volumes_read)
+                : chapter
+                ? chapter > parseInt(num_chapters_read)
+                : volume > parseInt(num_volumes_read);
+        }); 
     } 
     // filter by translated language 
     if (filterChapterLanguages.length) { 
