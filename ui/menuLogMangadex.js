@@ -576,7 +576,7 @@ function sortChapters (chapters, foundManga) {
     const { hideReadChapters, filterChapterLanguages, 
             logChapterDirection: logDirection, 
             chapterOrderType: orderType } = options;
-    const { num_chapters_read, num_volumes_read } = foundManga.list_status;  
+    const { num_chapters_read, num_volumes_read } = foundManga?.list_status ?? {};  
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
     if (hideReadChapters && foundManga) { // don't hide if foundManga undefined
