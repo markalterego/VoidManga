@@ -508,7 +508,7 @@ async function traverseChapters (selectedManga, chapterArr) {
         const truncatedTitleWithPadding = truncatedTitle + ' '.repeat(maxTitleWidth - stringWidth(truncatedTitle) + 2); 
         const transLangWithPadding = `(${translatedLanguage ?? '??-??'})`.padEnd(8); // minimum one padding after max length
         const { num_chapters_read, num_volumes_read } = foundManga?.list_status ?? {};
-        const unreadFlag = num_chapters_read < chapter || num_volumes_read < volume ? '{( Unread! )}' : '';
+        const unreadFlag = (!chapter || num_chapters_read < parseInt(chapter)) && (!volume || num_volumes_read < parseInt(volume)) ? '{( Unread! )}' : '';
         return [indexWithPadding, separatorWithPadding, `${progressLabelWithPadding}${truncatedTitleWithPadding}${transLangWithPadding}${unreadFlag}`];
     };
 
@@ -580,13 +580,9 @@ function sortChapters (chapters, foundManga) {
     let sortedChapters = Object.values(chapters); // chapters
     // hide read chapters
     if (hideReadChapters && foundManga) { // don't hide if foundManga undefined
-        sortedChapters = sortedChapters.filter(({ attributes: { chapter, volume }}) => {
-            return chapter && volume
-                ? chapter > parseInt(num_chapters_read) || volume > parseInt(num_volumes_read)
-                : chapter
-                ? chapter > parseInt(num_chapters_read)
-                : volume > parseInt(num_volumes_read);
-        }); 
+        sortedChapters = sortedChapters.filter(({ attributes: { chapter, volume }}) => 
+            (!chapter || parseInt(chapter) > num_chapters_read) && (!volume || parseInt(volume) > num_volumes_read)
+        ); 
     } 
     // filter by translated language 
     if (filterChapterLanguages.length) { 
