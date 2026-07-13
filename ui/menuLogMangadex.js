@@ -507,7 +507,8 @@ async function traverseChapters (selectedManga, chapterArr) {
         const truncatedTitle = cliTruncate(chTitle, maxTitleWidth);
         const truncatedTitleWithPadding = truncatedTitle + ' '.repeat(maxTitleWidth - stringWidth(truncatedTitle) + 2); 
         const transLangWithPadding = `(${translatedLanguage ?? '??-??'})`.padEnd(8); // minimum one padding after max length
-        const unreadFlag = foundManga?.list_status.num_chapters_read < chapter ? '{( Unread! )}' : '';
+        const { num_chapters_read, num_volumes_read } = foundManga?.list_status ?? {};
+        const unreadFlag = num_chapters_read < chapter || num_volumes_read < volume ? '{( Unread! )}' : '';
         return [indexWithPadding, separatorWithPadding, `${progressLabelWithPadding}${truncatedTitleWithPadding}${transLangWithPadding}${unreadFlag}`];
     };
 
@@ -532,7 +533,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             pageFooter,
             '_',
             '_',
-            [CHAPTER.HIDE_READ_CHAPTERS, `Hide read chapters [${options.hideReadChapters ? 'x' : ''}]`],
+            [CHAPTER.HIDE_READ_CHAPTERS, `Hide read chapters/volumes [${options.hideReadChapters ? 'x' : ''}]`],
             ['?',                        `Input lang-code [${options.filterChapterLanguages.length ? options.filterChapterLanguages : 'no filters'}] (${CHAPTER.CLEAR_LANG_CODES} to clear)`],
             [SORT.SORT_DIRECTION,        `Sort ${chapterOrderTypes[options.chapterOrderType][options.logChapterDirection === 'asc' ? 'desc' : 'asc']}`],
             [SORT.ORDER_TYPE,            `Order by ${nextOrderType({ orderType: options.chapterOrderType, orderTypes: chapterOrderTypes })}`],
@@ -540,7 +541,6 @@ async function traverseChapters (selectedManga, chapterArr) {
             ...(options.enablePagingChapter ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
-        // calling printMenuOptions
         printMenuOptions(
             'Select chapter',
             optionsArray,
