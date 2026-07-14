@@ -69,6 +69,7 @@ export const MESSAGE = {
     INVALID_INPUT:     'Please input a valid option',
     MANGA_NOT_FOUND:   'Manga not found',
     CHAPTER_NOT_FOUND: 'Chapter not found',
+    VOLUME_NOT_FOUND:  'Volume not found',
     MATCHES_NOT_FOUND: 'No matches found',
     URL_NOT_FOUND:     'URL not found',
     RESET_OPTIONS:     'Options reset to default',
