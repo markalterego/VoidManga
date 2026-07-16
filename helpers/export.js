@@ -75,6 +75,8 @@ export const MESSAGE = {
     RESET_OPTIONS:     'Options reset to default',
     LISTS_NOT_FOUND:   'MAL lists not found',
     INVALID_KEY:       'The received key is not valid',
+    INVALID_VALUE:     'Given value is not valid',
+    CONFIG_NOT_OBJECT: 'Given Config is not an object',
     print (message) {
         console.log(`\n\n  ${message}`);
     },
