@@ -1,17 +1,19 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
          escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
-import { MESSAGE, fetchMALOptions, COMMANDS } from "../helpers/export.js";
+import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions, DEFAULT_menuMALOptions } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
 import { ANIME, MANGA, getId, getStatus, getType, animeStatus, mangaStatus } from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
+import { updateConfig } from '../controller/controllerConfig.js';
+import { filehandle } from "../filehandling/filehandle.js";
 
 let lists = null; 
 let config = null;
-let options = null;
-let options_fetch = null;
+let menuMALOptions = null;
+let fetchMALOptions = null;
 
 const lowerCaseString = (string) => string?.toLowerCase(); 
 
@@ -22,12 +24,11 @@ async function menuMAL (l, c) {
     let input = null;
 
     config = c; 
-    options = config.menuMALOptions; 
-    options_fetch = config.fetchMALOptions; 
+    ({ menuMALOptions, fetchMALOptions } = config);
     lists = l; 
 
-    if (options.fetchMALOnMenuOpen) {
-        lists = await fetchMALUserLists(lists, options.logAuthURL); // searches and returns MAL lists
+    if (menuMALOptions.fetchMALOnMenuOpen) {
+        lists = await fetchMALUserLists(lists, menuMALOptions.logAuthURL); // searches and returns MAL lists
     }
 
     while (input !== COMMANDS.EXIT) 
@@ -49,7 +50,7 @@ async function menuMAL (l, c) {
         } else if (input === SEARCH_MAL) {
             await searchMALMenu(); // fetch anime (and/or) manga from MAL
         } else if (input === MAL.FETCH_USER_LISTS) {
-            lists = await fetchMALUserLists(lists, options.logAuthURL); // searches MAL user lists
+            lists = await fetchMALUserLists(lists, menuMALOptions.logAuthURL); // searches MAL user lists
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -104,13 +105,13 @@ async function searchMALMenu() {
                 ['Change search options'],
                 '_',
             ],
-            { displayFn: () => searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: fetchMALOptions}) }
         );
 
         input = await takeUserInput(true);
 
         if (input === SEARCH_MAL) {
-            lists = await searchMAL(lists, options_fetch, options.logAuthURL); // searches MAL for titles
+            lists = await searchMAL(lists, fetchMALOptions, menuMALOptions.logAuthURL); // searches MAL for titles
         } else if (input === SEARCH_OPTIONS) {
             await updateSearchMALOptionsMenu(); // change search options
         } else if (input !== COMMANDS.EXIT) {
@@ -139,20 +140,21 @@ async function updateSearchMALOptionsMenu() {
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: () => searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: fetchMALOptions}) }
         );
 
         input = await takeUserInput(true);
     
         if (input === SEARCH_QUEUE) {
-            await updateSearchStrings(); // options_fetch.searchStrings
+            await updateSearchStrings(); // fetchMALOptions.searchStrings
         } else if (input === SEARCH_TYPE) {
-            await updateSearchType(); // options_fetch.searchType
+            await updateSearchType(); // fetchMALOptions.searchType
         } else if (input === SEARCH_LIMIT) {
-            await updateSearchLimit(); // options_fetch.limit
+            await updateSearchLimit(); // fetchMALOptions.limit
         } else if (input === COMMANDS.RESET_DEFAULT_OPTIONS) {
-            config.fetchMALOptions = JSON.parse(JSON.stringify(fetchMALOptions)); // reset default options
-            options_fetch = config.fetchMALOptions; // re-referencing options_fetch
+            config.fetchMALOptions = JSON.parse(JSON.stringify(DEFAULT_fetchMALOptions)); // reset default options
+            fetchMALOptions = config.fetchMALOptions; // re-referencing fetchMALOptions
+            filehandle('config', config);
             MESSAGE.print(MESSAGE.RESET_OPTIONS);
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -175,16 +177,16 @@ async function updateSearchStrings() {
         printMenuOptions(
             'Manage search queue',
             optionsArray,
-            { displayFn: () => searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: fetchMALOptions}) }
         );
 
         input = await takeUserInput(false, true, { useMixedCase: true });
 
         if (input?.toLowerCase() === COMMANDS.CLEAR) {
-            options_fetch.searchStrings = [];
+            fetchMALOptions.searchStrings = [];
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
-            options_fetch.searchStrings.push(input); 
-            options_fetch.searchStrings = [...new Set(options_fetch.searchStrings)]; // remove duplicates
+            fetchMALOptions.searchStrings.push(input); 
+            fetchMALOptions.searchStrings = [...new Set(fetchMALOptions.searchStrings)]; // remove duplicates
         } else if (input?.toLowerCase() !== COMMANDS.EXIT) {
             console.log(`\n\n  Minimum required search length: ${MIN_LENGTH} characters`);
         }
@@ -199,7 +201,7 @@ async function updateSearchType() {
 
     while (input !== COMMANDS.EXIT)
     {
-        const { searchType } = options_fetch;
+        const { searchType } = fetchMALOptions;
 
         printMenuOptions(
             'Select search type',
@@ -209,17 +211,17 @@ async function updateSearchType() {
                 [`Search manga         [${searchType === 'manga' ? 'x' : ''}]`],
                 '_'
             ],
-            { displayFn: () => searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: fetchMALOptions}) }
         );
 
         input = await takeUserInput(true);
 
         if (input === TYPE_BOTH) {
-            options_fetch.searchType = 'both';
+            fetchMALOptions.searchType = 'both';
         } else if (input === TYPE_ANIME) {
-            options_fetch.searchType = 'anime';
+            fetchMALOptions.searchType = 'anime';
         } else if (input === TYPE_MANGA) {
-            options_fetch.searchType = 'manga';
+            fetchMALOptions.searchType = 'manga';
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -239,13 +241,13 @@ async function updateSearchLimit() {
                 ['?', 'Input a value between 1-100'],
                 '_'
             ],
-            { displayFn: () => searchMALDisplay({options: options_fetch}) }
+            { displayFn: () => searchMALDisplay({options: fetchMALOptions}) }
         );
 
         input = await takeUserInput(true);
 
         if (input >= MIN && input <= MAX) {
-            options_fetch.limit = input;
+            fetchMALOptions.limit = input;
         } else if (input > MAX || input < MIN) {
             console.log(`\n\n  The given value has to be be between ${MIN}-${MAX}`);
         } else if (input !== COMMANDS.EXIT) {
@@ -294,11 +296,11 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
 
     while (input !== COMMANDS.EXIT) 
     {
-        pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
-        let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
+        pageDetails = menuMALOptions.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
+        let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
 
         const entryTitles = pagedEntries.map(e => [e.node.title]);
-        const pageFooter = entryTitles.length && options.enablePagingEntries ? 'p' : null;
+        const pageFooter = entryTitles.length && menuMALOptions.enablePagingEntries ? 'p' : null;
         const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
 
         const optionsArray = [
@@ -308,8 +310,8 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
             pageFooter,
             '_',
             '_',
-            [PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            ...(options.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
+            [PAGE.TOGGLE, `Toggle paging [${menuMALOptions.enablePagingEntries ? 'x' : ''}]`], 
+            ...(menuMALOptions.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         printMenuOptions(
@@ -479,7 +481,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         } else if (!entryExists && input === MAL.ENTRY_ADD) { 
             pushUpdates = true;
         } else if (entryExists && input === MAL.ENTRY_DELETE) {
-            const { lists: updatedLists, success } = await deleteMAL(listsReference, draft, logAuthURL ?? options.logAuthURL);
+            const { lists: updatedLists, success } = await deleteMAL(listsReference, draft, logAuthURL ?? menuMALOptions.logAuthURL);
             listsReference = updatedLists;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -488,7 +490,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         // update changes
         if (pushUpdates) {
             pushUpdates = false;  
-            const { lists: updatedLists, success, newEntry } = await updateMAL(listsReference, draft, entry, logAuthURL ?? options.logAuthURL); // update MAL entry
+            const { lists: updatedLists, success, newEntry } = await updateMAL(listsReference, draft, entry, logAuthURL ?? menuMALOptions.logAuthURL); // update MAL entry
             listsReference = updatedLists;
             if (success) entry = newEntry;
             draft = structuredClone(entry);
