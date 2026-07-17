@@ -336,8 +336,8 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
                 if (idx !== -1) entries.splice(idx, 1);
             }
         } else if (input === PAGE.TOGGLE) { // toggle paging on/off
-            options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
+            menuMALOptions.enablePagingEntries = !menuMALOptions.enablePagingEntries;
+        } else if (menuMALOptions.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
