@@ -1,5 +1,4 @@
-export const ANIME = 0;
-export const MANGA = 1;
+import { ANIME, MANGA, animeStatus, mangaStatus } from './entryHelpers.js';
 export const SYM = {
     UPTODATE:      '\u2022', // •
     UPDATED:       '\u2191', // ↑
@@ -87,8 +86,6 @@ export const MESSAGE = {
         console.log(`\n\n  ${flippedTo} all ${flippedAt}`);
     }
 };
-export const animeStatus = ['watching', 'completed', 'on_hold', 'dropped', 'plan_to_watch'];
-export const mangaStatus = ['reading', 'completed', 'on_hold', 'dropped', 'plan_to_read']; 
 // mangaOrderTypes: 'title', 'year', 'createdAt', 'updatedAt', 'latestUploadedChapter', 'followedCount', 'relevance'
 export const mangaOrderTypes = {
     title: {
