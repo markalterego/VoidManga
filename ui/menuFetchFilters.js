@@ -1,19 +1,20 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, customFetchMangadexDisplay } from '../helpers/functions.js';
-import { animeStatus, mangaStatus, expectedFilters, MESSAGE, ANIME, MANGA, COMMANDS } from '../helpers/export.js';
+import { expectedFilters, MESSAGE, COMMANDS } from '../helpers/export.js';
+import { animeStatus, mangaStatus, ANIME, MANGA } from '../helpers/entryHelpers.js';
 const { PAGE } = COMMANDS;
 import { filehandle } from '../filehandling/filehandle.js';
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 
 let lists = null;
 let key = null;
-let options = null;
-let options_fetch = null;
+let menuFetchFiltersOptions = null;
+let fetchMangadexOptions = null;
 
 async function filterEntriesFromFetch (l, k, o = {}, of = {}) {
     lists = l; 
     key = k; 
-    options = o;
-    options_fetch = of;
+    menuFetchFiltersOptions = o;
+    fetchMangadexOptions = of;
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
     if (!lists) { 
         MESSAGE.print(MESSAGE.LISTS_NOT_FOUND);
@@ -46,7 +47,7 @@ async function filterTypeMenu() {
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: () => customFetchMangadexDisplay({ lists, options: options_fetch })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options: fetchMangadexOptions })}
         );
 
         input = await takeUserInput(true);
@@ -87,7 +88,7 @@ async function filterStatusMenu (type) {
         printMenuOptions(
             header,
             optionsArray,
-            { displayFn: () => customFetchMangadexDisplay({ lists, options: options_fetch })}
+            { displayFn: () => customFetchMangadexDisplay({ lists, options: fetchMangadexOptions })}
         );
 
         input = await takeUserInput(true);
@@ -118,9 +119,9 @@ async function filterEntriesMenu (type, status) {
     
     while (input !== COMMANDS.EXIT) 
     {
-        pageDetails = options.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
-        const pagedEntries = pageContent(entries, pageDetails.currentPageIndex, options.enablePagingEntries);
-        const pageFooter = pagedEntries.length && options.enablePagingEntries ? 'p' : null;
+        pageDetails = menuFetchFiltersOptions.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
+        const pagedEntries = pageContent(entries, pageDetails.currentPageIndex, menuFetchFiltersOptions.enablePagingEntries);
+        const pageFooter = pagedEntries.length && menuFetchFiltersOptions.enablePagingEntries ? 'p' : null;
         
         const titles = pagedEntries.length ? pagedEntries.map(entry => [`[${entry[key] ? 'x' : ''}] ${entry.node.title}`]) : noTitles;
         const optionsArray = [
@@ -132,14 +133,14 @@ async function filterEntriesMenu (type, status) {
             '_',
             [COMMANDS.INCLUDE_ALL, 'Include all'],
             [COMMANDS.EXCLUDE_ALL, 'Exclude all'],
-            [PAGE.TOGGLE, `Toggle paging [${options.enablePagingEntries ? 'x' : ''}]`], 
-            ...(options.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
+            [PAGE.TOGGLE, `Toggle paging [${menuFetchFiltersOptions.enablePagingEntries ? 'x' : ''}]`], 
+            ...(menuFetchFiltersOptions.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
             
         printMenuOptions(
             header,
             optionsArray,
-            { pageDetails, displayFn: () => customFetchMangadexDisplay({ lists, options: options_fetch }) }
+            { pageDetails, displayFn: () => customFetchMangadexDisplay({ lists, options: fetchMangadexOptions }) }
         );
 
         input = await takeUserInput(true);
@@ -151,8 +152,8 @@ async function filterEntriesMenu (type, status) {
         } else if (input === COMMANDS.EXCLUDE_ALL) { 
             flipAllStatus(type, status, false);
         } else if (input === PAGE.TOGGLE) { 
-            options.enablePagingEntries = !options.enablePagingEntries;
-        } else if (options.enablePagingEntries && isPagingInput(input)) { // paging options
+            menuFetchFiltersOptions.enablePagingEntries = !menuFetchFiltersOptions.enablePagingEntries;
+        } else if (menuFetchFiltersOptions.enablePagingEntries && isPagingInput(input)) { // paging menuFetchFiltersOptions
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
