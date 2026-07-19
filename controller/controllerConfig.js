@@ -1,5 +1,5 @@
 import { filehandle } from "../filehandling/filehandle.js";
-import { MESSAGE } from "../helpers/export.js";
+import { DEFAULT_config, MESSAGE } from "../helpers/export.js";
 
 /*
   The purpose of this controller is mostly for 
@@ -12,16 +12,20 @@ import { MESSAGE } from "../helpers/export.js";
   part of the project you're inspecting.
 */
 
-function updateConfig (config = null, path = null, value = null) {
+function updateConfig (config = null, updateFn = null) {
     if (Array.isArray(config) || typeof config !== 'object') throw new Error('Failed to update config: config is not an object');
-    if (value === null || value === undefined || Number.isNaN(value)) throw new Error('Failed to update config: value is undefined, null or NaN');
-    if (typeof path !== 'string') throw new Error('Failed to update config: path is not a string');
-    const keys = path.split('.');
-    const lastKey = keys.pop();
-    const parent = keys.reduce((acc, key) => acc?.[key], config);
-    if (parent === undefined || parent[lastKey] === undefined) throw new Error(`Failed to update config: path is invalid`);
-    parent[lastKey] = value;
+    if (typeof updateFn !== 'function') throw new Error('Failed to update config: updateFn is not a function');    
+    const before = JSON.stringify(config);
+    updateFn();
+    if (before === JSON.stringify(config)) throw new Error('Failed to update config: updater made no changes to config');
     filehandle('config', config);
 }
 
-export { updateConfig };
+function resetConfig() {
+    const default_config = JSON.parse(JSON.stringify(DEFAULT_config));
+    filehandle('config', default_config);
+    MESSAGE.print(MESSAGE.RESET_OPTIONS);
+    return default_config;
+}
+
+export { updateConfig, resetConfig };
