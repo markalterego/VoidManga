@@ -276,6 +276,3 @@ export const DEFAULT_lists = [
     Array(animeStatus.length).fill(null).map(() => []), // animelist
     Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
 ];
-export const CONFIG_PATHS = (() => {
-    
-})();
