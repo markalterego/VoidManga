@@ -4,19 +4,16 @@ import path from 'path';
 
 function filehandle (fileIdentifier, input) {
     try {
-        const folderDestination = path.resolve(import.meta.dirname, '../data'); // refers to data folder
-        if (!existsSync(folderDestination)) mkdirSync(folderDestination); // creates data folder if it doesn't exist
-        const destination = path.resolve(folderDestination, `${fileIdentifier}.file`); // file creation 
-        if ((typeof fileIdentifier)==='string') {
-            if (!input) { // read file
-                const data = readFileSync(destination, 'utf8');
-                return JSON.parse(data);
-            } else { // write file
-                writeFileSync(destination, JSON.stringify(input, null, 2), 'utf8');
-            }
-        } else {
-            console.log(`  The given fileIdentifier has to be of type string`);
-        } 
+        if (typeof fileIdentifier !== 'string') throw new Error('The given fileIdentifier is not a string');
+        const folderDestination = path.resolve(import.meta.dirname, '../data');        // refers to data folder
+        if (!existsSync(folderDestination)) mkdirSync(folderDestination);              // creates data folder if it doesn't exist
+        const destination = path.resolve(folderDestination, `${fileIdentifier}.file`); // refers to file creation location 
+        if (!input) { // read file
+            const data = readFileSync(destination, 'utf8');
+            return JSON.parse(data);
+        } else { // write file
+            writeFileSync(destination, JSON.stringify(input, null, 2), 'utf8');
+        }
     } catch (error) {
         logErrorDetails(error);
     }
