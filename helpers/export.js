@@ -84,7 +84,7 @@ export const MESSAGE = {
     INVALID_VALUE:           'Given value is not valid',
     CLEARED_LOCAL_DATA_MAL:  'Cleared local MyAnimeList data',
     CLEARED_LOCAL_DATA_MDX:  'Cleared local MangaDex data',
-    CLEARED_LOCAL_DATA_MDXH: 'Cleared local MangaDex history data',
+    CLEARED_LOCAL_DATA_MDXH: 'Cleared local MangaDex fetch history data',
     print (message) {
         console.log(`\n\n  ${message}`);
     },
