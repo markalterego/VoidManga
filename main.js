@@ -1,8 +1,7 @@
 import { filehandle } from "./filehandling/filehandle.js";
 import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
-import { DEFAULT_menuMALOptions, DEFAULT_fetchMangadexOptions, DEFAULT_logMangadexOptions, 
-         DEFAULT_fetchMALOptions, DEFAULT_menuFetchFiltersOptions } from "./helpers/export.js";
+import { DEFAULT_config, DEFAULT_lists } from "./helpers/export.js";
 import { animeStatus, mangaStatus } from "./helpers/entryHelpers.js";
 import { clearScreen } from "./helpers/functions.js";
 import { stdin as input, stdout as output } from 'process';
@@ -26,23 +25,14 @@ dotenv.config(); // load .env file to process.env
     // mangadexFetchHistory = mangadexFetchHistory.file)
 
     if (!existsSync('./data/mal.file')) {
-        lists = [ 
-            Array(animeStatus.length).fill(null).map(() => []), // animelist
-            Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
-        ];
+        lists = DEFAULT_lists;
         filehandle('mal', lists); 
     } else {
         lists = filehandle('mal'); 
     }
 
     if (!existsSync('./data/config.file')) {
-        config = {  
-            menuMALOptions:          DEFAULT_menuMALOptions,
-            fetchMangadexOptions:    DEFAULT_fetchMangadexOptions,
-            logMangadexOptions:      DEFAULT_logMangadexOptions,
-            fetchMALOptions:         DEFAULT_fetchMALOptions,
-            menuFetchFiltersOptions: DEFAULT_menuFetchFiltersOptions
-        }; 
+        config = DEFAULT_config;
         filehandle('config', config);
     } else {    
         config = filehandle('config');
@@ -79,11 +69,5 @@ TODO (or not to do...)
 
 - an option to print out the complete history of every update to MAL (ascending/descending by date)
 
-- logtoconsole.js <- add the possibility to log only specific stuff found per item of lists[i][ii] (more customizable logging...?)
-
 - save Mangadex manga ids to mal.file to enhance fetching... 
-
-- make it so that you can update .env username through e.g. settings menu
-
-- idea for MAL logging... e.g. user presses '0' to log watching from MAL, then can press '0' again and by doing that log the index of some specific entry in list (could also only implement this in customLogMAL) 
 */
