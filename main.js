@@ -25,14 +25,14 @@ dotenv.config(); // load .env file to process.env
     // mangadexFetchHistory = mangadexFetchHistory.file)
 
     if (!existsSync('./data/mal.file')) {
-        lists = DEFAULT_lists;
+        lists = structuredClone(DEFAULT_lists);
         filehandle('mal', lists); 
     } else {
         lists = filehandle('mal'); 
     }
 
     if (!existsSync('./data/config.file')) {
-        config = DEFAULT_config;
+        config = structuredClone(DEFAULT_config);
         filehandle('config', config);
     } else {    
         config = filehandle('config');
