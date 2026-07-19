@@ -2,7 +2,7 @@ import { selectMangasFromFetchResults } from "../ui/menuFetchMangadex.js";
 import { filehandle } from "../filehandling/filehandle.js";
 import { fetchMangadexMangas, fetchMangadexChapters, fetchNewestChapters } from '../fetch/fetchMangadex.js';
 import { logErrorDetails } from "../helpers/errorLogger.js";
-import { SYM } from '../helpers/export.js';
+import { SYM, MESSAGE } from '../helpers/export.js';
 import { truncateThenPadString } from "../helpers/functions.js";
 
 let lists = null;
@@ -149,4 +149,18 @@ function findMangaById (mangaId) {
     return mangadexData.find(({ manga: { id }}) => id === mangaId);
 }
 
-export { fetchWithOptions }; 
+function clearLocalMDXData() {
+    const mangadexData = [];
+    filehandle('mangadex', mangadexData);
+    MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDX);
+    return mangadexData;
+}
+
+function clearLocalMDXHData() {
+    const mangadexFetchHistory = [];
+    filehandle('mangadexFetchHistory', mangadexFetchHistory);
+    MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDXH);
+    return mangadexFetchHistory;
+}
+
+export { fetchWithOptions, clearLocalMDXData, clearLocalMDXHData }; 
