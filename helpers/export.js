@@ -265,3 +265,17 @@ export const DEFAULT_fetchMALOptions = {
 export const DEFAULT_menuFetchFiltersOptions = {
     enablePagingEntries: true // true, false 
 };
+export const DEFAULT_config = {
+    menuMALOptions:          DEFAULT_menuMALOptions,
+    fetchMangadexOptions:    DEFAULT_fetchMangadexOptions,
+    logMangadexOptions:      DEFAULT_logMangadexOptions,
+    fetchMALOptions:         DEFAULT_fetchMALOptions,
+    menuFetchFiltersOptions: DEFAULT_menuFetchFiltersOptions
+};
+export const DEFAULT_lists = [ 
+    Array(animeStatus.length).fill(null).map(() => []), // animelist
+    Array(mangaStatus.length).fill(null).map(() => [])  // mangalist
+];
+export const CONFIG_PATHS = (() => {
+    
+})();
