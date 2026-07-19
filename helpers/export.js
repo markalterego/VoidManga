@@ -14,7 +14,8 @@ export const SYM = {
 };
 export const COMMANDS = {
     MAIN: {
-        SETTINGS: 's',
+        SETTINGS:       's',
+        SETTINGS_EXTRA: 'a',
     },
     MDX: {
         FETCH: {
@@ -63,21 +64,27 @@ export const COMMANDS = {
     LOG:                   'l',
     CLEAR:                 'c',
     EXIT:                  'e',
+    CLEAR_LOCAL_DATA_MDX:  'MDX',
+    CLEAR_LOCAL_DATA_MDXH: 'MDXH',
+    CLEAR_LOCAL_DATA_MAL:  'MAL',
 };
 export const MESSAGE = {
-    UPDATED_MAL_API_KEY: 'MAL_API_CLIENT_ID updated successfully',
-    MANGA_NOT_FOUND:     'Manga not found',
-    CHAPTER_NOT_FOUND:   'Chapter not found',
-    VOLUME_NOT_FOUND:    'Volume not found',
-    MATCHES_NOT_FOUND:   'No matches found',
-    URL_NOT_FOUND:       'URL not found',
-    RESET_OPTIONS:       'Options reset to default',
-    LISTS_NOT_FOUND:     'MAL lists not found',
-    CONFIG_NOT_OBJECT:   'Given Config is not an object',
-    INVALID_MAL_API_KEY: 'MAL_API_CLIENT_ID needs to be 32 characters in length',
-    INVALID_INPUT:       'Please input a valid option',
-    INVALID_KEY:         'The received key is not valid',
-    INVALID_VALUE:       'Given value is not valid',
+    UPDATED_MAL_API_KEY:     'MAL_API_CLIENT_ID updated successfully',
+    MANGA_NOT_FOUND:         'Manga not found',
+    CHAPTER_NOT_FOUND:       'Chapter not found',
+    VOLUME_NOT_FOUND:        'Volume not found',
+    MATCHES_NOT_FOUND:       'No matches found',
+    URL_NOT_FOUND:           'URL not found',
+    RESET_OPTIONS:           'Options reset to default',
+    LISTS_NOT_FOUND:         'MAL lists not found',
+    CONFIG_NOT_OBJECT:       'Given Config is not an object',
+    INVALID_MAL_API_KEY:     'MAL_API_CLIENT_ID needs to be 32 characters in length',
+    INVALID_INPUT:           'Please input a valid option',
+    INVALID_KEY:             'The received key is not valid',
+    INVALID_VALUE:           'Given value is not valid',
+    CLEARED_LOCAL_DATA_MAL:  'Cleared local MyAnimeList data',
+    CLEARED_LOCAL_DATA_MDX:  'Cleared local MangaDex data',
+    CLEARED_LOCAL_DATA_MDXH: 'Cleared local MangaDex history data',
     print (message) {
         console.log(`\n\n  ${message}`);
     },
