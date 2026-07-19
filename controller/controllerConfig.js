@@ -12,11 +12,14 @@ import { MESSAGE } from "../helpers/export.js";
   part of the project you're inspecting.
 */
 
-function updateConfig (config = null, path = '', value = null) {
+function updateConfig (config = null, path = null, value = null) {
+    if (Array.isArray(config) || typeof config !== 'object') throw new Error('Failed to update config: config is not an object');
+    if (value === null || value === undefined || Number.isNaN(value)) throw new Error('Failed to update config: value is undefined, null or NaN');
+    if (typeof path !== 'string') throw new Error('Failed to update config: path is not a string');
     const keys = path.split('.');
     const lastKey = keys.pop();
     const parent = keys.reduce((acc, key) => acc?.[key], config);
-    if (parent === undefined) throw new Error(`Failed to update config at '${path}'`);
+    if (parent === undefined || parent[lastKey] === undefined) throw new Error(`Failed to update config: path is invalid`);
     parent[lastKey] = value;
     filehandle('config', config);
 }
