@@ -1,5 +1,5 @@
 import { fetchAnimeList, fetchMangaList, putListEntry, fetchAnime, fetchManga, deleteEntryFromLists } from "../fetch/fetchMAL.js";
-import { DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA } from "../helpers/export.js";
+import { DEFAULT_MAL_ENTRY_FRAMEWORK_ANIME, DEFAULT_MAL_ENTRY_FRAMEWORK_MANGA, DEFAULT_lists, MESSAGE } from "../helpers/export.js";
 import { getType, getStatus, getId, ANIME, MANGA, animeStatus, mangaStatus, getTypeString } from "../helpers/entryHelpers.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { checkAndUpdateTokens } from '../fetch/fetchMALTokens.js';
@@ -219,4 +219,11 @@ async function deleteMAL (lists, draft, logAuthURL = false) {
     } 
 }
 
-export { fetchMALUserLists, updateMAL, searchMAL, deleteMAL };
+function clearLocalMALData() {
+    const lists = structuredClone(DEFAULT_lists);
+    filehandle('mal', lists);
+    MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MAL);
+    return lists;
+}
+
+export { fetchMALUserLists, updateMAL, searchMAL, deleteMAL, clearLocalMALData };
