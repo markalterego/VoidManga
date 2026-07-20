@@ -4,17 +4,19 @@ import { animeStatus, mangaStatus, ANIME, MANGA } from '../helpers/entryHelpers.
 const { PAGE } = COMMANDS;
 import { filehandle } from '../filehandling/filehandle.js';
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
+import { updateConfig } from '../controller/controllerConfig.js';
 
 let lists = null;
 let key = null;
+let config = null;
 let menuFetchFiltersOptions = null;
 let fetchMangadexOptions = null;
 
-async function filterEntriesFromFetch (l, k, o = {}, of = {}) {
+async function filterEntriesFromFetch (l, k, c) {
     lists = l; 
     key = k; 
-    menuFetchFiltersOptions = o;
-    fetchMangadexOptions = of;
+    config = c;
+    ({ menuFetchFiltersOptions, fetchMangadexOptions } = config);
     const isValidFilterKey = expectedFilters.some(expectedKey => key === expectedKey);
     if (!lists) { 
         MESSAGE.print(MESSAGE.LISTS_NOT_FOUND);
@@ -152,7 +154,7 @@ async function filterEntriesMenu (type, status) {
         } else if (input === COMMANDS.EXCLUDE_ALL) { 
             flipAllStatus(type, status, false);
         } else if (input === PAGE.TOGGLE) { 
-            menuFetchFiltersOptions.enablePagingEntries = !menuFetchFiltersOptions.enablePagingEntries;
+            updateConfig(config, () => { menuFetchFiltersOptions.enablePagingEntries = !menuFetchFiltersOptions.enablePagingEntries });
         } else if (menuFetchFiltersOptions.enablePagingEntries && isPagingInput(input)) { // paging menuFetchFiltersOptions
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== COMMANDS.EXIT) {
