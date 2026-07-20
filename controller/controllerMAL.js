@@ -219,10 +219,10 @@ async function deleteMAL (lists, draft, logAuthURL = false) {
     } 
 }
 
-function clearLocalMALData() {
+function clearLocalMALData (printMessage = true) {
     const lists = structuredClone(DEFAULT_lists);
     filehandle('mal', lists);
-    MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MAL);
+    if (printMessage) MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MAL);
     return lists;
 }
 

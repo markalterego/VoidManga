@@ -149,17 +149,17 @@ function findMangaById (mangaId) {
     return mangadexData.find(({ manga: { id }}) => id === mangaId);
 }
 
-function clearLocalMDXData() {
+function clearLocalMDXData (printMessage = true) {
     const mangadexData = [];
     filehandle('mangadex', mangadexData);
-    MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDX);
+    if (printMessage) MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDX);
     return mangadexData;
 }
 
-function clearLocalMDXHData() {
+function clearLocalMDXHData (printMessage = true) {
     const mangadexFetchHistory = [];
     filehandle('mangadexFetchHistory', mangadexFetchHistory);
-    MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDXH);
+    if (printMessage) MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDXH);
     return mangadexFetchHistory;
 }
 

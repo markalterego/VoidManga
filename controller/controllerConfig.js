@@ -21,10 +21,10 @@ function updateConfig (config = null, updateFn = null) {
     filehandle('config', config);
 }
 
-function resetConfig() {
+function resetConfig (printMessage = true) {
     const default_config = JSON.parse(JSON.stringify(DEFAULT_config));
     filehandle('config', default_config);
-    MESSAGE.print(MESSAGE.RESET_OPTIONS);
+    if (printMessage) MESSAGE.print(MESSAGE.RESET_OPTIONS);
     return default_config;
 }
 
