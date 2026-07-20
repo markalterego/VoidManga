@@ -7,7 +7,7 @@ import { menuLogMangadex } from "./menuLogMangadex.js";
 import { logErrorDetails } from "../helpers/errorLogger.js";
 import { resetConfig, updateConfig } from "../controller/controllerConfig.js";
 import { clearLocalMALData } from '../controller/controllerMAL.js';
-import { clearLocalMDXData, clearLocalMDXHData } from "../controller/controllerMangadex.js";
+import { clearLocalMDXData, clearLocalMDXFHData } from "../controller/controllerMangadex.js";
 
 let lists = null;                // animelist and mangalist
 let config = null;               // user specific options
@@ -75,7 +75,7 @@ async function settingsMenu() {
             `Settings (${COMMANDS.MAIN.SETTINGS_EXTRA} ${SYM.POINTS_TO} additional settings)`,
             [
                 ['Update MAL_API_CLIENT_ID'], 
-                [`Fetch MAL lists when running menuMAL         [${menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`], 
+                [`Fetch MAL lists when running menuMAL [${menuMALOptions.fetchMALOnMenuOpen ? 'x' : ''}]`], 
                 [`Log authorization URL when re-authenticating [${menuMALOptions.logAuthURL ? 'x' : ''}]`],
                 '_',
                 [COMMANDS.RESET_DEFAULT_OPTIONS, 'Reset default config options'],
@@ -89,9 +89,9 @@ async function settingsMenu() {
         } else if (input === UPDATE_MAL_API_KEY) {
             await updateAPIKeyMenu();
         } else if (input === FETCH_MAL_ON_MENU_OPEN) {
-            updateConfig(config, () => { menuMALOptions.fetchMALOnMenuOpen = !menuMALOptions.fetchMALOnMenuOpen; });
+            updateConfig(config, () => menuMALOptions.fetchMALOnMenuOpen = !menuMALOptions.fetchMALOnMenuOpen);
         } else if (input === LOG_AUTH_URL) {
-            updateConfig(config, () => { menuMALOptions.logAuthURL = !menuMALOptions.logAuthURL; });
+            updateConfig(config, () => menuMALOptions.logAuthURL = !menuMALOptions.logAuthURL);
         } else if (input === COMMANDS.RESET_DEFAULT_OPTIONS) {
             config = resetConfig();
         } else if (input !== COMMANDS.EXIT) {
@@ -108,9 +108,9 @@ async function extraSettingsMenu() {
         printMenuOptions(
             'WARNING! THESE ACTIONS ARE IRREVERSIBLE!',
             [
-                [`${COMMANDS.CLEAR_LOCAL_DATA_MAL} `, 'Clear LOCAL MyAnimeList data'],
-                [`${COMMANDS.CLEAR_LOCAL_DATA_MDX} `, 'Clear LOCAL MangaDex data'],
-                [COMMANDS.CLEAR_LOCAL_DATA_MDXH,      'Clear LOCAL MangaDex fetch history data'],
+                [`${COMMANDS.CLEAR_LOCAL_DATA_MAL}  `, 'Clear LOCAL MyAnimeList data'],
+                [`${COMMANDS.CLEAR_LOCAL_DATA_MDX}  `, 'Clear LOCAL MangaDex data'],
+                [COMMANDS.CLEAR_LOCAL_DATA_MDXFH,      'Clear LOCAL MangaDex fetch history data'],
                 '_'
             ]
         );
@@ -121,8 +121,8 @@ async function extraSettingsMenu() {
             lists = clearLocalMALData();
         } else if (input === COMMANDS.CLEAR_LOCAL_DATA_MDX) {
             mangadexData = clearLocalMDXData();
-        } else if (input === COMMANDS.CLEAR_LOCAL_DATA_MDXH) {
-            mangadexFetchHistory = clearLocalMDXHData();
+        } else if (input === COMMANDS.CLEAR_LOCAL_DATA_MDXFH) {
+            mangadexFetchHistory = clearLocalMDXFHData();
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
