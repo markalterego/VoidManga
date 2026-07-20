@@ -4,7 +4,10 @@ import { menu } from './ui/menu.js';
 import { DEFAULT_config, DEFAULT_lists } from "./helpers/export.js";
 import { animeStatus, mangaStatus } from "./helpers/entryHelpers.js";
 import { clearScreen } from "./helpers/functions.js";
-import { stdin as input, stdout as output } from 'process';
+import { exit, stdin as input, stdout as output } from 'process';
+import { resetConfig } from "./controller/controllerConfig.js";
+import { clearLocalMALData } from "./controller/controllerMAL.js";
+import { clearLocalMDXData, clearLocalMDXFHData } from "./controller/controllerMangadex.js";
 import readline from 'readline/promises';
 import dotenv from 'dotenv';
 
@@ -24,33 +27,20 @@ dotenv.config(); // load .env file to process.env
     // files (lists = mal.file, config = config.file, mangadexData = mangadex.file, 
     // mangadexFetchHistory = mangadexFetchHistory.file)
 
-    if (!existsSync('./data/mal.file')) {
-        lists = structuredClone(DEFAULT_lists);
-        filehandle('mal', lists); 
-    } else {
-        lists = filehandle('mal'); 
-    }
+    const printMessage = false;
+    const MAL_PATH     = './data/mal.file';
+    const CONFIG_PATH  = './data/config.file';
+    const MDX_PATH     = './data/mangadex.file';
+    const MDXFH_PATH   = './data/mangadexFetchHistory.file';
+    const MAL_FNAME    = 'mal';
+    const CONFIG_FNAME = 'config';
+    const MDX_FNAME    = 'mangadex';
+    const MDXFH_FNAME  = 'mangadexFetchHistory';
 
-    if (!existsSync('./data/config.file')) {
-        config = structuredClone(DEFAULT_config);
-        filehandle('config', config);
-    } else {    
-        config = filehandle('config');
-    }
-
-    if (!existsSync('./data/mangadex.file')) {
-        mangadexData = [];
-        filehandle('mangadex', mangadexData);
-    } else {
-        mangadexData = filehandle('mangadex');
-    }
-
-    if (!existsSync('./data/mangadexFetchHistory.file')) {
-        mangadexFetchHistory = [];
-        filehandle('mangadexFetchHistory', mangadexFetchHistory);
-    } else {
-        mangadexFetchHistory = filehandle('mangadexFetchHistory');
-    }
+    lists                = existsSync(MAL_PATH) ? filehandle(MAL_FNAME) : clearLocalMALData(printMessage);
+    config               = existsSync(CONFIG_PATH) ? filehandle(CONFIG_FNAME) : resetConfig(printMessage);
+    mangadexData         = existsSync(MDX_PATH) ? filehandle(MDX_FNAME) : clearLocalMDXData(printMessage);
+    mangadexFetchHistory = existsSync(MDXFH_PATH) ? filehandle(MDXFH_FNAME) : clearLocalMDXFHData(printMessage);
 
     await menu(lists, config, mangadexData, mangadexFetchHistory); // menu ui
     await cleanup(); // clears interfaces etc...
