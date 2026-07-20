@@ -20,7 +20,6 @@ const lowerCaseString = (string) => string?.toLowerCase();
 async function menuMAL (l, c) {
     const TRAVERSE_DATA = 0;
     const SEARCH_MAL = 1;
-
     let input = null;
 
     config = c; 
@@ -183,10 +182,9 @@ async function updateSearchStrings() {
         input = await takeUserInput(false, true, { useMixedCase: true });
 
         if (input?.toLowerCase() === COMMANDS.CLEAR) {
-            fetchMALOptions.searchStrings = [];
+            updateConfig(config, () => fetchMALOptions.searchStrings = []);
         } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
-            fetchMALOptions.searchStrings.push(input); 
-            fetchMALOptions.searchStrings = [...new Set(fetchMALOptions.searchStrings)]; // remove duplicates
+            updateConfig(config, () => fetchMALOptions.searchStrings = [...new Set(fetchMALOptions.searchStrings).add(input)]);
         } else if (input?.toLowerCase() !== COMMANDS.EXIT) {
             console.log(`\n\n  Minimum required search length: ${MIN_LENGTH} characters`);
         }
@@ -217,11 +215,11 @@ async function updateSearchType() {
         input = await takeUserInput(true);
 
         if (input === TYPE_BOTH) {
-            fetchMALOptions.searchType = 'both';
+            updateConfig(config, () => fetchMALOptions.searchType = 'both');
         } else if (input === TYPE_ANIME) {
-            fetchMALOptions.searchType = 'anime';
+            updateConfig(config, () => fetchMALOptions.searchType = 'anime');
         } else if (input === TYPE_MANGA) {
-            fetchMALOptions.searchType = 'manga';
+            updateConfig(config, () => fetchMALOptions.searchType = 'manga');
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
@@ -247,7 +245,7 @@ async function updateSearchLimit() {
         input = await takeUserInput(true);
 
         if (input >= MIN && input <= MAX) {
-            fetchMALOptions.limit = input;
+            updateConfig(config, () => fetchMALOptions.limit = input);
         } else if (input > MAX || input < MIN) {
             console.log(`\n\n  The given value has to be be between ${MIN}-${MAX}`);
         } else if (input !== COMMANDS.EXIT) {
@@ -258,7 +256,7 @@ async function updateSearchLimit() {
 
 async function traverseStatus (typeIndex) {
     const statuses = typeIndex === ANIME ? animeStatus : mangaStatus; // list of statuses for type
-    let input = 0; 
+    let input = null; 
 
     while (input !== COMMANDS.EXIT) 
     {
@@ -336,7 +334,7 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
                 if (idx !== -1) entries.splice(idx, 1);
             }
         } else if (input === PAGE.TOGGLE) { // toggle paging on/off
-            menuMALOptions.enablePagingEntries = !menuMALOptions.enablePagingEntries;
+            updateConfig(config, () => menuMALOptions.enablePagingEntries = !menuMALOptions.enablePagingEntries);
         } else if (menuMALOptions.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, entries, pageDetails);
         } else if (input !== COMMANDS.EXIT) {
