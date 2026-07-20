@@ -17,8 +17,7 @@ function updateConfig (config = null, updateFn = null) {
     if (typeof updateFn !== 'function') throw new Error('Failed to update config: updateFn is not a function');    
     const before = JSON.stringify(config);
     updateFn();
-    if (before === JSON.stringify(config)) throw new Error('Failed to update config: updater made no changes to config');
-    filehandle('config', config);
+    if (before !== JSON.stringify(config)) filehandle('config', config); // save changes to file
 }
 
 function resetConfig (printMessage = true) {
