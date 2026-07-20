@@ -156,11 +156,11 @@ function clearLocalMDXData (printMessage = true) {
     return mangadexData;
 }
 
-function clearLocalMDXHData (printMessage = true) {
+function clearLocalMDXFHData (printMessage = true) {
     const mangadexFetchHistory = [];
     filehandle('mangadexFetchHistory', mangadexFetchHistory);
     if (printMessage) MESSAGE.print(MESSAGE.CLEARED_LOCAL_DATA_MDXH);
     return mangadexFetchHistory;
 }
 
-export { fetchWithOptions, clearLocalMDXData, clearLocalMDXHData }; 
+export { fetchWithOptions, clearLocalMDXData, clearLocalMDXFHData }; 
