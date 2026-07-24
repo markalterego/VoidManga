@@ -1,5 +1,6 @@
 import { takeUserInput, printMenuOptions, isValidLangCode, escapeRegex,
-         openURLInBrowser, isISODate, formatDate, isMatchingAtStart } from '../helpers/functions.js';
+         openURLInBrowser, isISODate, formatDate, isMatchingAtStart, 
+         createQuickSearch} from '../helpers/functions.js';
 import { MESSAGE, SYM, logOrderTypes, COMMANDS } from '../helpers/export.js';
 const { mangaOrderTypes, chapterOrderTypes, historyOrderTypes } = logOrderTypes;
 const { PAGE } = COMMANDS;
@@ -77,19 +78,7 @@ async function menuLogMangadex (m, l, c, mfh) {
 }
 
 async function traverseMangas (traversable = null, skipToTraverseChapters = false) {
-    const quickSearch = { 
-        justUpdated: false, 
-        searchString: null, 
-        getAndResetJustUpdated () {
-            const val = this.justUpdated;
-            this.justUpdated = false;
-            return val;
-        },
-        updateSearchString (str) { 
-            this.justUpdated = true; 
-            this.searchString = str;
-        }
-    };
+    const quickSearch = createQuickSearch();
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
     let sortedMangas;

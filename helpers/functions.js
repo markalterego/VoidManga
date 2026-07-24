@@ -214,6 +214,22 @@ function truncateThenPadString (str = '', targetWidth = 0, padding = ' ', padSta
     return padString(truncated, targetWidth, padding, padStart);
 }
 
+function createQuickSearch() {
+    return { 
+        justUpdated: false, 
+        searchString: null, 
+        getAndResetJustUpdated () {
+            const val = this.justUpdated;
+            this.justUpdated = false;
+            return val;
+        },
+        updateSearchString (str) { 
+            this.justUpdated = true; 
+            this.searchString = str;
+        }
+    }
+}
+
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true, displayFn = null } = {}) {
     // creates a simple menu in a standardized format
     // header = string
@@ -293,5 +309,6 @@ export {
     truncateThenPadString,
     printMenuOptions,
     isLeapYear,
-    searchMALDisplay
+    searchMALDisplay,
+    createQuickSearch
 };
