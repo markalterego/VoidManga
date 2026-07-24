@@ -1,6 +1,6 @@
 import { rl } from '../main.js'
 import { logErrorDetails } from './errorLogger.js';
-import { mangaOrderTypes, chapterOrderTypes, SYM, MESSAGE, contentRatings } from './export.js';
+import { mangaOrderTypes, chapterOrderTypes, SYM, MESSAGE, contentRatings, COMMANDS } from './export.js';
 import open from 'open';
 import stringWidth from 'string-width';
 import cliTruncate from 'cli-truncate';
@@ -218,6 +218,7 @@ function createQuickSearch() {
     return { 
         justUpdated: false, 
         searchString: null, 
+        searchLabel: '',
         getAndResetJustUpdated () {
             const val = this.justUpdated;
             this.justUpdated = false;
@@ -225,7 +226,16 @@ function createQuickSearch() {
         },
         updateSearchString (str) { 
             this.justUpdated = true; 
-            this.searchString = str;
+            if (str === COMMANDS.CLEAR) {
+                this.searchString = null;
+                this.searchLabel = '';
+            } else {
+                this.searchString = str.slice(3).trim();
+                this.searchLabel = `[search: ${this.searchString}] (${COMMANDS.CLEAR} ${SYM.POINTS_TO} clear)`;
+            }
+        },
+        isSearchCommand (str) {
+            return str === COMMANDS.CLEAR || (typeof str === 'string' && str.startsWith('\\s ') && str.slice(3).trim().length);
         }
     }
 }

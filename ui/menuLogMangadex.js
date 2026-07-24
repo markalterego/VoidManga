@@ -82,8 +82,6 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
     let sortedMangas;
-
-    const parseSearchString = (str) => typeof str === 'string' && str.startsWith('\\s ') && str.slice(3).trim() || null;
     const formatMangaTitle = (index, title, chaptersLength) => {
         const indexWithPadding = String(index).padEnd(4); // pads up to 4 digits
         const separatorWithPadding = ':'.padEnd(1); // pads 1 after separator
@@ -106,7 +104,7 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
         let pagedMangas = pageContent(sortedMangas, pageDetails.currentPageIndex, logMangadexOptions.enablePagingManga); 
 
         // formatting printMenuOptions parameters
-        const header = `Select manga ${quickSearch.searchString ? `[search: ${quickSearch.searchString}] (${COMMANDS.CLEAR} ${SYM.POINTS_TO} clear)` : ''}`; 
+        const header = `Select manga ${quickSearch.searchLabel}`; 
         const mangaTitles = pagedMangas.map((obj, index) => formatMangaTitle(index, Object.values(obj.manga.attributes.title)[0], obj.chapters.length));
         const pageFooter = mangaTitles.length && logMangadexOptions.enablePagingManga ? 'p' : null;
         const titles = pagedMangas.length ? [...mangaTitles] : [['?', 'No manga found']];
@@ -132,7 +130,7 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
         );
 
         input = await takeUserInput(true);
-        
+
         if (input >= 0 && input < pagedMangas.length) {
             skipToTraverseChapters ? await traverseChapters(pagedMangas[input]) : await mangaOptionsMenu(pagedMangas[input]);
         } else if (input === MANGA.TOGGLE_FILTER_MANGALIST) { 
@@ -147,8 +145,8 @@ async function traverseMangas (traversable = null, skipToTraverseChapters = fals
             updateConfig(config, () => logMangadexOptions.enablePagingManga = !logMangadexOptions.enablePagingManga);
         } else if (logMangadexOptions.enablePagingManga && isPagingInput(input)) { 
             pageDetails = pagingOptions(input, sortedMangas, pageDetails);
-        } else if (parseSearchString(input) || input === COMMANDS.CLEAR) { // quick search/clear quick search
-            quickSearch.updateSearchString(parseSearchString(input));
+        } else if (quickSearch.isSearchCommand(input)) { // quick search/clear quick search
+            quickSearch.updateSearchString(input);
         } else if (input !== COMMANDS.EXIT) { 
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
