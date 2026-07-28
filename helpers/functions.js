@@ -52,34 +52,20 @@ function customFetchMangadexDisplay ({ lists = null, options = null } = {}) {
             chapterOrderType, offset_chapter, chapterTranslatedLanguage, contentRating,
             mangaSearchStrings } = options;
 
-    const searchSource = fetchMangasByMALTitles ? 'MAL titles' : 'Custom input';
-    
     const queue = fetchMangasByMALTitles 
-        ? lists.flat(2).filter(e => e.includeInMangadexFetch).map(e => e.node.title) 
+        ? lists.flat(Infinity).filter(e => e.includeInMangadexFetch).map(e => e.node.title) 
         : mangaSearchStrings;
-    const MAX = 2;
-    const queueSlicedJoined = `${queue.slice(0, MAX).join(', ')}`;
-    const queueWithMore = queue.length > MAX 
-        ? `${queueSlicedJoined}, ... and ${queue.length - MAX} more` 
-        : `${queueSlicedJoined}` || null; 
-    const queueWrappedString = queueWithMore ? `[${queueWithMore}]` : '(empty)';
-    
-    const mangaOrder = `${capitalFirstLetterString(mangaOrderType)} (${mangaOrderTypes[mangaOrderType][mangaOrderDirection]})`
-    
-    const fetchAllChaptersLabel = fetchAllChapters ? 'All' : 'Custom';
-    const chapterOrder = `${capitalFirstLetterString(chapterOrderType)} (${chapterOrderTypes[chapterOrderType][chapterOrderDirection]})`;    
-    
-    const chapterLanguagesJoined = `${chapterTranslatedLanguage.slice(0, MAX).join(', ')}`;
-    const chapterLanguagesWithMore = chapterTranslatedLanguage.length > MAX
-        ? `${chapterLanguagesJoined}, ... and ${chapterTranslatedLanguage.length - MAX} more` 
-        : `${chapterLanguagesJoined}` || null;
-    const chapterLanguagesString = chapterLanguagesWithMore ? `[${chapterLanguagesWithMore}]` : 'All'; 
 
-    const contentRatingsString = contentRating.length ? `[${contentRating.join(', ')}]` : 'Default';
+    const searchSource           = fetchMangasByMALTitles ? 'MAL titles' : 'Custom input';
+    const queueWrappedString     = getArrayAsMoreString(queue, { strWhenEmpty: '(empty)' });
+    const mangaOrder             = `${capitalFirstLetterString(mangaOrderType)} (${mangaOrderTypes[mangaOrderType][mangaOrderDirection]})`
+    const fetchAllChaptersLabel  = fetchAllChapters ? 'All' : 'Custom';
+    const chapterOrder           = `${capitalFirstLetterString(chapterOrderType)} (${chapterOrderTypes[chapterOrderType][chapterOrderDirection]})`;        
+    const chapterLanguagesString = getArrayAsMoreString(chapterTranslatedLanguage, { strWhenEmpty: 'All' }); 
+    const contentRatingsString   = getArrayAsMoreString(contentRating, { MAX: Infinity, strWhenEmpty: 'Default' });
 
     const optionsArray_1 = [
-        '_', 
-        '_',
+        '_', '_',
         [null, 'Search source:', searchSource],
         [null, 'Search queue:', queueWrappedString],
         [null, 'Manga fetch size:', limit_manga],
@@ -119,15 +105,10 @@ function searchMALDisplay ({ options = null } = {}) {
     const MAX = 2; // max displayed searchStrings
    
     const queue = searchStrings;
-    const queueSlicedJoined = `${queue.slice(0, MAX).join(', ')}`;
-    const queueWithMore = queue.length > MAX 
-        ? `${queueSlicedJoined}, ... and ${queue.length - MAX} more` 
-        : `${queueSlicedJoined}` || null; 
-    const queueWrappedString = queueWithMore ? `[${queueWithMore}]` : '(empty)';
-    
-    const typeString = searchType === 'both' ? 'Anime & Manga' : capitalFirstLetterString(searchType);
-    
-    const searchSizeString = searchType === 'both' ? `${limit} Anime, ${limit} Manga` : `${limit} ${capitalFirstLetterString(searchType)}`;
+
+    const queueWrappedString = getArrayAsMoreString(queue, { strWhenEmpty: '(empty)' });
+    const typeString         = searchType === 'both' ? 'Anime & Manga' : capitalFirstLetterString(searchType);
+    const searchSizeString   = searchType === 'both' ? `${limit} Anime, ${limit} Manga` : `${limit} ${capitalFirstLetterString(searchType)}`;
 
     const optionsArray = [
         '_', '_',
@@ -240,6 +221,14 @@ function createQuickSearch() {
     }
 }
 
+function getArrayAsMoreString (arr = [], { MAX = 2, strWhenEmpty = '' } = {}) {
+    const slicedJoined = arr.slice(0, MAX).join(', ');
+    const withMore = arr.length > MAX  
+        ? `${slicedJoined}, ... and ${arr.length - MAX} more` 
+        : `${slicedJoined}` || null; 
+    return withMore ? `[${withMore}]` : strWhenEmpty; // wrappedString
+}
+
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true, displayFn = null } = {}) {
     // creates a simple menu in a standardized format
     // header = string
@@ -320,5 +309,6 @@ export {
     printMenuOptions,
     isLeapYear,
     searchMALDisplay,
-    createQuickSearch
+    createQuickSearch,
+    getArrayAsMoreString
 };
