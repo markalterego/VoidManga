@@ -1,5 +1,5 @@
-import { takeUserInput, capitalFirstLetterString, printMenuOptions, 
-         escapeRegex, isLeapYear, padString, searchMALDisplay } from "../helpers/functions.js";
+import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex, 
+         isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart} from "../helpers/functions.js";
 import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions, DEFAULT_menuMALOptions } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
 import { ANIME, MANGA, getId, getStatus, getType, animeStatus, mangaStatus } from "../helpers/entryHelpers.js";
@@ -285,35 +285,39 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
     // - traversing lists[typeIndex][statusIndex] 
     // - traversing searchResults
 
+    const quickSearch = createQuickSearch();
     const status = searchResults ? null : (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]);
-    const header = searchResults ? 'Search results' : `Status: ${capitalFirstLetterString(status)}`;
+    const header = searchResults ? `Search results` : `Status: ${capitalFirstLetterString(status)}`;
     
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
     let entries = searchResults ?? lists[typeIndex][statusIndex];
+    let sortedEntries;
+    let pagedEntries;
 
     while (input !== COMMANDS.EXIT) 
     {
-        pageDetails = menuMALOptions.enablePagingEntries ? updatePageDetails(pageDetails, entries) : pageDetails;
-        let pagedEntries = pageContent(entries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
+        const shouldSort = input === null || quickSearch.getAndResetJustUpdated(input);
+        sortedEntries = shouldSort ? sortEntries(entries, { searchString: quickSearch.searchString }) : sortedEntries;
+        pageDetails = menuMALOptions.enablePagingEntries ? updatePageDetails(pageDetails, sortedEntries) : pageDetails;
+        pagedEntries = pageContent(sortedEntries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
 
+        const formattedHeader = `${header} ${quickSearch.searchLabel}`;
         const entryTitles = pagedEntries.map(e => [e.node.title]);
         const pageFooter = entryTitles.length && menuMALOptions.enablePagingEntries ? 'p' : null;
         const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
 
         const optionsArray = [
-            '-',
-            '_',
+            '-', '_',
             ...titles,
             pageFooter,
-            '_',
-            '_',
+            '_', '_',
             [PAGE.TOGGLE, `Toggle paging [${menuMALOptions.enablePagingEntries ? 'x' : ''}]`], 
             ...(menuMALOptions.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
         printMenuOptions(
-            header,
+            formattedHeader,
             optionsArray, 
             { pageDetails }
         );
@@ -324,7 +328,7 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
             const entry = pagedEntries[input]; // reference to selected entry
             const entryExistsAtLists = await updateEntryMenu(entry); // update stuff related to selected entry
 
-            // If an entry is deleted through updateEntryMenu 
+            // If an entry was deleted through updateEntryMenu 
             // and entries was initialized with searchResults (SR),
             // entry must be manually spliced from SR in order for
             // SR to reflect results existing at lists
@@ -333,14 +337,35 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
                 const idx = entries.indexOf(entry);
                 if (idx !== -1) entries.splice(idx, 1);
             }
+
+            // If an entry was deleted through updateEntryMenu
+            // while quickSearch was active, sortedEntries (SE) 
+            // must be manually spliced in order for SE to reflect
+            // results existing at lists 
+
+            if (quickSearch.searchString && !entryExistsAtLists) {
+                const idx = sortedEntries.indexOf(entry);
+                if (idx !== -1) sortedEntries.splice(idx, 1);
+            }
         } else if (input === PAGE.TOGGLE) { // toggle paging on/off
             updateConfig(config, () => menuMALOptions.enablePagingEntries = !menuMALOptions.enablePagingEntries);
         } else if (menuMALOptions.enablePagingEntries && isPagingInput(input)) { // paging options
-            pageDetails = pagingOptions(input, entries, pageDetails);
+            pageDetails = pagingOptions(input, sortedEntries, pageDetails);
+        } else if (quickSearch.isSearchCommand(input)) { // quick search/clear quick search
+            quickSearch.updateSearchString(input);
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
+}
+
+function sortEntries (entries, { searchString = null } = {}) {
+    let sortedEntries = entries;
+    // filter by searchString
+    if (searchString) {
+        sortedEntries = sortedEntries.filter(e => isMatchingAtStart(searchString, e.node.title));
+    }
+    return sortedEntries;
 }
 
 async function updateEntryMenu (entry, l = null, logAuthURL = null) {
