@@ -3,7 +3,7 @@ import { existsSync } from 'fs';
 import { menu } from './ui/menu.js';
 import { DEFAULT_config, DEFAULT_lists } from "./helpers/export.js";
 import { animeStatus, mangaStatus } from "./helpers/entryHelpers.js";
-import { clearScreen } from "./helpers/functions.js";
+import { clearScreen, setWindowTitle } from "./helpers/functions.js";
 import { exit, stdin as input, stdout as output } from 'process';
 import { resetConfig } from "./controller/controllerConfig.js";
 import { clearLocalMALData } from "./controller/controllerMAL.js";
@@ -20,7 +20,8 @@ dotenv.config(); // load .env file to process.env
 
 // main
 (async () => {
-    clearScreen(); // starting app on a fresh screen
+    clearScreen();    // starting app on a fresh screen
+    setWindowTitle(); // setting terminal window title to 'VoidManga'
 
     // prior to running menu.js, lists, config, mangadexData and mangadexFetchHistory
     // are either initialized and saved to file or simply retrieved from their respective

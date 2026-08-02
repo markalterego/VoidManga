@@ -46,6 +46,19 @@ function clearScreen() {
     process.stdout.write('\x1Bc'); 
 }
 
+function setWindowTitle (title = null) {
+    // ANSI for setting the icon name and window title
+    
+    // An icon name is essentially an obsolete feature which
+    // is no longer used/recognized by most Terminals ...
+
+    // Frankly, I'd ignore it completely and just use ']0;' to set both
+    // at the same time, even though you could set specifically one or the
+    // other with ']1;' (icon name) or ']2;' (window title)
+
+    process.stdout.write(`\x1B]0;${title ?? 'VoidManga'}\x07`);
+}
+
 function customFetchMangadexDisplay ({ lists = null, options = null } = {}) {
     const { fetchMangasByMALTitles, mangaOrderType, mangaOrderDirection, 
             limit_manga, fetchAllChapters, limit_chapter, chapterOrderDirection, 
@@ -295,6 +308,7 @@ function printMenuOptions (header = null, optionsArray = [], { pageDetails = nul
 export { 
     takeUserInput, 
     clearScreen, 
+    setWindowTitle,
     customFetchMangadexDisplay, 
     capitalFirstLetterString, 
     longStringToArray,
