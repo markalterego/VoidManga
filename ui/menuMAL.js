@@ -295,6 +295,12 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
     let sortedEntries;
     let pagedEntries;
 
+    // TODO: 
+    // - in case searchResults is defined, explicitly append some
+    //   additional info next to an entry e.g. ('anime: plan_to_watch')
+    //   so that user can differentiate '0 -> One Piece' (the anime) and 
+    //   '1 -> One Piece' (the manga)  
+
     while (input !== COMMANDS.EXIT) 
     {
         const shouldSort = input === null || quickSearch.getAndResetJustUpdated(input);
@@ -418,6 +424,11 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     // - make new menu's for updating priority, num_times_rewatched, 
     //   rewatch_value, tags and num_times_reread and connect them 
     //   to this function
+    // - explicitly state somewhere that THIS entry is an ANIME or 
+    //   a MANGA since currently it's only implicitly stated through
+    //   whether the user can update 'episodes' OR 'chapters' && 'volumes' / 
+    //   whether the user can update the entry to a status called 'watching', 
+    //   'reading', 'plan_to_read', 'plan_to_watch' (diregarding other statuses)
 
     // Draft is updated within deeper updateMenu functions, 
     // after user returns to this function (updateEntryMenu), draft
