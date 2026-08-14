@@ -3,8 +3,6 @@ TODO:
   - Combine all common helper type small arrow functions, constants
     etc. related to mal/entry stuff into this single file for reducing
     redundancy of e.g. multiple const ANIME definitions
-  - import or simply drag animeStatus/mangaStatus into this file in order
-    for getStatus
 */
 
 /**
@@ -55,7 +53,32 @@ export const getStatusString = (entry) => getType(entry) === ANIME
                             : mangaStatus.find(s => s === entry.list_status.status);
 /**
  * 
- * @param {*} entry 
+ * @param {*} entry Item at lists[type][status].
  * @returns Id of given entry = entry.node.id.
  */
 export const getId = (entry) => entry.node.id;
+/**
+ * Array of retype_value strings.
+ */
+export const re_values = ['not set', 'very low', 'low', 'medium', 'high', 'very high'];
+/**
+ * 
+ * @param {*} entry Item at lists[type][status].
+ * @returns Value of rewatch_value/reread_value based on entry type
+ */
+export const getReValue = (entry) => getType(entry) === ANIME ? entry.list_status.rewatch_value : entry.list_status.reread_value;
+/**
+ * 
+ * @param {*} entry Item at lists[type][status].
+ * @returns Value at re_values[retype_value] --- re_values = ['not set', 'very low', 'low', 'medium', 'high', 'very high']
+ */
+export const getReValueString = (entry) => re_values[getReValue(entry)];
+/**
+ * Array of priority strings.
+ */
+export const priority_values = ['low', 'medium', 'high'];
+/**
+ * @param {*} entry Item at lists[type][status].
+ * @returns Value at priority_values[priority] --- priority_values = ['low', 'medium', 'high']
+ */
+export const getPriorityString = (entry) => priority_values[entry.list_status.priority];
