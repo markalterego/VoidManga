@@ -234,12 +234,12 @@ function createQuickSearch() {
     }
 }
 
-function getArrayAsMoreString (arr = [], { MAX = 2, strWhenEmpty = '' } = {}) {
+function getArrayAsMoreString (arr = [], { MAX = 2, strWhenEmpty = '', printBrackets = true } = {}) {
     const slicedJoined = arr.slice(0, MAX).join(', ');
     const withMore = arr.length > MAX  
         ? `${slicedJoined}, ... and ${arr.length - MAX} more` 
         : `${slicedJoined}` || null; 
-    return withMore ? `[${withMore}]` : strWhenEmpty; // wrappedString
+    return withMore ? (printBrackets ? `[${withMore}]` : withMore) : strWhenEmpty; // wrappedString
 }
 
 function printMenuOptions (header = null, optionsArray = [], { pageDetails = null, printExit = true, printHeader = true, displayFn = null } = {}) {
