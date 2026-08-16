@@ -5,6 +5,8 @@ TODO:
     redundancy of e.g. multiple const ANIME definitions
 */
 
+import { getArrayAsMoreString } from "./functions.js";
+
 /**
  * Array of anime status strings = [watching, completed, on_hold, dropped, plan_to_watch]
  */
@@ -82,3 +84,15 @@ export const priority_values = ['low', 'medium', 'high'];
  * @returns Value at priority_values[priority] --- priority_values = ['low', 'medium', 'high']
  */
 export const getPriorityString = (entry) => priority_values[entry.list_status.priority];
+/**
+ * @param {*} entry Item at lists[type][status].
+ * @param {*} MAX Tags displayed before appending more.
+ * @returns Values at entry.list_status.tags formatted to string.
+ */
+export const getTagsString = (entry, { MAX = 2, printBrackets = false } = {}) => getArrayAsMoreString(entry.list_status.tags, { MAX, strWhenEmpty: 'no tags', printBrackets });
+/**
+ * 
+ * @param {*} entry Item at lists[type][status].
+ * @returns Value of entry.list_status.num_times_rewatched for anime, entry.list_status.num_times_reread for manga.
+ */
+export const getNumTimesRe = (entry) => getType(entry) === ANIME ? entry.list_status.num_times_rewatched : entry.list_status.num_times_reread;
