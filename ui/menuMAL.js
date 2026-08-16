@@ -2,7 +2,9 @@ import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex,
          isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart} from "../helpers/functions.js";
 import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions, DEFAULT_menuMALOptions } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
-import { ANIME, MANGA, getId, getStatus, getType, animeStatus, mangaStatus } from "../helpers/entryHelpers.js";
+import { ANIME, MANGA, getId, getStatus, getType, animeStatus, mangaStatus, getTypeString, 
+         getReValue, getPriorityString, getReValueString, priority_values, getTagsString, 
+         getNumTimesRe, re_values } from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
@@ -14,8 +16,6 @@ let lists = null;
 let config = null;
 let menuMALOptions = null;
 let fetchMALOptions = null;
-
-const lowerCaseString = (string) => string?.toLowerCase(); 
 
 async function menuMAL (l, c) {
     const TRAVERSE_DATA = 0;
@@ -301,6 +301,7 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
     //   so that user can differentiate '0 -> One Piece' (the anime) and 
     //   '1 -> One Piece' (the manga)  
 
+
     while (input !== COMMANDS.EXIT) 
     {
         const shouldSort = input === null || quickSearch.getAndResetJustUpdated(input);
@@ -387,18 +388,22 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
 
     const append = getType(entry); // manga adds one selectable option
     
-    const START_DATE  = 3 + append
-    const FINISH_DATE = 4 + append
-    const ISRE        = 5 + append;
-    const COMMENTS    = 6 + append;
+    const START_DATE   = 3 + append;
+    const FINISH_DATE  = 4 + append;
+    const IS_RE        = 5 + append;
+    const NUM_TIMES_RE = 6 + append;
+    const RE_VALUE     = 7 + append;
+    const COMMENTS     = 8 + append;
+    const PRIORITY     = 9 + append;
+    const TAGS         = 10 + append;
 
     // PADEND && PADSTART mean the LENGTH OF
     // STRING after padding at START/END
 
-    const PADEND   = 12; 
+    const PADEND   = getType(entry) === ANIME ? 15 : 14; 
     const PADSTART = 0; 
     const NOT_SET  = 'Not set';
-    const COMMENTS_LENGTH = 10;
+    const COMMENTS_LENGTH = 15;
 
     let input = null;
     let listsReference = l ?? lists;
@@ -421,14 +426,6 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     // - make it so that start/finish dates are automatically applied
     //   upon e.g. the first episode/chapter read + setting the series
     //   as completed/updating last chapter of series etc...
-    // - make new menu's for updating priority, num_times_rewatched, 
-    //   rewatch_value, tags and num_times_reread and connect them 
-    //   to this function
-    // - explicitly state somewhere that THIS entry is an ANIME or 
-    //   a MANGA since currently it's only implicitly stated through
-    //   whether the user can update 'episodes' OR 'chapters' && 'volumes' / 
-    //   whether the user can update the entry to a status called 'watching', 
-    //   'reading', 'plan_to_read', 'plan_to_watch' (diregarding other statuses)
 
     // Draft is updated within deeper updateMenu functions, 
     // after user returns to this function (updateEntryMenu), draft
@@ -450,24 +447,26 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         
         // --- formatting printMenuOptions params 
 
-        const s_status       = formatString('Status', capitalFirstLetterString(status));
-        const s_score        = formatString('Score', !!score ? score : NOT_SET);
-        const s_episodes     = formatString('Episodes', `${num_episodes_watched} / ${!!num_episodes ? num_episodes : '?'}`);
-        const s_chapters     = formatString('Chapters', `${num_chapters_read} / ${!!num_chapters ? num_chapters : '?'}`);
-        const s_volumes      = formatString('Volumes', `${num_volumes_read} / ${!!num_volumes ? num_volumes : '?'}`);
-        const s_startDate    = formatString('Start date', !!start_date ? start_date : NOT_SET);
-        const s_finishDate   = formatString('Finish date', !!finish_date ? finish_date : NOT_SET);
-        const s_isReWatching = formatString('Re-watching', !!is_rewatching ? 'Yes' : 'No');
-        const s_isReReading  = formatString('Re-reading', !!is_rereading ? 'Yes' : 'No');
-        const s_comments     = formatString('Comments', !!comments ? cliTruncate(comments, COMMENTS_LENGTH) : NOT_SET);
-
-        const s_progress = getType(draft) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
-        const s_isRe     = getType(draft) === ANIME ? s_isReWatching : s_isReReading; 
+        const s_status     = formatString('Status', capitalFirstLetterString(status));
+        const s_score      = formatString('Score', !!score ? score : NOT_SET);
+        const s_episodes   = formatString('Episodes', `${num_episodes_watched} / ${!!num_episodes ? num_episodes : '?'}`);
+        const s_chapters   = formatString('Chapters', `${num_chapters_read} / ${!!num_chapters ? num_chapters : '?'}`);
+        const s_volumes    = formatString('Volumes', `${num_volumes_read} / ${!!num_volumes ? num_volumes : '?'}`);
+        const s_startDate  = formatString('Start date', !!start_date ? start_date : NOT_SET);
+        const s_finishDate = formatString('Finish date', !!finish_date ? finish_date : NOT_SET);
+        const s_comments   = formatString('Comments', !!comments ? cliTruncate(comments, COMMENTS_LENGTH) : NOT_SET);
+        const s_priority   = formatString('Priority', capitalFirstLetterString(getPriorityString(draft)));
+        const s_reLabel    = capitalFirstLetterString(getType(draft) === ANIME ? 're-watch' : 're-read');
+        const s_isRe       = formatString(`${s_reLabel}ing`, ((is_rewatching ?? is_rereading) ? 'Yes' : 'No')); 
+        const s_numTimesRe = formatString(`${s_reLabel} count`, num_times_rewatched ?? num_times_reread);
+        const s_reValue    = formatString(`${s_reLabel} value`, capitalFirstLetterString(getReValueString(entry)));        
+        const s_tags       = formatString('Tags', getTagsString(entry));
+        const s_progress   = getType(draft) === ANIME ? [[s_episodes]] : [[s_volumes], [s_chapters]];
 
         const s_toggleEntry = entryExists ? [MAL.ENTRY_DELETE, 'Delete entry from lists'] : [MAL.ENTRY_ADD, 'Add entry to lists'];
         const s_log         = [COMMANDS.LOG, 'Log entry'];
 
-        const header = `${entryExists ? 'UPDATE' : 'ADD'} - ${title}`;
+        const header = `${entryExists ? 'UPDATE' : 'ADD'} - ${title} (${capitalFirstLetterString(getTypeString(draft))})`;
         const optionsArray = [
             '-', '_',
             [s_status],
@@ -476,15 +475,23 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             [s_startDate], 
             [s_finishDate], 
             [s_isRe], 
+            [s_numTimesRe],
+            [s_reValue],
             [s_comments], 
+            [s_priority],
+            [s_tags],
             '_', '-', '_',
             s_toggleEntry,
             s_log
         ];
+        const paddedOptionsArray = (() => { 
+            let i = 0;
+            return optionsArray.map(o => Array.isArray(o) && o.length === 1 ? [(String(i).length === 1 ? `${i++} ` : i++ ), o] : o);
+        })();
         
         printMenuOptions(
             header,
-            optionsArray
+            paddedOptionsArray
         );
 
         input = await takeUserInput(true); 
@@ -492,13 +499,17 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         // --- selectable fields mapped to refer to their corresponding updateMenu function
         
         const updaterFunctions = {
-            [STATUS]:      updateStatusMenu,
-            [SCORE]:       updateScoreMenu,
+            [STATUS]:       updateStatusMenu,
+            [SCORE]:        updateScoreMenu,
             ...(getType(draft) === ANIME ? { [EPISODES]: updateEpisodesMenu } : { [VOLUMES]:  updateVolumesMenu, [CHAPTERS]: updateChaptersMenu }),
-            [START_DATE]:  updateStartDateMenu,
-            [FINISH_DATE]: updateFinishDateMenu,
-            [ISRE]:        updateIsReMenu,
-            [COMMENTS]:    updateCommentsMenu  
+            [START_DATE]:   updateStartDateMenu,
+            [FINISH_DATE]:  updateFinishDateMenu,
+            [IS_RE]:        updateIsReMenu,
+            [NUM_TIMES_RE]: updateNumTimesReMenu,
+            [RE_VALUE]:     updateReValueMenu, 
+            [COMMENTS]:     updateCommentsMenu,
+            [PRIORITY]:     updatePriorityMenu,
+            [TAGS]:         updateTagsMenu
         };
 
         const updater = updaterFunctions[input];
@@ -925,6 +936,137 @@ async function updateCommentsMenu (entry) {
             list_status.comments = input; // update comments
         } else if (input?.toLowerCase() !== COMMANDS.EXIT) { 
             console.log(`\n\n  Minimum required comment length: ${MIN_LENGTH} characters`);
+        }
+    }
+}
+
+async function updatePriorityMenu (entry) {
+    const list_status = entry.list_status;
+    const priorityBeforeChange = getPriorityString(entry);
+    let input = null;
+
+    // list_status.priority ::: 0 (low), 1 (medium), 2 (high)
+    
+    while (input !== COMMANDS.EXIT) 
+    {
+        const priorityState = priorityBeforeChange === getPriorityString(entry) ? `current: ${getPriorityString(entry)}` : `update to: ${getPriorityString(entry)} - from: ${priorityBeforeChange}`;
+        const header        = `Update priority (${priorityState})`;
+        const optionsArray  = [
+            ...priority_values.map(v => [capitalFirstLetterString(v)]),
+            '_'
+        ];
+
+        printMenuOptions(
+            header,
+            optionsArray
+        );  
+
+        input = await takeUserInput(true); // force whole numbers
+
+        if (input >= 0 && input <= 2) {
+            list_status.priority = input;
+        } else if (input !== COMMANDS.EXIT) {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function updateTagsMenu (entry) {
+    const list_status = entry.list_status;
+    const MIN_LENGTH = 1;
+    let input = null;
+    
+    while (input?.toLowerCase() !== COMMANDS.EXIT) 
+    {
+        printMenuOptions(
+            `Update tags (${getTagsString({ list_status }, { printBrackets: false })})`,
+            [
+                ['?', `Input tag (minimum ${MIN_LENGTH} characters)`], 
+                [COMMANDS.CLEAR, 'Clear tags'], 
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(false, true, { useMixedCase: true });
+
+        if (input === COMMANDS.CLEAR) {
+            list_status.tags = [];
+        } else if (input?.toLowerCase() !== COMMANDS.EXIT && typeof input === 'string' && input.length >= MIN_LENGTH) {
+            list_status.tags = [...new Set(list_status.tags).add(input)];
+        } else if (input?.toLowerCase() !== COMMANDS.EXIT) {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function updateNumTimesReMenu (entry) {
+    const type = getType(entry); // ANIME / MANGA (0 / 1)
+    const numTimesReLabel = `${type === ANIME ? 're-watch' : 're-read'} count`;
+    const numTimesReKey = type === ANIME ? 'num_times_rewatched' : 'num_times_reread';
+    const numTimesReBeforeChange = getNumTimesRe(entry);
+    const list_status = entry.list_status;
+    let input = null;
+
+    // - num_times_rewatched
+    // - num_times_reread
+
+    // TODO:
+    // - allow inputs like + and - for adding/decreasing count
+
+    while (input !== COMMANDS.EXIT) 
+    {
+        const numTimesReState = numTimesReBeforeChange === getNumTimesRe(entry) ? `current: ${getNumTimesRe(entry)}` : `update to: ${getNumTimesRe(entry)} - from: ${numTimesReBeforeChange}`;
+        const header = `Update ${numTimesReLabel} (${numTimesReState})`; 
+
+        printMenuOptions(
+            header,
+            [
+                ['?', `Input ${numTimesReLabel}`],
+                '_'
+            ]
+        );
+
+        input = await takeUserInput(true);
+        
+        if (typeof input === 'number' && input >= 0) {
+            list_status[numTimesReKey] = input;
+        } else if (input !== COMMANDS.EXIT) {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
+        }
+    }
+}
+
+async function updateReValueMenu (entry) {
+    const type = getType(entry); // ANIME / MANGA (0 / 1)
+    const reValueBeforeChange = getReValueString(entry);
+    const reValueLabel = `${type === ANIME ? 're-watch' : 're-read'} value`;
+    const reValueKey = type === ANIME ? 'rewatch_value' : 'reread_value';
+    const list_status = entry.list_status;
+    let input = null;
+
+    // - rewatch_value
+    // - reread_value
+    
+    while (input !== COMMANDS.EXIT) 
+    {
+        const reValueState = reValueBeforeChange === getReValueString(entry) ? `current: ${getReValueString(entry)}` : `update to: ${getReValueString(entry)} - from: ${reValueBeforeChange}`;
+        const header = `Update ${reValueLabel} (${reValueState})`; 
+        const optionsArray = [ 
+            ...re_values.map(v => [capitalFirstLetterString(v)]),
+            '_'
+        ];
+
+        printMenuOptions(
+            header,
+            optionsArray
+        );
+
+        input = await takeUserInput(true);
+        
+        if (input >= 0 && input < re_values.length) {
+            list_status[reValueKey] = input;
+        } else if (input !== COMMANDS.EXIT) {
+            MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
