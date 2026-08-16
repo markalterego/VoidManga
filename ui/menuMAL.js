@@ -606,8 +606,8 @@ async function updateEpisodesMenu (entry) {
 
         const episodes = num_episodes > 0 ? num_episodes : '?';
         const optionsArray = [
-            [MAL.PROGRESS_INCREASE, 'Increase progress'],
-            [MAL.PROGRESS_DECREASE, 'Decrease progress'], 
+            [COMMANDS.INCREASE, 'Increase progress'],
+            [COMMANDS.DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${episodes}]`], 
             '_'
         ];
@@ -621,13 +621,13 @@ async function updateEpisodesMenu (entry) {
         
         if (input >= 0 && input <= num_episodes || !num_episodes && input >= 0) {
             list_status.num_episodes_watched = input;
-        } else if (input === MAL.PROGRESS_INCREASE && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
+        } else if (input === COMMANDS.INCREASE && (!num_episodes || list_status.num_episodes_watched + 1 <= num_episodes)) {
             list_status.num_episodes_watched++;
-        } else if (input === MAL.PROGRESS_DECREASE && list_status.num_episodes_watched - 1 >= 0) {
+        } else if (input === COMMANDS.DECREASE && list_status.num_episodes_watched - 1 >= 0) {
             list_status.num_episodes_watched--;
-        } else if (input === MAL.PROGRESS_MAX && num_episodes) {
+        } else if (input === COMMANDS.MAX && num_episodes) {
             list_status.num_episodes_watched = num_episodes;
-        } else if (input === MAL.PROGRESS_MIN) {
+        } else if (input === COMMANDS.MIN) {
             list_status.num_episodes_watched = 0;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -650,8 +650,8 @@ async function updateVolumesMenu (entry) {
 
         const volumes = num_volumes > 0 ? num_volumes : '?';
         const optionsArray = [
-            [MAL.PROGRESS_INCREASE, 'Increase progress'],
-            [MAL.PROGRESS_DECREASE, 'Decrease progress'], 
+            [COMMANDS.INCREASE, 'Increase progress'],
+            [COMMANDS.DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${volumes}]`], 
             '_'
         ];
@@ -665,13 +665,13 @@ async function updateVolumesMenu (entry) {
 
         if (input >= 0 && input <= num_volumes || !num_volumes && input >= 0) {
             list_status.num_volumes_read = input;
-        } else if (input === MAL.PROGRESS_INCREASE && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
+        } else if (input === COMMANDS.INCREASE && (!num_volumes || list_status.num_volumes_read + 1 <= num_volumes)) {
             list_status.num_volumes_read++;
-        } else if (input === MAL.PROGRESS_DECREASE && list_status.num_volumes_read - 1 >= 0) {
+        } else if (input === COMMANDS.DECREASE && list_status.num_volumes_read - 1 >= 0) {
             list_status.num_volumes_read--;
-        } else if (input === MAL.PROGRESS_MAX && num_volumes) {
+        } else if (input === COMMANDS.MAX && num_volumes) {
             list_status.num_volumes_read = num_volumes;
-        } else if (input === MAL.PROGRESS_MIN) {
+        } else if (input === COMMANDS.MIN) {
             list_status.num_volumes_read = 0;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -694,8 +694,8 @@ async function updateChaptersMenu (entry) {
 
         const chapters = num_chapters > 0 ? num_chapters : '?';
         const optionsArray = [
-            [MAL.PROGRESS_INCREASE, 'Increase progress'],
-            [MAL.PROGRESS_DECREASE, 'Decrease progress'], 
+            [COMMANDS.INCREASE, 'Increase progress'],
+            [COMMANDS.DECREASE, 'Decrease progress'], 
             ['?', `Input a value [0 - ${chapters}]`], 
             '_'
         ];
@@ -709,13 +709,13 @@ async function updateChaptersMenu (entry) {
 
         if (input >= 0 && input <= num_chapters || !num_chapters && input >= 0) {
             list_status.num_chapters_read = input;
-        } else if (input === MAL.PROGRESS_INCREASE && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
+        } else if (input === COMMANDS.INCREASE && (!num_chapters || list_status.num_chapters_read + 1 <= num_chapters)) {
             list_status.num_chapters_read++;
-        } else if (input === MAL.PROGRESS_DECREASE && list_status.num_chapters_read - 1 >= 0) {
+        } else if (input === COMMANDS.DECREASE && list_status.num_chapters_read - 1 >= 0) {
             list_status.num_chapters_read--;
-        } else if (input === MAL.PROGRESS_MAX && num_chapters) {
+        } else if (input === COMMANDS.MAX && num_chapters) {
             list_status.num_chapters_read = num_chapters;
-        } else if (input === MAL.PROGRESS_MIN) {
+        } else if (input === COMMANDS.MIN) {
             list_status.num_chapters_read = 0;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
@@ -1005,31 +1005,39 @@ async function updateNumTimesReMenu (entry) {
     const numTimesReKey = type === ANIME ? 'num_times_rewatched' : 'num_times_reread';
     const numTimesReBeforeChange = getNumTimesRe(entry);
     const list_status = entry.list_status;
+    // watching a series for more than this amount of times 
+    // will create a black hole at the center of the Earth 
+    // and kill everyone
+    const MAX = 255; 
     let input = null;
 
     // - num_times_rewatched
     // - num_times_reread
 
-    // TODO:
-    // - allow inputs like + and - for adding/decreasing count
-
     while (input !== COMMANDS.EXIT) 
     {
         const numTimesReState = numTimesReBeforeChange === getNumTimesRe(entry) ? `current: ${getNumTimesRe(entry)}` : `update to: ${getNumTimesRe(entry)} - from: ${numTimesReBeforeChange}`;
         const header = `Update ${numTimesReLabel} (${numTimesReState})`; 
+        const optionsArray = [
+            [COMMANDS.INCREASE, 'Increase count'],
+            [COMMANDS.DECREASE, 'Decrease count'],
+            ['?', `Input a value [0 - ${MAX}]`],
+            '_'
+        ];
 
         printMenuOptions(
             header,
-            [
-                ['?', `Input ${numTimesReLabel}`],
-                '_'
-            ]
+            optionsArray
         );
 
         input = await takeUserInput(true);
         
-        if (typeof input === 'number' && input >= 0) {
+        if (input >= 0 && input <= MAX) {
             list_status[numTimesReKey] = input;
+        } else if (input === COMMANDS.INCREASE && list_status[numTimesReKey] < MAX) {
+            list_status[numTimesReKey]++;
+        } else if (input === COMMANDS.DECREASE && list_status[numTimesReKey] > 0) {
+            list_status[numTimesReKey]--;
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
