@@ -43,20 +43,16 @@ export const COMMANDS = {
         },
     },
     MAL: {
-        FETCH_USER_LISTS:  'f',
-        ENTRY_ADD:         'a',
-        ENTRY_DELETE:      'd',
-        PROGRESS_INCREASE: '+',
-        PROGRESS_DECREASE: '-',
-        PROGRESS_MAX:      '++',
-        PROGRESS_MIN:      '--',
+        FETCH_USER_LISTS: 'f',
+        ENTRY_ADD:        'a',
+        ENTRY_DELETE:     'd',
     },
     PAGE: {
         TOGGLE:   't',
         PREVIOUS: ',',
         NEXT:     '.',
         FIRST:    ',,',
-        LAST:     '..'
+        LAST:     '..',
     },
     RESET_DEFAULT_OPTIONS:  'r',
     INCLUDE_ALL:            '+',
@@ -67,6 +63,10 @@ export const COMMANDS = {
     CLEAR_LOCAL_DATA_MDX:   'MDX',
     CLEAR_LOCAL_DATA_MDXFH: 'MDXFH',
     CLEAR_LOCAL_DATA_MAL:   'MAL',
+    INCREASE:               '+',
+    DECREASE:               '-',
+    MAX:                    '++',
+    MIN:                    '--',
 };
 export const MESSAGE = {
     UPDATED_MAL_API_KEY:     'MAL_API_CLIENT_ID updated successfully',
