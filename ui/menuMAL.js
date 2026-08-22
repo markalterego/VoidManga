@@ -591,6 +591,13 @@ async function updateScoreMenu (entry) {
     }
 }
 
+async function updateProgressMenu (entry) {
+    // TODO:
+    // create updateProgressMenu, I'm sick of looking at three 
+    // different menus that look identical which just update 
+    // episodes/volume/chapter separately
+}
+
 async function updateEpisodesMenu (entry) {
     const { list_status, node: { num_episodes } } = entry;
     const { num_episodes_watched } = list_status;
