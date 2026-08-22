@@ -301,10 +301,9 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
     //   so that user can differentiate '0 -> One Piece' (the anime) and 
     //   '1 -> One Piece' (the manga)  
 
-
     while (input !== COMMANDS.EXIT) 
     {
-        const shouldSort = input === null || quickSearch.getAndResetJustUpdated(input);
+        const shouldSort = input === null || (input >= 0 && input < (menuMALOptions.enablePagingEntries ? pagedEntries.length : sortedEntries.length)) || quickSearch.getAndResetJustUpdated(input);
         sortedEntries = shouldSort ? sortEntries(entries, { searchString: quickSearch.searchString }) : sortedEntries;
         pageDetails = menuMALOptions.enablePagingEntries ? updatePageDetails(pageDetails, sortedEntries) : pageDetails;
         pagedEntries = pageContent(sortedEntries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
