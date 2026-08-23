@@ -303,7 +303,7 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
 
     while (input !== COMMANDS.EXIT) 
     {
-        const shouldSort = input === null || (input >= 0 && input < (menuMALOptions.enablePagingEntries ? pagedEntries.length : sortedEntries.length)) || quickSearch.getAndResetJustUpdated(input);
+        const shouldSort = input === null || (input >= 0 && input < pagedEntries.length) || quickSearch.getAndResetJustUpdated(input);
         sortedEntries = shouldSort ? sortEntries(entries, { searchString: quickSearch.searchString }) : sortedEntries;
         pageDetails = menuMALOptions.enablePagingEntries ? updatePageDetails(pageDetails, sortedEntries) : pageDetails;
         pagedEntries = pageContent(sortedEntries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
