@@ -1,14 +1,12 @@
-import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex, 
-         isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart} from "../helpers/functions.js";
-import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions, DEFAULT_menuMALOptions } from "../helpers/export.js";
+import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex, isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart, truncateThenPadString} from "../helpers/functions.js";
+import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions, SYM } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
-import { ANIME, MANGA, getId, getStatus, getType, animeStatus, mangaStatus, getTypeString, 
-         getReValue, getPriorityString, getReValueString, priority_values, getTagsString, 
-         getNumTimesRe, re_values } from "../helpers/entryHelpers.js";
+import { ANIME, MANGA, getId, getType, animeStatus, mangaStatus, getTypeString, getPriorityString, getReValueString, priority_values, getTagsString, getNumTimesRe, re_values, getStatusString} from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
+import stringWidth from "string-width";
 import { updateConfig } from '../controller/controllerConfig.js';
 import { filehandle } from "../filehandling/filehandle.js";
 
@@ -294,12 +292,20 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
     let entries = searchResults ?? lists[typeIndex][statusIndex];
     let sortedEntries;
     let pagedEntries;
+    
+    const formatTitle = (index, entry) => {
+        const indexPaddingWidth = menuMALOptions.enablePagingEntries ? 1 : String(sortedEntries.length).length;
+        const indexWithPadding = padString(String(index), indexPaddingWidth, ' ', true); // pads 1/N digits
+        const separatorWithPadding = padString(':', 1); // pads 1 after separator
+        const truncatedTitleWithPadding = truncateThenPadString(entry.node.title, 35); // stringWidth counts 2 width chars 
+        const typeStatusLabel = `(${getTypeString(entry)}: ${getStatusString(entry)})`;
+        const finalTitle = !!searchResults ? `${truncatedTitleWithPadding}${typeStatusLabel}` : truncatedTitleWithPadding;
+        return [indexWithPadding, separatorWithPadding, finalTitle];
+    };
 
-    // TODO: 
-    // - in case searchResults is defined, explicitly append some
-    //   additional info next to an entry e.g. ('anime: plan_to_watch')
-    //   so that user can differentiate '0 -> One Piece' (the anime) and 
-    //   '1 -> One Piece' (the manga)  
+    // TODO:
+    // - make truncating titles toggleable
+    // - create option for displaying alternative titles instead of main title
 
     while (input !== COMMANDS.EXIT) 
     {
@@ -309,7 +315,7 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
         pagedEntries = pageContent(sortedEntries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
 
         const formattedHeader = `${header} ${quickSearch.searchLabel}`;
-        const entryTitles = pagedEntries.map(e => [e.node.title]);
+        const entryTitles = pagedEntries.map((e, i) => formatTitle(i, e));
         const pageFooter = entryTitles.length && menuMALOptions.enablePagingEntries ? 'p' : null;
         const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
 
