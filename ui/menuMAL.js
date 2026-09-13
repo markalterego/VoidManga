@@ -6,7 +6,6 @@ import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '..
 import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
-import stringWidth from "string-width";
 import { updateConfig } from '../controller/controllerConfig.js';
 import { filehandle } from "../filehandling/filehandle.js";
 
@@ -270,37 +269,42 @@ async function traverseStatus (typeIndex) {
 
         if (input >= 0 && input < statuses.length) {
             const statusIndex = input; // selected status
-            await traverseEntry(typeIndex, statusIndex); // traverse entries for lists[typeIndex][statusIndex]
+            const entries = lists[typeIndex][statusIndex];
+            await traverseEntries(entries); // traverse entries for selected type and status
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function traverseEntry (typeIndex, statusIndex, searchResults) {
+async function traverseEntries (entries = null, { isSearchResults = false } = {}) {
     
     // function is used for: 
     // - traversing lists[typeIndex][statusIndex] 
     // - traversing searchResults
 
     const quickSearch = createQuickSearch();
-    const status = searchResults ? null : (typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex]);
-    const header = searchResults ? `Search results` : `Status: ${capitalFirstLetterString(status)}`;
+    const header = isSearchResults ? `Search results` : `Status: ${capitalFirstLetterString(getStatusString(entries[0]))}`;
     
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
-    let entries = searchResults ?? lists[typeIndex][statusIndex];
     let sortedEntries;
     let pagedEntries;
     
     const formatTitle = (index, entry) => {
-        const indexPaddingWidth = menuMALOptions.enablePagingEntries ? 1 : String(sortedEntries.length).length;
-        const indexWithPadding = padString(String(index), indexPaddingWidth, ' ', true); // pads 1/N digits
-        const separatorWithPadding = padString(':', 1); // pads 1 after separator
-        const truncatedTitleWithPadding = truncateThenPadString(entry.node.title, 35); // stringWidth counts 2 width chars 
-        const typeStatusLabel = `(${getTypeString(entry)}: ${getStatusString(entry)})`;
-        const finalTitle = !!searchResults ? `${truncatedTitleWithPadding}${typeStatusLabel}` : truncatedTitleWithPadding;
-        return [indexWithPadding, separatorWithPadding, finalTitle];
+        // index formatting
+        const index_w = menuMALOptions.enablePagingEntries ? 1 : String(sortedEntries.length).length; 
+        const index_s = padString(String(index), index_w, ' ', true);
+        // separator formatting
+        const separator_w = 1;
+        const separator_s = padString(':', separator_w); 
+        // title formatting
+        const title_w    = 35;
+        const title_s    = truncateThenPadString(entry.node.title, title_w); 
+        const label_s    = `(${getTypeString(entry)}: ${getStatusString(entry)})`;
+        const finalTitle = isSearchResults ? `${title_s}${label_s}` : title_s; 
+        // combine formatted parts
+        return [index_s, separator_s, finalTitle];
     };
 
     // TODO:
@@ -345,7 +349,7 @@ async function traverseEntry (typeIndex, statusIndex, searchResults) {
             // entry must be manually spliced from SR in order for
             // SR to reflect results existing at lists
 
-            if (searchResults && !entryExistsAtLists) {
+            if (isSearchResults && !entryExistsAtLists) {
                 const idx = entries.indexOf(entry);
                 if (idx !== -1) entries.splice(idx, 1);
             }
@@ -1134,7 +1138,7 @@ async function searchListsByTitleMenu() {
             if (!matching.length) { // no matching results
                 console.log('\n\n  No matches found');
             } else { // traverse results
-                await traverseEntry(null, null, matching);
+                await traverseEntries(matching, { isSearchResults: true });
             }
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
