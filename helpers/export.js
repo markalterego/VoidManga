@@ -6,6 +6,7 @@ export const SYM = {
     INCLUDE:       '\u002B', // sab (same as before)
     EXCLUDE:       '\u002D', // -
     BORDER_H:      '\u2500', // ─
+    BORDER_V:      '\u2502', // │
     POINTS_TO:     '\u2192', // →
     TOGGLE:        '\u00B1', // ±
     CHANGE_PAGE:   '\u00B1', // sab
