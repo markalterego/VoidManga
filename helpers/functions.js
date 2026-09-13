@@ -205,7 +205,7 @@ function padString (str = '', targetWidth = 0, padding = ' ', padStart = false) 
 
 function truncateThenPadString (str = '', targetWidth = 0, padding = ' ', padStart = false) {
     const truncated = cliTruncate(str, targetWidth);
-    return padString(truncated, targetWidth, padding, padStart);
+    return padString(truncated, targetWidth + 1, padding, padStart); // + 1 width to minimum padding after truncation
 }
 
 function createQuickSearch() {
