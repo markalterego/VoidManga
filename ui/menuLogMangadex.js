@@ -1,6 +1,4 @@
-import { takeUserInput, printMenuOptions, isValidLangCode, escapeRegex,
-         openURLInBrowser, isISODate, formatDate, isMatchingAtStart, 
-         createQuickSearch, getArrayAsMoreString} from '../helpers/functions.js';
+import { takeUserInput, printMenuOptions, isValidLangCode, openURLInBrowser, formatDate, isMatchingAtStart,  createQuickSearch, getArrayAsMoreString, padString, truncateThenPadString } from '../helpers/functions.js';
 import { MESSAGE, SYM, logOrderTypes, COMMANDS } from '../helpers/export.js';
 const { mangaOrderTypes, chapterOrderTypes, historyOrderTypes } = logOrderTypes;
 const { PAGE } = COMMANDS;
@@ -78,17 +76,27 @@ async function menuLogMangadex (m, l, c, mfh) {
 }
 
 async function traverseMangas (traversable = null, skipToTraverseChapters = false) {
+    
     const quickSearch = createQuickSearch();
+    
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
     let sortedMangas;
+
     const formatMangaTitle = (index, title, chaptersLength) => {
-        const indexWithPadding = String(index).padEnd(4); // pads up to 4 digits
-        const separatorWithPadding = ':'.padEnd(1); // pads 1 after separator
-        const maxTitleWidth = 35;
-        const truncatedTitle = cliTruncate(title, maxTitleWidth); // cliTruncate takes into account 2 width chars
-        const truncatedTitleWithPadding = truncatedTitle + ' '.repeat(maxTitleWidth - stringWidth(truncatedTitle) + 2); // stringWidth counts 2 width chars 
-        return [indexWithPadding, separatorWithPadding, truncatedTitleWithPadding + `(${chaptersLength})`];
+        // index formatting
+        const index_w = logMangadexOptions.enablePagingManga ? 1 : String(sortedMangas.length).length; 
+        const index_s = padString(String(index), index_w, ' ', true);
+        // separator formatting
+        const separator_w = 1;
+        const separator_s = padString(':', separator_w); 
+        // title formatting
+        const title_w    = 35;
+        const title_s    = truncateThenPadString(title, title_w); 
+        const label_s    = `(${chaptersLength})`;
+        const finalTitle = `${title_s}${label_s}`; 
+        // combine formatted
+        return [index_s, separator_s, finalTitle];
     };
 
     // TODO: 
@@ -332,15 +340,33 @@ async function traverseHistory() {
     let sortedHistory;
     let pagedHistory;
     
-    const formatFetchInfo = (fetchInfo) => {
-        // counting mangas/chapters fetched
+    const formatFetchInfo = (fetchInfo, index) => {
+        // index formatting
+        const index_w = logMangadexOptions.enablePagingHistory ? 1 : String(sortedHistory.length).length;
+        const index_s = padString(String(index), index_w, ' ', true);
+        // separator formatting
+        const separator_w = 1; 
+        const separator_s = padString(':', separator_w);
+        // fetchInfo formatting
+        const date_s1 = formatDate(fetchInfo.details.fetchedAt); // fetchedAt as yyyy-mm-dd hh:mm:ss
+        const date_w  = 21; // string length + 2
+        const date_s2 = padString(date_s1, date_w);
+        
         const values = Object.values(fetchInfo);
-        const fetchedMangas   = countFetchedMangas(values);
-        const paddedMangas    = String(fetchedMangas).padEnd(4, ' ');
-        const fetchedChapters = countFetchedChapters(values);
-        // fetchedAt as yyyy-mm-dd hh:mm:ss
-        const formattedDate = formatDate(fetchInfo.details.fetchedAt);
-        return [`${formattedDate}  m:${paddedMangas} c:${fetchedChapters}`];
+
+        const mangas_c  = countFetchedMangas(values);
+        const mangas_s1 = `m:${mangas_c}`;
+        const mangas_w  = 7;
+        const mangas_s2 = padString(mangas_s1, mangas_w);
+
+        const chapters_c  = countFetchedChapters(values);
+        const chapters_s1 = `c:${chapters_c}`;
+        const chapters_w  = 4;
+        const chapters_s2 = padString(chapters_s1, chapters_w);  
+
+        const finalDate = `${date_s2}${mangas_s2}${chapters_s2}`;
+        // combine formatted
+        return [index_s, separator_s, finalDate];
     };
 
     while (input !== COMMANDS.EXIT) 
@@ -351,7 +377,7 @@ async function traverseHistory() {
         pagedHistory  = pageContent(sortedHistory, pageDetails.currentPageIndex, logMangadexOptions.enablePagingHistory);
 
         // format menu logMangadexOptions
-        const fetchHistory = pagedHistory.map((info) => formatFetchInfo(info));
+        const fetchHistory = pagedHistory.map((info, i) => formatFetchInfo(info, i));
         const history = pagedHistory.length ? [...fetchHistory] : [['?', 'No fetches found']];
         const pageFooter = pagedHistory.length && logMangadexOptions.enablePagingHistory ? 'p' : null;
         const logMangadexOptionsArray = [
