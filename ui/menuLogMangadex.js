@@ -76,9 +76,7 @@ async function menuLogMangadex (m, l, c, mfh) {
 }
 
 async function traverseMangas (traversable = null, skipToTraverseChapters = false) {
-    
     const quickSearch = createQuickSearch();
-    
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 };
     let sortedMangas;
@@ -502,24 +500,42 @@ async function traverseChapters (selectedManga, chapterArr) {
     let sortedChapters;
     let pagedChapters;
 
-    const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga) => {
-        const indexWithPadding = String(index).padEnd(4); // pads up to 4 digit indexes
-        const separatorWithPadding = ':'.padEnd(1); // pads separator once
-        const progressLabelWithPadding = (() => {
-            const vlLabel = volume ? `Vol.${volume}` : ''; 
-            const chLabel = chapter ? `Ch.${chapter}` : ''; 
+    const progress_w = () => {
+        return (logMangadexOptions.enablePagingChapter ? pagedChapters : sortedChapters).reduce((acc, { attributes: { volume, chapter }}) => {
+            const volume_w   = volume ? `Vol.${volume}`.length + 1 : 0; // +1 for gap between Vol. and Ch.
+            const chapter_w  = chapter ? `Ch.${chapter}`.length : 0;
+            const combined_w = volume_w + chapter_w + 3; // v + c + '[] '.length
+            return combined_w > acc ? combined_w : acc;
+        }, 6);
+    };
+
+    const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga, progress_w) => {
+        // index formatting
+        const index_w = logMangadexOptions.enablePagingChapter ? 1 : String(sortedChapters.length).length;
+        const index_s = padString(String(index), index_w, ' ', true);
+        // separator formatting
+        const separator_w = 1;
+        const separator_s = padString(':', separator_w);
+        // title formatting
+        const progress_s = (() => {
+            const vlLabel  = volume ? `Vol.${volume}` : ''; 
+            const chLabel  = chapter ? `Ch.${chapter}` : ''; 
             const combined = [vlLabel, chLabel].filter(Boolean).join(' ');
-            const wrapped = combined ? `[${combined}]` : '[???]';
-            return wrapped.padEnd(18);
+            const wrapped  = combined ? `[${combined}]` : '[???]';
+            return padString(wrapped, progress_w);
         })();
-        const maxTitleWidth = 35;
-        const chTitle = title?.trim() || 'No Title'; // empty strings count as 'No Title'
-        const truncatedTitle = cliTruncate(chTitle, maxTitleWidth);
-        const truncatedTitleWithPadding = truncatedTitle + ' '.repeat(maxTitleWidth - stringWidth(truncatedTitle) + 2); 
-        const transLangWithPadding = `(${translatedLanguage ?? '??-??'})`.padEnd(8); // minimum one padding after max length
+        const title_w  = 35;
+        const title_s1 = title?.trim() || 'No Title'; // empty strings count as 'No Title'
+        const title_s2 = truncateThenPadString(title_s1, title_w);
+        const lang_s1 = `(${translatedLanguage ?? '??-??'})`;
+        const lang_w  = 8;
+        const lang_s2 = padString(lang_s1, lang_w);
         const { num_chapters_read, num_volumes_read } = foundManga?.list_status ?? {};
-        const unreadFlag = (!chapter || num_chapters_read < parseInt(chapter)) && (!volume || num_volumes_read < parseInt(volume)) ? '{( Unread! )}' : '';
-        return [indexWithPadding, separatorWithPadding, `${progressLabelWithPadding}${truncatedTitleWithPadding}${transLangWithPadding}${unreadFlag}`];
+        const isUnread     = (!chapter || num_chapters_read < parseInt(chapter)) && (!volume || num_volumes_read < parseInt(volume));
+        const unreadFlag_s = isUnread ? '{( Unread! )}' : '';
+        const finalTitle = `${progress_s}${title_s2}${lang_s2}${unreadFlag_s}`;
+        // combine formatted
+        return [index_s, separator_s, finalTitle];
     };
 
     while (input !== COMMANDS.EXIT) 
@@ -536,7 +552,7 @@ async function traverseChapters (selectedManga, chapterArr) {
 
         // formatting printMenuOptions parameters
         const header = `Select chapter ${quickSearch.searchLabel}`; 
-        const chapterTitles = pagedChapters.map((ch, index) => formatChapterTitle(index, ch, foundManga));
+        const chapterTitles = pagedChapters.map((ch, index) => formatChapterTitle(index, ch, foundManga, progress_w()));
         const titles = chapterTitles.length ? [...chapterTitles] : [['?', 'No chapters found']];
         const pageFooter = chapterTitles.length && logMangadexOptions.enablePagingChapter ? 'p' : null;
 
