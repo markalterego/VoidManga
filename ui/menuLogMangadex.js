@@ -506,7 +506,7 @@ async function traverseChapters (selectedManga, chapterArr) {
             const chapter_w  = chapter ? `Ch.${chapter}`.length : 0;
             const combined_w = volume_w + chapter_w + 3; // v + c + '[] '.length
             return combined_w > acc ? combined_w : acc;
-        }, 6);
+        }, '[???] '.length);
     };
 
     const formatChapterTitle = (index, { attributes: { title, volume, chapter, translatedLanguage } }, foundManga, progress_w) => {
