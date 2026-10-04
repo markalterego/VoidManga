@@ -500,11 +500,6 @@ async function traverseChapters (selectedManga, chapterArr) {
     let sortedChapters;
     let pagedChapters;
 
-    // TODO:
-    // - optimize progress_w calculation to be only done ONCE for
-    //   when enablePagingChapter = false --- to avoid visible lag 
-    //   each time when logging +1000 chapter titles
-
     const progress_w = () => {
         return pagedChapters.reduce((acc, { attributes: { volume, chapter }}) => {
             const volume_w   = volume ? `Vol.${volume}`.length + 1 : 0; // +1 for gap between Vol. and Ch.
@@ -557,7 +552,8 @@ async function traverseChapters (selectedManga, chapterArr) {
 
         // formatting printMenuOptions parameters
         const header = `Select chapter ${quickSearch.searchLabel}`; 
-        const chapterTitles = pagedChapters.map((ch, index) => formatChapterTitle(index, ch, foundManga, progress_w()));
+        const progress_width = progress_w();
+        const chapterTitles = pagedChapters.map((ch, index) => formatChapterTitle(index, ch, foundManga, progress_width));
         const titles = chapterTitles.length ? [...chapterTitles] : [['?', 'No chapters found']];
         const pageFooter = chapterTitles.length && logMangadexOptions.enablePagingChapter ? 'p' : null;
 
