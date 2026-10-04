@@ -500,8 +500,13 @@ async function traverseChapters (selectedManga, chapterArr) {
     let sortedChapters;
     let pagedChapters;
 
+    // TODO:
+    // - optimize progress_w calculation to be only done ONCE for
+    //   when enablePagingChapter = false --- to avoid visible lag 
+    //   each time when logging +1000 chapter titles
+
     const progress_w = () => {
-        return (logMangadexOptions.enablePagingChapter ? pagedChapters : sortedChapters).reduce((acc, { attributes: { volume, chapter }}) => {
+        return pagedChapters.reduce((acc, { attributes: { volume, chapter }}) => {
             const volume_w   = volume ? `Vol.${volume}`.length + 1 : 0; // +1 for gap between Vol. and Ch.
             const chapter_w  = chapter ? `Ch.${chapter}`.length : 0;
             const combined_w = volume_w + chapter_w + 3; // v + c + '[] '.length
