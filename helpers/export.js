@@ -44,9 +44,11 @@ export const COMMANDS = {
         },
     },
     MAL: {
-        FETCH_USER_LISTS: 'f',
-        ENTRY_ADD:        'a',
-        ENTRY_DELETE:     'd',
+        FETCH_USER_LISTS:           'f',
+        ENTRY_ADD:                  'a',
+        ENTRY_DELETE:               'd',
+        TOGGLE_TRUNCATE_TITLES:     'l',
+        TOGGLE_LOG_ALT_TITLE_FIRST: 'a',
     },
     PAGE: {
         TOGGLE:   't',
@@ -264,7 +266,7 @@ export const DEFAULT_menuMALOptions = {
     fetchMALOnMenuOpen: true,  // true, false
     truncateTitles: true,      // true, false
     logAltTitleFirst: false,   // true, false
-    altTitleLangCode: null,    // null, 'en', 'es-la', etc... 
+    altTitleLangCode: 'en',    // 'en', 'es-la', etc... 
     enablePagingEntries: true, // true, false
     logAuthURL: false          // true, false
 };
