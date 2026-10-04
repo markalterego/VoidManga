@@ -1,5 +1,5 @@
-import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex, isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart, truncateThenPadString} from "../helpers/functions.js";
-import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions, SYM } from "../helpers/export.js";
+import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex, isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart, truncateThenPadString, isValidLangCode} from "../helpers/functions.js";
+import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
 import { ANIME, MANGA, getId, getType, animeStatus, mangaStatus, getTypeString, getPriorityString, getReValueString, priority_values, getTagsString, getNumTimesRe, re_values, getStatusString} from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
@@ -291,7 +291,17 @@ async function traverseEntries (entries = null, { isSearchResults = false } = {}
     let sortedEntries;
     let pagedEntries;
     
-    const formatTitle = (index, entry) => {
+    const title_w = () => {
+        return pagedEntries.reduce((acc, { node: { title, alternative_titles }}) => {
+            // take the length of selected altTitle or the length of title when
+            // altTitle by the lang-code of menuMALOptions.altTitleLangCode
+            // is not found
+            const title_w = (alternative_titles[menuMALOptions.altTitleLangCode] ?? title).length + 1; // +1 for padding after title
+            return title_w > acc ? title_w : acc;
+        }, 'No Title '.length);
+    };
+
+    const formatTitle = (index, entry, title_w) => {
         // index formatting
         const index_w = menuMALOptions.enablePagingEntries ? 1 : String(sortedEntries.length).length; 
         const index_s = padString(String(index), index_w, ' ', true);
@@ -299,17 +309,13 @@ async function traverseEntries (entries = null, { isSearchResults = false } = {}
         const separator_w = 1;
         const separator_s = padString(':', separator_w); 
         // title formatting
-        const title_w    = 35;
-        const title_s    = truncateThenPadString(entry.node.title, title_w); 
+        const title      = menuMALOptions.logAltTitleFirst ? (entry.node.alternative_titles[menuMALOptions.altTitleLangCode] || entry.node.title) : entry.node.title;
+        const title_s    = menuMALOptions.truncateTitles ? truncateThenPadString(title, 35) : padString(title, title_w); 
         const label_s    = `(${getTypeString(entry)}: ${getStatusString(entry)})`;
         const finalTitle = isSearchResults ? `${title_s}${label_s}` : title_s; 
         // combine formatted parts
         return [index_s, separator_s, finalTitle];
     };
-
-    // TODO:
-    // - make truncating titles toggleable
-    // - create option for displaying alternative titles instead of main title
 
     while (input !== COMMANDS.EXIT) 
     {
@@ -319,7 +325,8 @@ async function traverseEntries (entries = null, { isSearchResults = false } = {}
         pagedEntries = pageContent(sortedEntries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
 
         const formattedHeader = `${header} ${quickSearch.searchLabel}`;
-        const entryTitles = pagedEntries.map((e, i) => formatTitle(i, e));
+        const title_width = title_w();
+        const entryTitles = pagedEntries.map((e, i) => formatTitle(i, e, title_width));
         const pageFooter = entryTitles.length && menuMALOptions.enablePagingEntries ? 'p' : null;
         const titles = entryTitles.length ? [...entryTitles] : [['?', 'No entries found']];
 
@@ -328,7 +335,9 @@ async function traverseEntries (entries = null, { isSearchResults = false } = {}
             ...titles,
             pageFooter,
             '_', '_',
-            [PAGE.TOGGLE, `Toggle paging [${menuMALOptions.enablePagingEntries ? 'x' : ''}]`], 
+            [MAL.TOGGLE_TRUNCATE_TITLES,     `Truncate titles  [${menuMALOptions.truncateTitles ? 'x' : ''}]`],
+            [MAL.TOGGLE_LOG_ALT_TITLE_FIRST, `Prefer alt-title ${menuMALOptions.logAltTitleFirst ? `[x] (showing: ${menuMALOptions.altTitleLangCode})` : '[]'}`],
+            [PAGE.TOGGLE,                    `Toggle paging    [${menuMALOptions.enablePagingEntries ? 'x' : ''}]`], 
             ...(menuMALOptions.enablePagingEntries ? [[PAGE.NEXT, 'Next page'], [PAGE.PREVIOUS, 'Previous page']] : [null])
         ];
 
@@ -365,6 +374,12 @@ async function traverseEntries (entries = null, { isSearchResults = false } = {}
             }
         } else if (input === PAGE.TOGGLE) { // toggle paging on/off
             updateConfig(config, () => menuMALOptions.enablePagingEntries = !menuMALOptions.enablePagingEntries);
+        } else if (input === MAL.TOGGLE_TRUNCATE_TITLES) {
+            updateConfig(config, () => menuMALOptions.truncateTitles = !menuMALOptions.truncateTitles);
+        } else if (input === MAL.TOGGLE_LOG_ALT_TITLE_FIRST) {
+            updateConfig(config, () => menuMALOptions.logAltTitleFirst = !menuMALOptions.logAltTitleFirst);
+        } else if (menuMALOptions.logAltTitleFirst && isValidLangCode(input)) {
+            updateConfig(config, () => menuMALOptions.altTitleLangCode = input);
         } else if (menuMALOptions.enablePagingEntries && isPagingInput(input)) { // paging options
             pageDetails = pagingOptions(input, sortedEntries, pageDetails);
         } else if (quickSearch.isSearchCommand(input)) { // quick search/clear quick search
