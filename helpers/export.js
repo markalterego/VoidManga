@@ -262,6 +262,9 @@ export const DEFAULT_logMangadexOptions = {
 };
 export const DEFAULT_menuMALOptions = {
     fetchMALOnMenuOpen: true,  // true, false
+    truncateTitles: true,      // true, false
+    logAltTitleFirst: false,   // true, false
+    altTitleLangCode: null,    // null, 'en', 'es-la', etc... 
     enablePagingEntries: true, // true, false
     logAuthURL: false          // true, false
 };
