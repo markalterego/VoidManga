@@ -462,7 +462,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
     while (input !== COMMANDS.EXIT) 
     {
         entryExists = isEntryAtLists();
-        const { num_episodes, num_chapters, num_volumes, title } = draft.node; 
+        const { num_episodes, num_chapters, num_volumes, title, alternative_titles } = draft.node; 
         const list_status = draft.list_status;
         const { status, is_rereading, is_rewatching, num_volumes_read, 
                 num_chapters_read, num_episodes_watched, score, updated_at,
@@ -490,7 +490,8 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         const s_toggleEntry = entryExists ? [MAL.ENTRY_DELETE, 'Delete entry from lists'] : [MAL.ENTRY_ADD, 'Add entry to lists'];
         const s_log         = [COMMANDS.LOG, 'Log entry'];
 
-        const header = `${entryExists ? 'UPDATE' : 'ADD'} - ${title} (${capitalFirstLetterString(getTypeString(draft))})`;
+        const s_title = menuMALOptions.logAltTitleFirst ? (alternative_titles[menuMALOptions.altTitleLangCode] ?? title) : title;
+        const header  = `${entryExists ? 'UPDATE' : 'ADD'} - ${s_title} (${capitalFirstLetterString(getTypeString(draft))})`;
         const optionsArray = [
             '-', '_',
             [s_status],
