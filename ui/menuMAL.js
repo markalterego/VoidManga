@@ -490,7 +490,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
         const s_toggleEntry = entryExists ? [MAL.ENTRY_DELETE, 'Delete entry from lists'] : [MAL.ENTRY_ADD, 'Add entry to lists'];
         const s_log         = [COMMANDS.LOG, 'Log entry'];
 
-        const s_title = menuMALOptions.logAltTitleFirst ? (alternative_titles[menuMALOptions.altTitleLangCode] ?? title) : title;
+        const s_title = menuMALOptions.logAltTitleFirst ? (alternative_titles[menuMALOptions.altTitleLangCode] || title) : title;
         const header  = `${entryExists ? 'UPDATE' : 'ADD'} - ${s_title} (${capitalFirstLetterString(getTypeString(draft))})`;
         const optionsArray = [
             '-', '_',
@@ -1149,10 +1149,10 @@ async function searchListsByTitleMenu() {
         
         if (typeof input === 'string' && input.length && input !== COMMANDS.EXIT) {
             const regex = new RegExp(`\\b${escapeRegex(input)}`, 'i'); // regex matches input at beginning of each word
-            const matching = lists.flat(2) // arr of entries
+            const matching = lists.flat(Infinity) // arr of entries
                                   .filter(e => regex.test(e.node.title)); // match title to input
             if (!matching.length) { // no matching results
-                console.log('\n\n  No matches found');
+                MESSAGE.print(MESSAGE.MATCHES_NOT_FOUND);
             } else { // traverse results
                 await traverseEntries(matching, { isSearchResults: true });
             }
