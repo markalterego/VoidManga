@@ -270,21 +270,22 @@ async function traverseStatus (typeIndex) {
         if (input >= 0 && input < statuses.length) {
             const statusIndex = input; // selected status
             const entries = lists[typeIndex][statusIndex];
-            await traverseEntries(entries); // traverse entries for selected type and status
+            const selectedStatus = typeIndex === ANIME ? animeStatus[statusIndex] : mangaStatus[statusIndex];
+            await traverseEntries(entries, { status: selectedStatus }); // traverse entries for selected type and status
         } else if (input !== COMMANDS.EXIT) {
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
     }
 }
 
-async function traverseEntries (entries = null, { isSearchResults = false } = {}) {
+async function traverseEntries (entries = null, { isSearchResults = false, status = '???' } = {}) {
     
     // function is used for: 
     // - traversing lists[typeIndex][statusIndex] 
     // - traversing searchResults
 
     const quickSearch = createQuickSearch();
-    const header = isSearchResults ? `Search results` : `Status: ${capitalFirstLetterString(getStatusString(entries[0]))}`;
+    const header = isSearchResults ? `Search results` : `Status: ${capitalFirstLetterString(status)}`;
     
     let input = null;
     let pageDetails = { currentPageIndex: 0, lastPageIndex: 0 }; 
@@ -296,7 +297,7 @@ async function traverseEntries (entries = null, { isSearchResults = false } = {}
             // take the length of selected altTitle or the length of title when
             // altTitle by the lang-code of menuMALOptions.altTitleLangCode
             // is not found
-            const title_w = (alternative_titles[menuMALOptions.altTitleLangCode] ?? title).length + 1; // +1 for padding after title
+            const title_w = (alternative_titles[menuMALOptions.altTitleLangCode] || title).length + 1; // +1 for padding after title
             return title_w > acc ? title_w : acc;
         }, 'No Title '.length);
     };
