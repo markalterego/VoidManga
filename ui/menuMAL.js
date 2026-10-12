@@ -1,7 +1,7 @@
 import { takeUserInput, capitalFirstLetterString, printMenuOptions, escapeRegex, isLeapYear, padString, searchMALDisplay, createQuickSearch, isMatchingAtStart, truncateThenPadString, isValidLangCode} from "../helpers/functions.js";
 import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions } from "../helpers/export.js";
 const { MAL, PAGE } = COMMANDS;
-import { ANIME, MANGA, getId, getType, animeStatus, mangaStatus, getTypeString, getPriorityString, getReValueString, priority_values, getTagsString, getNumTimesRe, re_values, getStatusString} from "../helpers/entryHelpers.js";
+import { ANIME, MANGA, getId, getType, animeStatus, mangaStatus, getTypeString, getPriorityString, getReValueString, priority_values, getTagsString, getNumTimesRe, re_values, getStatusString, getStatus} from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
 import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
@@ -278,7 +278,7 @@ async function traverseStatus (typeIndex) {
     }
 }
 
-async function traverseEntries (entries = null, { isSearchResults = false, status = '???' } = {}) {
+async function traverseEntries (entries = [], { isSearchResults = false, status = '???' } = {}) {
     
     // function is used for: 
     // - traversing lists[typeIndex][statusIndex] 
@@ -359,9 +359,12 @@ async function traverseEntries (entries = null, { isSearchResults = false, statu
             // entry must be manually spliced from SR in order for
             // SR to reflect results existing at lists
 
-            if (isSearchResults && !entryExistsAtLists) {
+            if (isSearchResults && !entryExistsAtLists) { // removing deleted entry
                 const idx = entries.indexOf(entry);
                 if (idx !== -1) entries.splice(idx, 1);
+            } else if (isSearchResults) { // re-finding entry-reference
+                const idx = entries.indexOf(entry);
+                if (idx !== -1) entries[idx] = lists[getType(entry)].flat(Infinity).find(e => getId(e) === getId(entry));
             }
 
             // If an entry was deleted through updateEntryMenu
