@@ -3,7 +3,7 @@ import { MESSAGE, COMMANDS, DEFAULT_fetchMALOptions } from "../helpers/export.js
 const { MAL, PAGE } = COMMANDS;
 import { ANIME, MANGA, getId, getType, animeStatus, mangaStatus, getTypeString, getPriorityString, getReValueString, priority_values, getTagsString, getNumTimesRe, re_values, getStatusString, getStatus} from "../helpers/entryHelpers.js";
 import { updatePageDetails, pageContent, pagingOptions, isPagingInput } from '../helpers/pageHelpers.js';
-import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL } from "../controller/controllerMAL.js";
+import { fetchMALUserLists, updateMAL, searchMAL, deleteMAL, appendListStatusesToSearchResults } from "../controller/controllerMAL.js";
 import { logDataDeepMenu } from "./menuLogDataDeep.js";
 import cliTruncate from "cli-truncate";
 import { updateConfig } from '../controller/controllerConfig.js';
@@ -1186,8 +1186,10 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
 
         // filter existing entries and new entries
         const { entriesToAdd, entriesToEdit } = finalResults.reduce((acc, result) => {
-            const foundAtLists = (searchResult) => lists[getType(searchResult)].flat(Infinity).some(e => e.node.id === searchResult.node.id);
-            const { searchTitle, searchResults, node, list_status } = result;
+            const foundAtLists = (searchResult) => lists[getType(searchResult)]
+                                                        .flat(Infinity)
+                                                        .some(e => getId(e) === getId(searchResult));
+            const { searchResults } = result;
             // [ searchTitle: 'frieren', searchResults: ['frieren manga', 'frieren dj.', ...] ]
             for (const searchResult of searchResults) {
                 const entryExists = foundAtLists(searchResult);
@@ -1199,26 +1201,26 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
             }
             return acc;
         }, { entriesToAdd: [], entriesToEdit: [] });
-        const formatSection = (entry) => {
+
+        // e.g.
+        // 0 → Tobacco Kumo * Anime
+        // 1 → Kemurigusa Monogatari * Anime
+        // 2 → Tobacco to Hai * Anime
+        // 3 → Heart Cocktail * Anime 
+        const formatTitle = (entry) => {
             const title          = entry.node.title;
             const typeLabel      = getType(entry) === ANIME ? '* Anime' : '* Manga';
             const formattedTitle = `${title} ${typeLabel}`; 
             return [index++, formattedTitle];
         };
-        // [ { node, list_status, includeInMangadexFetch }, ... ]
+
         const noResults   = [['?', 'No results found']];
-        const addSection  = entriesToAdd.length  ? entriesToAdd.map(entry => formatSection(entry))  : noResults;
-        const editSection = entriesToEdit.length ? entriesToEdit.map(entry => formatSection(entry)) : noResults;
-        const allEntries = [...entriesToAdd, ...entriesToEdit];
+        const addSection  = entriesToAdd.length ? entriesToAdd.map(entry => formatTitle(entry)) : noResults;
+        const editSection = entriesToEdit.length ? entriesToEdit.map(entry => formatTitle(entry)) : noResults;
+        const allEntries  = [...entriesToAdd, ...entriesToEdit];
         const resultCount = index;
         const addHeader   = ['_', '_', ['Add section', null, null], '_'];
         const editHeader  = ['_', ['Edit section', null, null], '_'];
-        
-        // return [ 
-        //     [`[${searchTitle}]`, null, '\n'], 
-        //     ...formattedResults,
-        //     (sIndex < reduced.entriesToAdd.length - 1 ? '_' : null) // empty line between each result
-        // ];
 
         const optionsArray = [
             ...addHeader,
@@ -1238,7 +1240,15 @@ async function editOrAddEntriesFromSearchResults (finalResults, lists, logAuthUR
         input = await takeUserInput(true);
         
         if (input >= 0 && input < resultCount) {
-            await updateEntryMenu(allEntries[input], lists, logAuthURL);
+            const entry = allEntries[input];
+            await updateEntryMenu(entry, lists, logAuthURL);
+            // re-syncing entries (this is not the most optimal way to do this ... BUT this is pretty much instant
+            //                     even when not optimized so I'll just keep it written like this for now...)
+            finalResults = finalResults.map((item) => ({ 
+                searchResults: item.searchResults.map((e) => ({ node: e.node })), 
+                searchTitle: item.searchTitle }) 
+            );
+            finalResults = appendListStatusesToSearchResults(finalResults, lists);
         } else if (input !== COMMANDS.EXIT) { // invalid input
             MESSAGE.print(MESSAGE.INVALID_INPUT);
         }
