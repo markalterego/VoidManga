@@ -226,4 +226,4 @@ function clearLocalMALData (printMessage = true) {
     return lists;
 }
 
-export { fetchMALUserLists, updateMAL, searchMAL, deleteMAL, clearLocalMALData };
+export { fetchMALUserLists, updateMAL, searchMAL, deleteMAL, clearLocalMALData, appendListStatusesToSearchResults };
