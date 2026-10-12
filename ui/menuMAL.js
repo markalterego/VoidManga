@@ -160,6 +160,7 @@ async function updateSearchMALOptionsMenu() {
 
 async function updateSearchStrings() {
     const MIN_LENGTH = 3;
+    const MAX_QUEUE_SIZE = 5;
     let input = null;
 
     while (input?.toLowerCase() !== COMMANDS.EXIT) 
@@ -180,10 +181,12 @@ async function updateSearchStrings() {
 
         if (input?.toLowerCase() === COMMANDS.CLEAR) {
             updateConfig(config, () => fetchMALOptions.searchStrings = []);
-        } else if (typeof input === 'string' && input.length >= MIN_LENGTH) { // set search string
+        } else if (typeof input === 'string' && input.length >= MIN_LENGTH && fetchMALOptions.searchStrings.length < MAX_QUEUE_SIZE) { // set search string
             updateConfig(config, () => fetchMALOptions.searchStrings = [...new Set(fetchMALOptions.searchStrings).add(input)]);
+        } else if (fetchMALOptions.searchStrings.length >= MAX_QUEUE_SIZE) {
+            MESSAGE.print(`Maximum queue size reached: ${MAX_QUEUE_SIZE}`);
         } else if (input?.toLowerCase() !== COMMANDS.EXIT) {
-            console.log(`\n\n  Minimum required search length: ${MIN_LENGTH} characters`);
+            MESSAGE.print(`Minimum required search length: ${MIN_LENGTH} characters`);
         }
     }
 }
