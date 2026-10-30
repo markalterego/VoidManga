@@ -570,7 +570,7 @@ async function updateEntryMenu (entry, l = null, logAuthURL = null) {
             await updater(draft);
             pushUpdates = entryExists && draftUpdated(list_status, old_list_status);
         } else if (input === COMMANDS.LOG) {
-            await logDataDeepMenu(entry, title, false, true);
+            await logDataDeepMenu(entry, s_title, false, true);
         } else if (!entryExists && input === MAL.ENTRY_ADD) { 
             pushUpdates = true;
         } else if (entryExists && input === MAL.ENTRY_DELETE) {
