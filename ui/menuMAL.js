@@ -321,9 +321,22 @@ async function traverseEntries (entries = [], { isSearchResults = false, status 
         return [index_s, separator_s, finalTitle];
     };
 
+    // TODO: 
+    // - simplify syncing entries upon entry deletion ... currently
+    //   syncing is done in three different places
+    // 
+    // Cases for entry deletion:
+    // - deleting when no filtering is active
+    // - deleting when quickSearch is active
+    // - deleting when entries is initialized with searchResults
+
     while (input !== COMMANDS.EXIT) 
     {
-        const shouldSort = input === null || (input >= 0 && input < pagedEntries.length) || quickSearch.getAndResetJustUpdated(input);
+        const shouldSort = input === null                                               // initial sort
+                        || (input >= 0 && input < pagedEntries.length)                  // check for entry deletion sort
+                        || quickSearch.getAndResetJustUpdated(input)                    // keyword used in search updated
+                        || input === MAL.TOGGLE_LOG_ALT_TITLE_FIRST                     // toggled on/off preferring altTitle display
+                        || (menuMALOptions.logAltTitleFirst && isValidLangCode(input)); // preferred altTitle updated
         sortedEntries = shouldSort ? sortEntries(entries, { searchString: quickSearch.searchString }) : sortedEntries;
         pageDetails = menuMALOptions.enablePagingEntries ? updatePageDetails(pageDetails, sortedEntries) : pageDetails;
         pagedEntries = pageContent(sortedEntries, pageDetails.currentPageIndex, menuMALOptions.enablePagingEntries);
@@ -401,7 +414,10 @@ function sortEntries (entries, { searchString = null } = {}) {
     let sortedEntries = entries;
     // filter by searchString
     if (searchString) {
-        sortedEntries = sortedEntries.filter(e => isMatchingAtStart(searchString, e.node.title));
+        sortedEntries = sortedEntries.filter(({ node: { title, alternative_titles }}) => {
+            const compareTo = menuMALOptions.logAltTitleFirst ? (alternative_titles[menuMALOptions.altTitleLangCode] || title) : title;
+            return isMatchingAtStart(searchString, compareTo);
+        });
     }
     return sortedEntries;
 }
